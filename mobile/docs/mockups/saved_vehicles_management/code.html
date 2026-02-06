@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#13ec5b",
+              "background-light": "#f6f8f6",
+              "background-dark": "#102216",
+            },
+            fontFamily: {
+              "display": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen text-[#111813] dark:text-white">
+<div class="relative flex h-full min-h-screen w-full flex-col max-w-[430px] mx-auto bg-white dark:bg-background-dark shadow-xl overflow-x-hidden">
+<!-- TopAppBar -->
+<div class="flex items-center bg-white dark:bg-background-dark p-4 pb-2 justify-between sticky top-0 z-10 border-b border-gray-100 dark:border-gray-800">
+<div class="text-[#111813] dark:text-white flex size-12 shrink-0 items-center justify-start cursor-pointer">
+<span class="material-symbols-outlined" style="font-size: 24px;">arrow_back_ios</span>
+</div>
+<h2 class="text-[#111813] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-12">My Vehicles</h2>
+</div>
+<div class="flex flex-col flex-1 overflow-y-auto pb-24">
+<!-- SectionHeader -->
+<div class="px-4 pb-2 pt-6">
+<h3 class="text-[#111813] dark:text-white text-xl font-bold leading-tight tracking-[-0.015em]">Saved Vehicles</h3>
+<p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Manage your cars for quick booking</p>
+</div>
+<!-- List Items -->
+<div class="mt-4 space-y-2">
+<!-- Vehicle 1 (Default) -->
+<div class="mx-4 bg-white dark:bg-[#1a2e20] rounded-xl border border-gray-100 dark:border-gray-800 p-4 shadow-sm">
+<div class="flex items-center gap-4 justify-between">
+<div class="flex items-center gap-4">
+<div class="text-[#111813] dark:text-white flex items-center justify-center rounded-lg bg-primary/20 shrink-0 size-12">
+<span class="material-symbols-outlined" style="font-size: 24px;">directions_car</span>
+</div>
+<div class="flex flex-col justify-center">
+<div class="flex items-center gap-2">
+<p class="text-[#111813] dark:text-white text-base font-semibold leading-normal line-clamp-1">Tesla Model 3</p>
+<span class="bg-primary px-2 py-0.5 rounded text-[10px] font-bold text-background-dark uppercase">Default</span>
+</div>
+<p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">AB-123-CD</p>
+</div>
+</div>
+<div class="shrink-0">
+<div class="flex size-7 items-center justify-center">
+<div class="size-3 rounded-full bg-primary shadow-[0_0_8px_rgba(19,236,91,0.6)]"></div>
+</div>
+</div>
+</div>
+<!-- ActionsBar Integrated -->
+<div class="mt-4 pt-4 border-t border-gray-50 dark:border-gray-700">
+<div class="flex gap-4">
+<div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-background-light dark:bg-background-dark/50 cursor-pointer">
+<span class="material-symbols-outlined text-[#111813] dark:text-white" style="font-size: 18px;">edit</span>
+<span class="text-[#111813] dark:text-white text-xs font-medium">Edit</span>
+</div>
+<div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-background-light dark:bg-background-dark/50 cursor-pointer text-red-500">
+<span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
+<span class="text-xs font-medium">Delete</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Vehicle 2 -->
+<div class="mx-4 bg-white dark:bg-[#1a2e20] rounded-xl border border-gray-100 dark:border-gray-800 p-4 shadow-sm opacity-90">
+<div class="flex items-center gap-4 justify-between">
+<div class="flex items-center gap-4">
+<div class="text-[#111813] dark:text-white flex items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800 shrink-0 size-12">
+<span class="material-symbols-outlined" style="font-size: 24px;">airport_shuttle</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-[#111813] dark:text-white text-base font-semibold leading-normal line-clamp-1">Ford F-150</p>
+<p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">XY-987-ZZ</p>
+</div>
+</div>
+<div class="shrink-0">
+<span class="material-symbols-outlined text-gray-400" style="font-size: 20px;">more_vert</span>
+</div>
+</div>
+<div class="mt-4 pt-4 border-t border-gray-50 dark:border-gray-700">
+<div class="flex gap-4">
+<div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-background-light dark:bg-background-dark/50 cursor-pointer">
+<span class="material-symbols-outlined text-[#111813] dark:text-white" style="font-size: 18px;">edit</span>
+<span class="text-[#111813] dark:text-white text-xs font-medium">Edit</span>
+</div>
+<div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-background-light dark:bg-background-dark/50 cursor-pointer text-red-500">
+<span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
+<span class="text-xs font-medium">Delete</span>
+</div>
+<div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/10 cursor-pointer ml-auto">
+<span class="text-primary text-xs font-bold uppercase tracking-wider">Set Default</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Vehicle 3 -->
+<div class="mx-4 bg-white dark:bg-[#1a2e20] rounded-xl border border-gray-100 dark:border-gray-800 p-4 shadow-sm opacity-90">
+<div class="flex items-center gap-4 justify-between">
+<div class="flex items-center gap-4">
+<div class="text-[#111813] dark:text-white flex items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800 shrink-0 size-12">
+<span class="material-symbols-outlined" style="font-size: 24px;">electric_car</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-[#111813] dark:text-white text-base font-semibold leading-normal line-clamp-1">BMW i3</p>
+<p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">EL-456-EV</p>
+</div>
+</div>
+<div class="shrink-0">
+<span class="material-symbols-outlined text-gray-400" style="font-size: 20px;">more_vert</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Floating Action Button / Bottom Button -->
+<div class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] p-6 bg-gradient-to-t from-white via-white/95 to-transparent dark:from-background-dark dark:via-background-dark/95 dark:to-transparent">
+<button class="w-full bg-primary text-background-dark font-bold text-lg py-4 rounded-xl flex items-center justify-center gap-2 shadow-lg hover:shadow-primary/40 transition-shadow">
+<span class="material-symbols-outlined">add</span>
+<span>Add New Vehicle</span>
+</button>
+</div>
+</div>
+</body></html>

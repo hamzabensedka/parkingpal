@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#111318] dark:text-white">
+<div class="relative flex h-auto min-h-screen w-full flex-col bg-background-light dark:bg-background-dark overflow-x-hidden">
+<!-- TopAppBar -->
+<div class="flex items-center bg-white dark:bg-background-dark p-4 pb-2 justify-between sticky top-0 z-10 border-b border-[#dbdfe6] dark:border-gray-800">
+<div class="text-[#111318] dark:text-white flex size-12 shrink-0 items-center">
+<span class="material-symbols-outlined cursor-pointer">arrow_back</span>
+</div>
+<h2 class="text-[#111318] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center">Garage Le Marais</h2>
+<div class="flex w-12 items-center justify-end">
+<button class="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 bg-transparent text-[#111318] dark:text-white gap-2 text-base font-bold leading-normal tracking-[0.015em] min-w-0 p-0">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</div>
+</div>
+<!-- HeaderImage -->
+<div class="@container">
+<div class="@[480px]:px-4 @[480px]:py-3">
+<div class="w-full bg-center bg-no-repeat bg-cover flex flex-col justify-end overflow-hidden bg-gray-200 @[480px]:rounded-xl min-h-80" data-alt="Interior view of a clean modern underground parking garage" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAM9Z845x_4kbtNS919yJdJ62NtoEq-oCxaRnXvjlZVTPDclmu_pYTfH_heeQ4WFW5oQIQJkUb6tLOVuq5ewGTTZG0aJWpBvGAHU4ojb6BoTaRpYLZNX42AdWxgGFc7uvue3ml3RqMgCVEZ89Y_SL0XHQ3R_5X7OANhgIWm8xIQByXBIa999yD-XmF9rLO9HVY3vSbfxWL7PQqnOIuZvQkMoPesvHm0DecFV0DyXT_bMDVviqNU9bdTCPnVq7GXXt88j_WuKWfCIFcZ");'>
+</div>
+</div>
+</div>
+<!-- ActionPanel: Status Toggle -->
+<div class="p-4 @container">
+<div class="flex flex-1 flex-col items-start justify-between gap-4 rounded-xl border border-[#dbdfe6] dark:border-gray-800 bg-white dark:bg-background-dark p-5 @[480px]:flex-row @[480px]:items-center">
+<div class="flex flex-col gap-1">
+<p class="text-[#111318] dark:text-white text-base font-bold leading-tight">Listing Status</p>
+<p class="text-[#616f89] dark:text-gray-400 text-sm font-normal leading-normal">Your spot is currently visible to drivers.</p>
+</div>
+<label class="relative flex h-[31px] w-[51px] cursor-pointer items-center rounded-full border-none bg-[#f0f2f4] dark:bg-gray-700 p-0.5 has-[:checked]:justify-end has-[:checked]:bg-primary">
+<div class="h-full w-[27px] rounded-full bg-white" style="box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 8px, rgba(0, 0, 0, 0.06) 0px 3px 1px;"></div>
+<input checked="" class="invisible absolute" type="checkbox"/>
+</label>
+</div>
+</div>
+<!-- ButtonGroup -->
+<div class="flex justify-stretch">
+<div class="flex flex-1 gap-3 flex-wrap px-4 py-1 justify-between">
+<button class="flex-1 min-w-[140px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em] shadow-sm">
+<span class="truncate">Edit Listing</span>
+</button>
+<button class="flex-1 min-w-[140px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-4 bg-[#f0f2f4] dark:bg-gray-800 text-[#111318] dark:text-white text-sm font-bold leading-normal tracking-[0.015em] border border-[#dbdfe6] dark:border-gray-700">
+<span class="truncate">View Bookings</span>
+</button>
+</div>
+</div>
+<!-- SectionHeader: Performance Overview -->
+<div class="px-4 pt-4">
+<h3 class="text-[#111318] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Performance Overview</h3>
+</div>
+<!-- Stats Grid (Custom component for performance stats) -->
+<div class="grid grid-cols-2 gap-4 p-4">
+<div class="flex flex-col gap-2 rounded-xl border border-[#dbdfe6] dark:border-gray-800 bg-white dark:bg-background-dark p-5">
+<div class="text-primary">
+<span class="material-symbols-outlined">calendar_today</span>
+</div>
+<p class="text-[#616f89] dark:text-gray-400 text-xs font-medium uppercase tracking-wider">This Month</p>
+<p class="text-[#111318] dark:text-white text-2xl font-bold">12 times</p>
+<p class="text-green-600 text-xs font-bold leading-tight">+15% from last month</p>
+</div>
+<div class="flex flex-col gap-2 rounded-xl border border-[#dbdfe6] dark:border-gray-800 bg-white dark:bg-background-dark p-5">
+<div class="text-primary">
+<span class="material-symbols-outlined">payments</span>
+</div>
+<p class="text-[#616f89] dark:text-gray-400 text-xs font-medium uppercase tracking-wider">Earnings</p>
+<p class="text-[#111318] dark:text-white text-2xl font-bold">€342.00</p>
+<p class="text-green-600 text-xs font-bold leading-tight">Payout scheduled</p>
+</div>
+</div>
+<!-- Detailed Stats (Additional Info) -->
+<div class="px-4 pb-10">
+<div class="flex items-center justify-between p-4 bg-primary/10 dark:bg-primary/20 rounded-xl border border-primary/20">
+<div class="flex items-center gap-3">
+<div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-white">
+<span class="material-symbols-outlined">star</span>
+</div>
+<div>
+<p class="text-[#111318] dark:text-white font-bold text-sm">Top Rated Spot</p>
+<p class="text-[#616f89] dark:text-gray-300 text-xs">4.9 average rating from drivers</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-primary">chevron_right</span>
+</div>
+</div>
+<div class="h-10 bg-transparent"></div>
+</div>
+</body></html>

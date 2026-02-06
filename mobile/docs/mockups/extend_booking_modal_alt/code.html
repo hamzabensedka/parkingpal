@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Extend Booking Modal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#13ec5b",
+              "background-light": "#f6f8f6",
+              "background-dark": "#102216",
+            },
+            fontFamily: {
+              "display": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .radio-dot-svg {
+            --radio-dot-svg: url('data:image/svg+xml,%3csvg viewBox=%270 0 16 16%27 fill=%27rgb(17,24,19)%27 xmlns=%27http://www.w3.org/2000/svg%27%3e%3ccircle cx=%278%27 cy=%278%27 r=%273%27/%3e%3c/svg%3e');
+        }
+        .dark .radio-dot-svg {
+            --radio-dot-svg: url('data:image/svg+xml,%3csvg viewBox=%270 0 16 16%27 fill=%27rgb(19,236,91)%27 xmlns=%27http://www.w3.org/2000/svg%27%3e%3ccircle cx=%278%27 cy=%278%27 r=%273%27/%3e%3c/svg%3e');
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-gray-200 dark:bg-black font-display">
+<div class="relative mx-auto min-h-screen max-w-[430px] overflow-hidden bg-background-light dark:bg-background-dark shadow-2xl">
+<!-- Mock Active Booking Screen (Background) -->
+<div class="flex flex-col h-full w-full opacity-40 pointer-events-none">
+<div class="px-4 pt-12 pb-4 flex justify-between items-center">
+<span class="material-symbols-outlined text-2xl dark:text-white">arrow_back_ios</span>
+<h1 class="text-lg font-bold dark:text-white">Active Booking</h1>
+<span class="material-symbols-outlined text-2xl dark:text-white">more_horiz</span>
+</div>
+<div class="mx-4 mt-4 h-64 rounded-xl bg-gray-300 dark:bg-gray-800 flex items-center justify-center relative overflow-hidden">
+<div class="absolute inset-0 bg-cover bg-center" data-alt="Map showing current parking location" data-location="San Francisco, CA" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDz2Bf5WJF9xCvAkDQFuZvHXtA60J0jUcLS79aGaA9vnja3LnVEw3J6uyt8Apxi4ntbTU7RyYN1U5UBcHrBpvcP8WKMWsOK5RGiAfrgHVPBvix7hQqCXdIefXRkO3HUxv3utsfimNCF9jp571WYYKza9YcGtCpABxDn47NYS6Bgi_lYNvcqvb9sn4BQPiMZouSzRUExQSeeafeUHotZmAyYSCIxt-jrnAoLGIy7klq01rGiVY_Kki0MK89rExAqdfsaWxSRNZHaufQn')"></div>
+<div class="z-10 bg-white dark:bg-gray-900 p-3 rounded-full shadow-lg border-4 border-primary">
+<span class="material-symbols-outlined text-primary">directions_car</span>
+</div>
+</div>
+<div class="p-6">
+<div class="flex justify-between items-end mb-6">
+<div>
+<p class="text-sm text-gray-500 dark:text-gray-400">Remaining Time</p>
+<h2 class="text-4xl font-bold dark:text-white">00:14:52</h2>
+</div>
+<div class="text-right">
+<p class="text-sm text-gray-500 dark:text-gray-400">Total Paid</p>
+<p class="text-xl font-semibold dark:text-white">$12.00</p>
+</div>
+</div>
+<div class="space-y-4">
+<div class="h-4 bg-gray-200 dark:bg-gray-800 rounded-full w-full"></div>
+<div class="h-4 bg-gray-200 dark:bg-gray-800 rounded-full w-3/4"></div>
+</div>
+</div>
+</div>
+<!-- Backdrop Overlay -->
+<div class="absolute inset-0 bg-black/40 z-20"></div>
+<!-- Bottom Sheet Modal -->
+<div class="absolute bottom-0 left-0 right-0 z-30 flex flex-col items-stretch bg-white dark:bg-[#1a2e20] rounded-t-xl shadow-[0_-8px_30px_rgb(0,0,0,0.12)]">
+<!-- BottomSheetHandle -->
+<button class="flex h-6 w-full items-center justify-center pt-2">
+<div class="h-1.5 w-12 rounded-full bg-[#dbe6df] dark:bg-gray-600"></div>
+</button>
+<!-- HeadlineText -->
+<div class="flex flex-col items-center">
+<h3 class="text-[#111813] dark:text-white tracking-light text-2xl font-bold leading-tight px-4 text-center pt-4">Need more time?</h3>
+<p class="text-sm text-[#61896f] dark:text-gray-400 px-6 text-center mt-1">Select an extension to avoid expiration penalties.</p>
+</div>
+<!-- RadioList -->
+<div class="radio-dot-svg flex flex-col gap-3 p-6">
+<label class="flex items-center gap-4 rounded-xl border border-solid border-[#dbe6df] dark:border-gray-700 p-4 flex-row-reverse transition-colors hover:bg-primary/5 cursor-pointer">
+<input checked="" class="h-5 w-5 border-2 border-[#dbe6df] dark:border-gray-600 bg-transparent text-transparent checked:border-[#111813] dark:checked:border-primary checked:bg-[image:--radio-dot-svg] focus:outline-none focus:ring-0 focus:ring-offset-0" name="extension_time" type="radio"/>
+<div class="flex grow flex-col">
+<p class="text-[#111813] dark:text-white text-base font-semibold leading-normal">+30 mins</p>
+<p class="text-[#61896f] dark:text-primary text-sm font-normal leading-normal">+$2.50</p>
+</div>
+</label>
+<label class="flex items-center gap-4 rounded-xl border border-solid border-[#dbe6df] dark:border-gray-700 p-4 flex-row-reverse transition-colors hover:bg-primary/5 cursor-pointer">
+<input class="h-5 w-5 border-2 border-[#dbe6df] dark:border-gray-600 bg-transparent text-transparent checked:border-[#111813] dark:checked:border-primary checked:bg-[image:--radio-dot-svg] focus:outline-none focus:ring-0 focus:ring-offset-0" name="extension_time" type="radio"/>
+<div class="flex grow flex-col">
+<p class="text-[#111813] dark:text-white text-base font-semibold leading-normal">+1 hour</p>
+<p class="text-[#61896f] dark:text-primary text-sm font-normal leading-normal">+$4.50</p>
+</div>
+</label>
+<label class="flex items-center gap-4 rounded-xl border border-solid border-[#dbe6df] dark:border-gray-700 p-4 flex-row-reverse transition-colors hover:bg-primary/5 cursor-pointer">
+<input class="h-5 w-5 border-2 border-[#dbe6df] dark:border-gray-600 bg-transparent text-transparent checked:border-[#111813] dark:checked:border-primary checked:bg-[image:--radio-dot-svg] focus:outline-none focus:ring-0 focus:ring-offset-0" name="extension_time" type="radio"/>
+<div class="flex grow flex-col">
+<p class="text-[#111813] dark:text-white text-base font-semibold leading-normal">+2 hours</p>
+<p class="text-[#61896f] dark:text-primary text-sm font-normal leading-normal">+$8.00</p>
+</div>
+</label>
+</div>
+<!-- SingleButton -->
+<div class="flex px-6 pb-10 pt-2">
+<button class="flex min-w-[84px] w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl h-14 px-5 bg-primary text-[#111813] text-lg font-bold leading-normal tracking-[0.015em] shadow-lg shadow-primary/20 active:scale-95 transition-transform">
+<span class="truncate">Confirm Extension</span>
+</button>
+</div>
+</div>
+<!-- iOS Indicator -->
+<div class="absolute bottom-1 left-1/2 -translate-x-1/2 w-32 h-1.5 bg-black/20 dark:bg-white/20 rounded-full z-40"></div>
+</div>
+</body></html>

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Onboarding - Earn Money</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13ec80",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#102219",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-[#111814] dark:text-white font-display">
+<div class="relative flex h-full min-h-screen w-full flex-col overflow-hidden group/design-root">
+<!-- Header Image Area -->
+<div class="@container flex-grow flex flex-col justify-end relative">
+<div class="absolute inset-0 z-0">
+<div class="w-full h-full bg-center bg-no-repeat bg-cover" data-alt="Illustration of happy person with parked car and money icons" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDxF6XXzceRemyxeKswKPXEoDwgfdq0PEBqRcsxiJknxFJvW98WfdIHmoxp0suwhCza7p1Rr7EBK8jWuwiwj0dP4mNk_yiAm-XKljg3vy5oXSPmXfY0WD-9LAaVyWwyH2L8cNLNmX18sLSkLe12bjKbnKGQaM2RKKPqa2o8t4SA1hlywFCOLxmZe5Dm8smTg8BN5xX9Tio5yPLUxb65AG-VwkYY9uIg5ez8uAIX4ENWPn-wl8D5xPi6JLbAeBokMmly3NPSIc2XCiC3");'>
+<!-- Overlay for better text legibility if needed, though this design puts text below -->
+<div class="absolute inset-0 bg-gradient-to-b from-transparent via-background-light/20 to-background-light dark:via-background-dark/20 dark:to-background-dark"></div>
+</div>
+</div>
+<!-- Content Wrapper -->
+<div class="relative z-10 w-full pb-8 pt-32 px-6 flex flex-col items-center bg-gradient-to-t from-background-light via-background-light/90 to-transparent dark:from-background-dark dark:via-background-dark/90">
+<!-- Page Indicators -->
+<div class="flex w-full flex-row items-center justify-center gap-3 py-6">
+<div class="h-2 w-2 rounded-full bg-[#dbe6e0] dark:bg-[#2c3e34]"></div>
+<div class="h-2 w-6 rounded-full bg-[#111814] dark:bg-primary"></div>
+<div class="h-2 w-2 rounded-full bg-[#dbe6e0] dark:bg-[#2c3e34]"></div>
+</div>
+<!-- Headline -->
+<h1 class="text-[#111814] dark:text-white tracking-tight text-[32px] font-bold leading-tight text-center pb-3">
+                    Earn money from your empty spot
+                </h1>
+<!-- Body Text -->
+<p class="text-[#63756b] dark:text-[#a0b0a8] text-base font-normal leading-normal text-center pb-8 max-w-[320px]">
+                    List your driveway, garage, or space and get paid hourly with zero hassle.
+                </p>
+<!-- Action Button -->
+<div class="w-full max-w-[480px]">
+<button class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl h-14 px-5 bg-primary hover:bg-[#0fd673] transition-colors text-[#111814] text-lg font-bold leading-normal tracking-[0.015em]">
+<span class="truncate">Next</span>
+</button>
+<button class="flex w-full cursor-pointer items-center justify-center mt-4 text-[#63756b] dark:text-[#a0b0a8] text-sm font-medium hover:text-[#111814] dark:hover:text-white transition-colors">
+                        Skip
+                    </button>
+</div>
+</div>
+</div>
+</div>
+</body></html>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Profile - ParkingPal</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2b8cee",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                        "card-light": "#ffffff",
+                        "card-dark": "#1b2633",
+                        "text-primary-light": "#111418",
+                        "text-primary-dark": "#ffffff",
+                        "text-secondary-light": "#617589",
+                        "text-secondary-dark": "#9ba8b8",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar hide for cleaner UI if needed */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-display bg-background-light dark:bg-background-dark text-text-primary-light dark:text-text-primary-dark antialiased transition-colors duration-200">
+<div class="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden max-w-md mx-auto shadow-2xl bg-background-light dark:bg-background-dark">
+<!-- TopAppBar -->
+<div class="flex items-center px-4 py-4 justify-between sticky top-0 z-10 bg-background-light/90 dark:bg-background-dark/90 backdrop-blur-md">
+<button class="flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined text-text-primary-light dark:text-text-primary-dark" style="font-size: 24px;">arrow_back_ios_new</span>
+</button>
+<h2 class="text-text-primary-light dark:text-text-primary-dark text-lg font-bold leading-tight tracking-tight flex-1 text-center pr-10">Profile</h2>
+</div>
+<!-- ProfileHeader -->
+<div class="flex flex-col items-center justify-center pb-8 pt-4">
+<div class="relative">
+<div class="bg-center bg-no-repeat bg-cover rounded-full h-32 w-32 shadow-lg ring-4 ring-white dark:ring-card-dark" data-alt="Portrait of user Alex Martin smiling outdoors" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDZ2pTw-oLYRqYnAbDHYuJwwz1b-YZvh-Vn-ZOL5BMSvxTKqfekGYLzeZ62blGOg9EwkQ2A2eo_d3rbpG4n9rYfBUoj6rCIexbOJplo06NpIav3ic2vBrQD-KUpiJPF3B7OaoVsRrBi8C2gbAg5mb6i9-nBLY-ksoTXdiuBv8YJRWkjArCGNvZvpmUTJd8Cx8y85K45FJf7Z9ilqYFMKxNwgeEQr7OvMRXfFwNA99CoN5ummgyQSZ4AKXQBzN8GUSNXoTEIp-lrRF0S");'>
+</div>
+<div class="absolute bottom-0 right-0 bg-primary rounded-full p-1.5 ring-4 ring-white dark:ring-background-dark flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-[16px] leading-none">edit</span>
+</div>
+</div>
+<div class="mt-4 text-center">
+<h1 class="text-text-primary-light dark:text-text-primary-dark text-2xl font-bold leading-tight tracking-tight">Alex Martin</h1>
+<p class="text-text-secondary-light dark:text-text-secondary-dark text-sm font-medium mt-1">Member since 2024</p>
+</div>
+</div>
+<!-- Vehicles Section -->
+<div class="flex flex-col px-4 mb-6">
+<h3 class="text-text-primary-light dark:text-text-primary-dark text-lg font-bold leading-tight mb-3 px-1">My Vehicles</h3>
+<div class="bg-card-light dark:bg-card-dark rounded-xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-800">
+<!-- List Item: Vehicle -->
+<div class="flex items-center gap-4 p-4 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors cursor-pointer group">
+<div class="flex items-center justify-center rounded-full bg-blue-50 dark:bg-blue-900/20 text-primary shrink-0 size-12">
+<span class="material-symbols-outlined">directions_car</span>
+</div>
+<div class="flex flex-col flex-1">
+<p class="text-text-primary-light dark:text-text-primary-dark text-base font-semibold leading-normal">Toyota Camry</p>
+<p class="text-text-secondary-light dark:text-text-secondary-dark text-sm font-normal leading-normal">ABC 1234</p>
+</div>
+<span class="material-symbols-outlined text-gray-400 dark:text-gray-600 group-hover:text-primary transition-colors">chevron_right</span>
+</div>
+</div>
+</div>
+<!-- Payment Methods Section -->
+<div class="flex flex-col px-4 mb-6">
+<h3 class="text-text-primary-light dark:text-text-primary-dark text-lg font-bold leading-tight mb-3 px-1">Payment Methods</h3>
+<div class="bg-card-light dark:bg-card-dark rounded-xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-800">
+<!-- List Item: Payment -->
+<div class="flex items-center gap-4 p-4 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors cursor-pointer group">
+<div class="flex items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 shrink-0 size-12">
+<span class="material-symbols-outlined">credit_card</span>
+</div>
+<div class="flex flex-col flex-1">
+<div class="flex items-center gap-2">
+<p class="text-text-primary-light dark:text-text-primary-dark text-base font-semibold leading-normal">Visa ending in 4242</p>
+</div>
+<p class="text-text-secondary-light dark:text-text-secondary-dark text-sm font-normal leading-normal">Expires 12/28</p>
+</div>
+<div class="flex items-center gap-3">
+<span class="px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-wider">Default</span>
+<span class="material-symbols-outlined text-gray-400 dark:text-gray-600 group-hover:text-primary transition-colors">chevron_right</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Account Settings Section -->
+<div class="flex flex-col px-4 mb-8">
+<h3 class="text-text-primary-light dark:text-text-primary-dark text-lg font-bold leading-tight mb-3 px-1">Account Settings</h3>
+<div class="bg-card-light dark:bg-card-dark rounded-xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-800 divide-y divide-gray-100 dark:divide-gray-800">
+<!-- List Item: Notifications -->
+<div class="flex items-center gap-4 p-4 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors cursor-pointer group">
+<div class="flex items-center justify-center rounded-full bg-orange-50 dark:bg-orange-900/20 text-orange-500 shrink-0 size-10">
+<span class="material-symbols-outlined" style="font-size: 20px;">notifications</span>
+</div>
+<div class="flex flex-col flex-1">
+<p class="text-text-primary-light dark:text-text-primary-dark text-base font-medium leading-normal">Notifications</p>
+</div>
+<span class="material-symbols-outlined text-gray-400 dark:text-gray-600 group-hover:text-primary transition-colors">chevron_right</span>
+</div>
+<!-- List Item: Privacy -->
+<div class="flex items-center gap-4 p-4 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors cursor-pointer group">
+<div class="flex items-center justify-center rounded-full bg-purple-50 dark:bg-purple-900/20 text-purple-500 shrink-0 size-10">
+<span class="material-symbols-outlined" style="font-size: 20px;">lock</span>
+</div>
+<div class="flex flex-col flex-1">
+<p class="text-text-primary-light dark:text-text-primary-dark text-base font-medium leading-normal">Privacy &amp; Security</p>
+</div>
+<span class="material-symbols-outlined text-gray-400 dark:text-gray-600 group-hover:text-primary transition-colors">chevron_right</span>
+</div>
+<!-- List Item: Help (Extra for completeness) -->
+<div class="flex items-center gap-4 p-4 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors cursor-pointer group">
+<div class="flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 shrink-0 size-10">
+<span class="material-symbols-outlined" style="font-size: 20px;">help</span>
+</div>
+<div class="flex flex-col flex-1">
+<p class="text-text-primary-light dark:text-text-primary-dark text-base font-medium leading-normal">Help &amp; Support</p>
+</div>
+<span class="material-symbols-outlined text-gray-400 dark:text-gray-600 group-hover:text-primary transition-colors">chevron_right</span>
+</div>
+</div>
+</div>
+<!-- Log Out Button -->
+<div class="px-4 pb-12">
+<button class="w-full py-4 rounded-xl text-red-500 dark:text-red-400 font-bold text-base bg-card-light dark:bg-card-dark border border-gray-100 dark:border-gray-800 shadow-sm hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors">
+                Log Out
+            </button>
+</div>
+</div>
+</body></html>

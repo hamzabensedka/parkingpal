@@ -1,0 +1,65 @@
+{
+  "expo": {
+    "name": "ParkingPal",
+    "slug": "parkingpal",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#40916c"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.parkingpal.app",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "ParkingPal needs your location to find parking spots near you.",
+        "NSLocationAlwaysUsageDescription": "ParkingPal needs your location to navigate you to parking spots.",
+        "NSCameraUsageDescription": "ParkingPal needs camera access to take photos of your ID and parking spots.",
+        "NSPhotoLibraryUsageDescription": "ParkingPal needs photo library access to upload photos of parking spots."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#40916c"
+      },
+      "package": "com.parkingpal.app",
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ]
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow ParkingPal to use your location to find nearby parking spots."
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow ParkingPal to access your camera to take photos."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow ParkingPal to access your photos to upload images."
+        }
+      ]
+    ]
+  }
+}

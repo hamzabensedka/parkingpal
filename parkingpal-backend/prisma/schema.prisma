@@ -1,0 +1,83 @@
+// Prisma Schema for ParkingPal Authentication System
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  // Primary Key
+  id                String    @id @default(uuid())
+
+  // Authentication
+  email             String    @unique
+  phone             String?   @unique
+  password          String    // Hashed with bcrypt
+
+  // Personal Info
+  firstName         String
+  lastName          String
+  profilePhoto      String?   // URL to uploaded photo
+
+  // User Type
+  userType          UserType  @default(RENTER)
+
+  // Verification Status
+  emailVerified     Boolean   @default(false)
+  emailVerifiedAt   DateTime?
+  phoneVerified     Boolean   @default(false)
+  phoneVerifiedAt   DateTime?
+  idVerified        Boolean   @default(false)
+  idVerifiedAt      DateTime?
+  idDocument        String?   // URL to uploaded ID
+
+  // Tokens
+  emailVerificationToken    String?
+  emailVerificationExpires  DateTime?
+  passwordResetToken        String?
+  passwordResetExpires      DateTime?
+  refreshToken              String?   // For JWT refresh
+
+  // Account Status
+  isActive          Boolean   @default(true)
+  isSuspended       Boolean   @default(false)
+  suspendedReason   String?
+
+  // Ratings (to be used later with reviews)
+  rating            Float     @default(0)
+  reviewCount       Int       @default(0)
+
+  // Superhost status (for hosts)
+  isSuperhost       Boolean   @default(false)
+
+  // Timestamps
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  lastLoginAt       DateTime?
+
+  // Future Relations (uncomment when building other modules)
+  // spots          Spot[]
+  // bookingsAsRenter  Booking[] @relation("RenterBookings")
+  // bookingsAsHost    Booking[] @relation("HostBookings")
+  // reviewsGiven      Review[]  @relation("ReviewsGiven")
+  // reviewsReceived   Review[]  @relation("ReviewsReceived")
+  // messagesSent      Message[] @relation("MessagesSent")
+  // messagesReceived  Message[] @relation("MessagesReceived")
+
+  @@map("users")
+  @@index([email])
+  @@index([phone])
+  @@index([emailVerificationToken])
+  @@index([passwordResetToken])
+  @@index([refreshToken])
+}
+
+enum UserType {
+  RENTER    // User who rents parking spots
+  HOST      // User who lists parking spots
+  BOTH      // User can do both
+}

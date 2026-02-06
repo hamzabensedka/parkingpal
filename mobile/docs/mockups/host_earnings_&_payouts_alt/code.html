@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Host Earnings &amp; Payouts - ParkingPal</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13ec92",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#10221a",
+                        "surface-light": "#ffffff",
+                        "surface-dark": "#1c3026",
+                        "text-main-light": "#111815",
+                        "text-main-dark": "#e0e6e4",
+                        "text-sub-light": "#618979",
+                        "text-sub-dark": "#8fa89d",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar hide for cleaner mobile look */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-text-main-light dark:text-text-main-dark font-display min-h-screen flex flex-col overflow-x-hidden">
+<!-- Top App Bar -->
+<header class="sticky top-0 z-50 bg-surface-light/95 dark:bg-surface-dark/95 backdrop-blur-md px-4 py-3 flex items-center justify-between border-b border-gray-100 dark:border-gray-800 transition-colors duration-200">
+<button class="flex items-center justify-center p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+<span class="material-symbols-outlined text-text-main-light dark:text-text-main-dark">arrow_back</span>
+</button>
+<h1 class="text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-10">Earnings</h1>
+</header>
+<main class="flex-1 flex flex-col gap-6 p-4 w-full max-w-md mx-auto">
+<!-- Quick Stats Cards -->
+<div class="grid grid-cols-2 gap-4">
+<!-- Total Earnings -->
+<div class="flex flex-col gap-3 rounded-xl p-5 bg-surface-light dark:bg-surface-dark shadow-sm border border-gray-100 dark:border-gray-800">
+<div class="flex items-center gap-2 text-text-sub-light dark:text-text-sub-dark">
+<span class="material-symbols-outlined text-[20px]">account_balance_wallet</span>
+<p class="text-sm font-medium leading-normal">Total Earnings</p>
+</div>
+<p class="text-2xl font-bold leading-tight tracking-tight">$1,240.50</p>
+<div class="h-1 w-full bg-gray-100 dark:bg-gray-700 rounded-full mt-auto">
+<div class="h-1 bg-primary rounded-full w-3/4"></div>
+</div>
+</div>
+<!-- Available to Withdraw -->
+<div class="flex flex-col gap-3 rounded-xl p-5 bg-primary text-background-dark shadow-md shadow-primary/20">
+<div class="flex items-center gap-2 text-background-dark/80">
+<span class="material-symbols-outlined text-[20px]">payments</span>
+<p class="text-sm font-medium leading-normal">Available</p>
+</div>
+<p class="text-2xl font-bold leading-tight tracking-tight text-background-dark">$340.00</p>
+<button class="mt-auto w-full py-1.5 px-3 bg-background-dark/10 hover:bg-background-dark/20 rounded-lg text-xs font-bold text-center transition-colors">
+                    Withdraw Now
+                </button>
+</div>
+</div>
+<!-- Weekly Earnings Chart -->
+<section class="rounded-xl bg-surface-light dark:bg-surface-dark p-5 shadow-sm border border-gray-100 dark:border-gray-800">
+<div class="flex items-start justify-between mb-6">
+<div class="flex flex-col gap-1">
+<p class="text-text-sub-light dark:text-text-sub-dark text-sm font-medium">Weekly Performance</p>
+<div class="flex items-baseline gap-2">
+<p class="text-3xl font-bold tracking-tight">$450.00</p>
+<span class="inline-flex items-center text-xs font-bold text-green-600 bg-green-100 dark:bg-green-900/30 dark:text-green-400 px-1.5 py-0.5 rounded-md">
+<span class="material-symbols-outlined text-[12px] mr-0.5">trending_up</span>
+                            +12%
+                        </span>
+</div>
+</div>
+<div class="p-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
+<span class="material-symbols-outlined text-text-sub-light dark:text-text-sub-dark">calendar_today</span>
+</div>
+</div>
+<div class="grid grid-cols-7 gap-2 h-40 items-end">
+<!-- Mon -->
+<div class="group flex flex-col items-center gap-2 h-full justify-end">
+<div class="w-full bg-primary/20 dark:bg-primary/10 rounded-t-md relative group-hover:bg-primary/40 transition-all duration-300" style="height: 10%;"></div>
+<span class="text-xs font-medium text-text-sub-light dark:text-text-sub-dark">M</span>
+</div>
+<!-- Tue -->
+<div class="group flex flex-col items-center gap-2 h-full justify-end">
+<div class="w-full bg-primary/20 dark:bg-primary/10 rounded-t-md relative group-hover:bg-primary/40 transition-all duration-300" style="height: 10%;"></div>
+<span class="text-xs font-medium text-text-sub-light dark:text-text-sub-dark">T</span>
+</div>
+<!-- Wed (Peak) -->
+<div class="group flex flex-col items-center gap-2 h-full justify-end">
+<div class="w-full bg-primary rounded-t-md relative shadow-[0_0_15px_-3px_rgba(19,236,146,0.3)]" style="height: 90%;"></div>
+<span class="text-xs font-bold text-primary">W</span>
+</div>
+<!-- Thu -->
+<div class="group flex flex-col items-center gap-2 h-full justify-end">
+<div class="w-full bg-gray-100 dark:bg-gray-800 rounded-t-md relative group-hover:bg-gray-200 dark:group-hover:bg-gray-700 transition-all duration-300" style="height: 4px;"></div>
+<span class="text-xs font-medium text-text-sub-light dark:text-text-sub-dark">T</span>
+</div>
+<!-- Fri -->
+<div class="group flex flex-col items-center gap-2 h-full justify-end">
+<div class="w-full bg-primary/60 dark:bg-primary/40 rounded-t-md relative group-hover:bg-primary/80 transition-all duration-300" style="height: 50%;"></div>
+<span class="text-xs font-medium text-text-sub-light dark:text-text-sub-dark">F</span>
+</div>
+<!-- Sat -->
+<div class="group flex flex-col items-center gap-2 h-full justify-end">
+<div class="w-full bg-primary/40 dark:bg-primary/25 rounded-t-md relative group-hover:bg-primary/60 transition-all duration-300" style="height: 30%;"></div>
+<span class="text-xs font-medium text-text-sub-light dark:text-text-sub-dark">S</span>
+</div>
+<!-- Sun -->
+<div class="group flex flex-col items-center gap-2 h-full justify-end">
+<div class="w-full bg-primary/30 dark:bg-primary/20 rounded-t-md relative group-hover:bg-primary/50 transition-all duration-300" style="height: 20%;"></div>
+<span class="text-xs font-medium text-text-sub-light dark:text-text-sub-dark">S</span>
+</div>
+</div>
+</section>
+<!-- Recent Transactions -->
+<section class="flex flex-col gap-2">
+<div class="flex items-center justify-between px-1">
+<h3 class="text-lg font-bold leading-tight tracking-[-0.015em]">Recent Activity</h3>
+<a class="text-sm font-medium text-primary hover:text-primary/80" href="#">See All</a>
+</div>
+<div class="flex flex-col gap-3">
+<!-- Transaction Item 1 (Paid) -->
+<div class="flex items-center justify-between p-4 bg-surface-light dark:bg-surface-dark rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
+<div class="flex items-center gap-4">
+<div class="relative">
+<div class="bg-center bg-no-repeat bg-cover rounded-full h-12 w-12 border-2 border-white dark:border-gray-800 shadow-sm" data-alt="Portrait of a smiling woman with glasses" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBIBBCU8V2BF1mZTD_tt2uZV55oJ-CC28lKqZxn-taevLVSAmJYk4YwLiFYUb0gw0Zk47-LaMT_v-yZ-ELDB0ZDiLMuG95l_UIgvs7ernU5PErRgp5HuTkxSvtXv1LPiK2lAetZcdom_1cK7RwHLFYdbpoIx_Ez-h6g5uGQhxHMaU7na7u8C-iuL-RCG_5IPdmtNC1mYjvKrgh3yRDkbr-1amMeXV48_CL218e19Pg35riUTT0hvUGXBX8FIEzyy38k_D5lY9I8_Omd");'></div>
+<div class="absolute -bottom-1 -right-1 bg-surface-light dark:bg-surface-dark rounded-full p-0.5">
+<div class="bg-primary size-4 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-[10px] text-background-dark font-bold">check</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col">
+<p class="text-base font-bold text-text-main-light dark:text-text-main-dark">Alice Morgan</p>
+<p class="text-xs text-text-sub-light dark:text-text-sub-dark font-medium">Today, 2:00 PM • 2 hours</p>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<span class="text-base font-bold text-primary">+$12.00</span>
+<span class="text-xs font-medium text-text-sub-light dark:text-text-sub-dark bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full">Paid</span>
+</div>
+</div>
+<!-- Transaction Item 2 (Paid) -->
+<div class="flex items-center justify-between p-4 bg-surface-light dark:bg-surface-dark rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
+<div class="flex items-center gap-4">
+<div class="relative">
+<div class="bg-center bg-no-repeat bg-cover rounded-full h-12 w-12 border-2 border-white dark:border-gray-800 shadow-sm" data-alt="Portrait of a man with a beard looking friendly" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCpvfLYHg89GCtJ-pHf7C8Edm3N8SwUqFKH2A4rlG0qj3pPKGWQDOkUAoKrapjfl6kzqk9RIMjFU9IGSjSgsaYSrbTLXKSWcmZu8lXTvRfMJtG6ERBf3JGbVlqERm1xA9Sdnr1hAQnIFCqzf0jLeLYZ3gFgdXIJc7to5WuH4joyYG-iM-K3MPhyLI22ZT3mv_pcYmsOn506e-8ZNz7eMdpZSgN3IPov-3TE3gKdtz92COFjgjlBzT2vLOnvteg3-t6iZ0JPPA_kRzz-");'></div>
+<div class="absolute -bottom-1 -right-1 bg-surface-light dark:bg-surface-dark rounded-full p-0.5">
+<div class="bg-primary size-4 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-[10px] text-background-dark font-bold">check</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col">
+<p class="text-base font-bold text-text-main-light dark:text-text-main-dark">Marcus Chen</p>
+<p class="text-xs text-text-sub-light dark:text-text-sub-dark font-medium">Yesterday, 9:30 AM • 8 hours</p>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<span class="text-base font-bold text-primary">+$45.00</span>
+<span class="text-xs font-medium text-text-sub-light dark:text-text-sub-dark bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full">Paid</span>
+</div>
+</div>
+<!-- Transaction Item 3 (Pending) -->
+<div class="flex items-center justify-between p-4 bg-surface-light dark:bg-surface-dark rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 opacity-90">
+<div class="flex items-center gap-4">
+<div class="relative">
+<div class="bg-center bg-no-repeat bg-cover rounded-full h-12 w-12 border-2 border-white dark:border-gray-800 shadow-sm grayscale" data-alt="Portrait of a young woman with curly hair" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDeRlhqHpH9rcgFOjU2VpWDQIlBzQjTt85VZFLvmieRdJNCd_DLguJityywlLFLxyoN2oi2nMQXDxNZLjPlWZchzPjBVw5S2Y_Y_CenKioUnCmtoQPn7EiBQ6bA2cq-dIkjKxcHQesXGXh6HkJF3KLgV9kWSXgnskQvXu2idR9yvJaABN9z0MOEOsLeRbAjCSeZcU_-ZCPk2W-BHt-tDSyjKIvJE4FIkbTL5lrtzl6GzPl1tAFwXWR3AXyAl7Q7LlHvP96Zrkf3ch18");'></div>
+<div class="absolute -bottom-1 -right-1 bg-surface-light dark:bg-surface-dark rounded-full p-0.5">
+<div class="bg-orange-400 size-4 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-[10px] text-white font-bold">schedule</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col">
+<p class="text-base font-bold text-text-main-light dark:text-text-main-dark">Sarah Wilson</p>
+<p class="text-xs text-text-sub-light dark:text-text-sub-dark font-medium">Yesterday, 6:00 PM • 1 hour</p>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<span class="text-base font-bold text-gray-400 dark:text-gray-500">+$8.00</span>
+<span class="text-xs font-medium text-orange-600 dark:text-orange-400 bg-orange-100 dark:bg-orange-900/30 px-2 py-0.5 rounded-full">Pending</span>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Mockup -->
+<nav class="sticky bottom-0 bg-surface-light dark:bg-surface-dark border-t border-gray-100 dark:border-gray-800 py-3 px-6 flex justify-between items-center text-text-sub-light dark:text-text-sub-dark z-50">
+<div class="flex flex-col items-center gap-1 hover:text-primary transition-colors cursor-pointer">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-medium">Home</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-primary cursor-pointer">
+<span class="material-symbols-outlined fill-1">bar_chart</span>
+<span class="text-[10px] font-medium">Earnings</span>
+</div>
+<div class="flex flex-col items-center gap-1 hover:text-primary transition-colors cursor-pointer">
+<span class="material-symbols-outlined">directions_car</span>
+<span class="text-[10px] font-medium">Listings</span>
+</div>
+<div class="flex flex-col items-center gap-1 hover:text-primary transition-colors cursor-pointer">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-medium">Profile</span>
+</div>
+</nav>
+</body></html>

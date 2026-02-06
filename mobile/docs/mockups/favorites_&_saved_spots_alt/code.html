@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Favorites &amp; Saved Spots</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13ec13",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#102210",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#111811] dark:text-white min-h-screen">
+<div class="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden">
+<!-- TopAppBar -->
+<div class="flex items-center bg-background-light dark:bg-background-dark p-4 pb-2 justify-between sticky top-0 z-10 border-b border-[#dbe6db]/50 dark:border-white/10">
+<div class="text-[#111811] dark:text-white flex size-12 shrink-0 items-center justify-start cursor-pointer">
+<span class="material-symbols-outlined">arrow_back_ios</span>
+</div>
+<h2 class="text-[#111811] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-12">Favorites</h2>
+</div>
+<!-- Tabs -->
+<div class="pb-3 bg-background-light dark:bg-background-dark">
+<div class="flex border-b border-[#dbe6db] dark:border-white/10 px-4 gap-8">
+<a class="flex flex-col items-center justify-center border-b-[3px] border-b-primary text-[#111811] dark:text-white pb-[13px] pt-4" href="#">
+<p class="text-sm font-bold leading-normal tracking-[0.015em]">Saved Spots</p>
+</a>
+<a class="flex flex-col items-center justify-center border-b-[3px] border-b-transparent text-[#618961] dark:text-gray-400 pb-[13px] pt-4" href="#">
+<p class="text-sm font-bold leading-normal tracking-[0.015em]">Recent</p>
+</a>
+</div>
+</div>
+<!-- Scrollable Content -->
+<div class="flex flex-col gap-2 p-4">
+<!-- Card 1 -->
+<div class="@container">
+<div class="flex flex-col items-stretch justify-start rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.05)] bg-white dark:bg-[#1a2e1a] overflow-hidden relative">
+<div class="absolute top-3 right-3 z-10 bg-white/90 dark:bg-black/50 p-2 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-primary fill-1" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</div>
+<div class="w-full bg-center bg-no-repeat aspect-video bg-cover" data-alt="Modern concrete parking garage entrance with lighting" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDrOlYE1WO91h2QH_nqPhULvLUmlmTwHYNvAfOHOaGCAyld7FK2cwLQQEoEyF7d2oMMW9UyIoueO0-74hNV3fQXInL3zgYYJQQIoTUDCpeS2ImVEpWnpUyEVS23rWJh3iAALzbOkbYEfbyS1ZZME9L1by3P5GHQOwu1Gz6e8qcq8ydALjbk00Pc1ZvRLDTaWK1jkaHBPJVJ3CQYU6K5MKbwk5iC_6i4uO2KLlaBZeXlxWCUaMp2QyU4oCpowBbNiarn1OmpHtJvf8H8");'></div>
+<div class="flex w-full min-w-72 grow flex-col items-stretch justify-center gap-1 py-4 px-4">
+<p class="text-[#111811] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Downtown Secure Garage</p>
+<div class="flex items-end gap-3 justify-between">
+<div class="flex flex-col gap-1">
+<p class="text-[#618961] dark:text-[#a3c2a3] text-sm font-medium leading-normal">$15.00/hr • <span class="text-amber-500">★</span> 4.8 (120 reviews)</p>
+<p class="text-[#618961] dark:text-[#a3c2a3] text-sm font-normal leading-normal">123 Main St, Metro City</p>
+</div>
+<button class="flex min-w-[100px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-9 px-4 bg-primary text-[#111811] text-sm font-bold leading-normal hover:opacity-90 transition-opacity">
+<span class="truncate">Quick Book</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="@container">
+<div class="flex flex-col items-stretch justify-start rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.05)] bg-white dark:bg-[#1a2e1a] overflow-hidden relative">
+<div class="absolute top-3 right-3 z-10 bg-white/90 dark:bg-black/50 p-2 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</div>
+<div class="w-full bg-center bg-no-repeat aspect-video bg-cover" data-alt="Clean residential driveway with brick paving" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAjCV0h_DsGmGZGSNVLl6vubciFPID0q4ttLqF3qryDMpxIQai-zLeRHA6Z6SKM3nm5Uo1y4upqvHVxe7OzWzV3IBR72dazQCEMVK1tMwqPjljjDuMHzFJUP2caCRTcv8CIzqO2-aEXPWQvubuqh8hIIV4gRQWGE0np7Q1IyvXj_iFAUPbQgVUwVYGSTLzUI80WtrV_fD72oTHa2-lcXx5Y-bG37m76jRUYI0wEwJJwWV-aLIXyGCFepGxFz28HWXMlP5sEwttPY77I");'></div>
+<div class="flex w-full min-w-72 grow flex-col items-stretch justify-center gap-1 py-4 px-4">
+<p class="text-[#111811] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Private Driveway - West End</p>
+<div class="flex items-end gap-3 justify-between">
+<div class="flex flex-col gap-1">
+<p class="text-[#618961] dark:text-[#a3c2a3] text-sm font-medium leading-normal">$8.00/hr • <span class="text-amber-500">★</span> 4.9 (45 reviews)</p>
+<p class="text-[#618961] dark:text-[#a3c2a3] text-sm font-normal leading-normal">456 Oak Lane, West End</p>
+</div>
+<button class="flex min-w-[100px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-9 px-4 bg-primary text-[#111811] text-sm font-bold leading-normal hover:opacity-90 transition-opacity">
+<span class="truncate">Quick Book</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="@container">
+<div class="flex flex-col items-stretch justify-start rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.05)] bg-white dark:bg-[#1a2e1a] overflow-hidden relative">
+<div class="absolute top-3 right-3 z-10 bg-white/90 dark:bg-black/50 p-2 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</div>
+<div class="w-full bg-center bg-no-repeat aspect-video bg-cover" data-alt="Open air asphalt parking lot near city buildings" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCO55oP0ScH6hTkz3CsTSCrjJlQZSyGiDfGMwmBonA3cZ9wQQ9gU9bYp-525i0q9NxnIq6N37LIBGCn0Ouc0r7F0pUbRQ8cVJsJwxolF_4CXc8QMD3lIv40etdm9YLTDEwq2WQfdzEQzxtjN6bwi9eVhH8Iqv3_dA2mW0q1CdCOEplHV9OPEqoInbm5cA6mzaKhFn-Ea-VpJucUhNvTTkdCgo52n3UezZ6DT_jKoHAOvmJbQ8UxmDJxMtpqU7Pw1ukiUkFvQWs4AWR8");'></div>
+<div class="flex w-full min-w-72 grow flex-col items-stretch justify-center gap-1 py-4 px-4">
+<p class="text-[#111811] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Corner Lot Parking</p>
+<div class="flex items-end gap-3 justify-between">
+<div class="flex flex-col gap-1">
+<p class="text-[#618961] dark:text-[#a3c2a3] text-sm font-medium leading-normal">$10.00/hr • <span class="text-amber-500">★</span> 4.5 (88 reviews)</p>
+<p class="text-[#618961] dark:text-[#a3c2a3] text-sm font-normal leading-normal">789 Pine Ave, Downtown</p>
+</div>
+<button class="flex min-w-[100px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-9 px-4 bg-primary text-[#111811] text-sm font-bold leading-normal hover:opacity-90 transition-opacity">
+<span class="truncate">Quick Book</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Navigation Spacer (iOS Home Indicator) -->
+<div class="h-20 bg-transparent"></div>
+<!-- Floating Bottom Navigation -->
+<div class="fixed bottom-0 w-full bg-white dark:bg-[#102210] border-t border-[#dbe6db] dark:border-white/10 flex justify-around items-center py-3 px-6 z-20">
+<div class="flex flex-col items-center gap-1 text-[#618961] dark:text-gray-400">
+<span class="material-symbols-outlined">search</span>
+<span class="text-[10px] font-medium">Explore</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">favorite</span>
+<span class="text-[10px] font-medium">Saved</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-[#618961] dark:text-gray-400">
+<span class="material-symbols-outlined">directions_car</span>
+<span class="text-[10px] font-medium">Bookings</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-[#618961] dark:text-gray-400">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-medium">Profile</span>
+</div>
+</div>
+</div>
+</body></html>

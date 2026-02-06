@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Host Add Listing Location Alt</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2c61e8",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#111521",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', "Noto Sans", sans-serif;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark">
+<div class="relative flex h-full min-h-screen w-full flex-col overflow-hidden bg-background-light dark:bg-background-dark group/design-root">
+<!-- Top App Bar -->
+<div class="flex items-center bg-background-light dark:bg-background-dark p-4 pb-2 justify-between sticky top-0 z-10">
+<div class="text-[#111318] dark:text-white flex size-12 shrink-0 items-center justify-center cursor-pointer rounded-full hover:bg-black/5 dark:hover:bg-white/10">
+<span class="material-symbols-outlined text-[24px]">arrow_back</span>
+</div>
+<h2 class="text-[#111318] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-12">Add Listing</h2>
+</div>
+<!-- Page Indicators -->
+<div class="flex w-full flex-row items-center justify-center gap-3 py-4 bg-background-light dark:bg-background-dark">
+<div class="h-2 w-2 rounded-full bg-primary"></div>
+<div class="h-2 w-2 rounded-full bg-[#dcdee5] dark:bg-gray-700"></div>
+<div class="h-2 w-2 rounded-full bg-[#dcdee5] dark:bg-gray-700"></div>
+<div class="h-2 w-2 rounded-full bg-[#dcdee5] dark:bg-gray-700"></div>
+</div>
+<!-- Main Content Scrollable Area -->
+<div class="flex-1 overflow-y-auto pb-24">
+<!-- Headline -->
+<h2 class="text-[#111318] dark:text-white tracking-light text-[28px] font-bold leading-tight px-4 text-left pb-3 pt-2 font-display">
+                Where is your parking spot?
+            </h2>
+<!-- Text Field (Search/Address) -->
+<div class="flex w-full flex-wrap items-end gap-4 px-4 py-3">
+<label class="flex flex-col w-full">
+<div class="relative w-full">
+<input class="form-input flex w-full min-w-0 resize-none overflow-hidden rounded-lg text-[#111318] dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary border border-[#dcdee5] dark:border-gray-700 bg-white dark:bg-[#1a202e] h-14 placeholder:text-[#636d88] dark:placeholder:text-gray-500 pl-[48px] pr-[15px] text-base font-normal leading-normal shadow-sm transition-all" placeholder="Enter address" value=""/>
+<span class="material-symbols-outlined absolute left-3 top-1/2 transform -translate-y-1/2 text-[#636d88] dark:text-gray-500">search</span>
+</div>
+</label>
+</div>
+<!-- Current Location Button -->
+<div class="flex px-4 pb-4">
+<button class="flex items-center gap-2 text-primary font-medium text-sm hover:underline">
+<span class="material-symbols-outlined text-[20px]">my_location</span>
+                    Use my current location
+                </button>
+</div>
+<!-- Map Preview -->
+<div class="flex px-4 py-2 flex-col gap-2">
+<div class="relative w-full h-[320px] rounded-xl overflow-hidden shadow-sm border border-[#dcdee5] dark:border-gray-700">
+<div class="w-full h-full bg-center bg-no-repeat bg-cover object-cover" data-alt="Map showing city streets with a pin marker" data-location="San Francisco" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuA6648_CDtSrMkA-v4fbzoa3eBjdJEBPGuhXy9pzHUXgPi4CPKT7J3nn0p2lnGWloXJDQ3K8n2sg5s-9TImJFTTzFNP2XsPkH4MaFe4NL02TLEk4hyLKPwpK4BAVTwVJah6dCkj5WVVrmQFYuyLbvFq-sJdfY0FyBWntGomqTjB0TXxY_ENF1Ny9rMbfRtRlbXEbY5rjoence1IM-SCQZAIy57gipN-LlAlvZhQD46Z-6Ue6ZKCyuMRSQKUN3zq00PP7GNwpgwKeuhD"); background-color: #e5e7eb;'>
+<!-- Fallback visual if API key is missing/placeholder -->
+<div class="absolute inset-0 bg-gray-200 dark:bg-gray-800 flex items-center justify-center opacity-20 pointer-events-none"></div>
+</div>
+<!-- Floating Map Controls (Visual Only) -->
+<div class="absolute bottom-4 right-4 flex flex-col gap-2">
+<button class="bg-white dark:bg-[#1a202e] p-2 rounded-lg shadow-md text-[#111318] dark:text-white flex items-center justify-center active:bg-gray-100">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</button>
+<button class="bg-white dark:bg-[#1a202e] p-2 rounded-lg shadow-md text-[#111318] dark:text-white flex items-center justify-center active:bg-gray-100">
+<span class="material-symbols-outlined text-[20px]">remove</span>
+</button>
+</div>
+<!-- Center Pin Overlay (Simulated) -->
+<div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 -mt-4">
+<span class="material-symbols-outlined text-primary text-5xl drop-shadow-md" style="font-variation-settings: 'FILL' 1;">location_on</span>
+</div>
+</div>
+<p class="text-sm text-[#636d88] dark:text-gray-400 px-1">
+                    Drag the map to position the pin exactly at the entrance.
+                </p>
+</div>
+<!-- Address Details (Optional/Context) -->
+<div class="px-4 py-2">
+<div class="flex items-start gap-3 p-4 bg-white dark:bg-[#1a202e] rounded-xl border border-[#dcdee5] dark:border-gray-700">
+<span class="material-symbols-outlined text-[#636d88] dark:text-gray-400 mt-0.5">home_pin</span>
+<div class="flex flex-col">
+<span class="text-[#111318] dark:text-white font-medium text-sm">Selected Location</span>
+<span class="text-[#636d88] dark:text-gray-400 text-sm mt-0.5">123 Market St, San Francisco, CA 94103</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Sticky Footer -->
+<div class="fixed bottom-0 left-0 right-0 bg-white dark:bg-background-dark border-t border-[#dcdee5] dark:border-gray-800 p-4 pb-8 z-20">
+<button class="w-full rounded-full bg-primary text-white h-12 text-base font-bold shadow-lg hover:bg-blue-600 transition-colors flex items-center justify-center">
+                Next
+            </button>
+</div>
+</div>
+</body></html>

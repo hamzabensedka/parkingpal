@@ -1,0 +1,155 @@
+import { Router } from 'express';
+import {
+  authController,
+  userProfileController,
+  authenticate,
+} from '../../container';
+import { validate } from '../../middleware/validate';
+import {
+  authLimiter,
+  passwordResetLimiter,
+  emailVerificationLimiter,
+  tokenRefreshLimiter,
+} from '../../middleware/rateLimiter';
+import { uploadIdDocument, handleMulterError } from '../../middleware/upload';
+import {
+  registerSchema,
+  loginSchema,
+  refreshTokenSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
+  verifyEmailSchema,
+  updateProfileSchema,
+} from './auth.validation';
+
+/**
+ * Auth Routes
+ * All dependencies (controllers, middleware) come from the DI container.
+ * No direct instantiation happens here.
+ */
+
+const router = Router();
+
+// ==========================================
+// Public Authentication Routes
+// ==========================================
+
+/**
+ * POST /api/auth/register
+ */
+router.post(
+  '/register',
+  authLimiter,
+  validate(registerSchema),
+  authController.register.bind(authController)
+);
+
+/**
+ * POST /api/auth/login
+ */
+router.post(
+  '/login',
+  authLimiter,
+  validate(loginSchema),
+  authController.login.bind(authController)
+);
+
+/**
+ * POST /api/auth/refresh
+ */
+router.post(
+  '/refresh',
+  tokenRefreshLimiter,
+  validate(refreshTokenSchema),
+  authController.refreshToken.bind(authController)
+);
+
+/**
+ * POST /api/auth/verify-email
+ */
+router.post(
+  '/verify-email',
+  emailVerificationLimiter,
+  validate(verifyEmailSchema),
+  authController.verifyEmail.bind(authController)
+);
+
+/**
+ * POST /api/auth/forgot-password
+ */
+router.post(
+  '/forgot-password',
+  passwordResetLimiter,
+  validate(forgotPasswordSchema),
+  authController.forgotPassword.bind(authController)
+);
+
+/**
+ * POST /api/auth/reset-password
+ */
+router.post(
+  '/reset-password',
+  passwordResetLimiter,
+  validate(resetPasswordSchema),
+  authController.resetPassword.bind(authController)
+);
+
+// ==========================================
+// Protected Authentication Routes
+// ==========================================
+
+/**
+ * POST /api/auth/logout
+ */
+router.post(
+  '/logout',
+  authenticate,
+  authController.logout.bind(authController)
+);
+
+/**
+ * GET /api/auth/me
+ */
+router.get(
+  '/me',
+  authenticate,
+  authController.getCurrentUser.bind(authController)
+);
+
+// ==========================================
+// User Profile Routes (mounted at /api/users)
+// ==========================================
+
+export const userRouter = Router();
+
+/**
+ * GET /api/users/profile
+ */
+userRouter.get(
+  '/profile',
+  authenticate,
+  userProfileController.getProfile.bind(userProfileController)
+);
+
+/**
+ * PUT /api/users/profile
+ */
+userRouter.put(
+  '/profile',
+  authenticate,
+  validate(updateProfileSchema),
+  userProfileController.updateProfile.bind(userProfileController)
+);
+
+/**
+ * POST /api/users/verify-id
+ */
+userRouter.post(
+  '/verify-id',
+  authenticate,
+  uploadIdDocument,
+  handleMulterError,
+  userProfileController.verifyId.bind(userProfileController)
+);
+
+export default router;

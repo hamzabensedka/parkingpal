@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Spot Detail - ParkingPal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f27f0d",
+                        "accent-green": "#22c55e",
+                        "background-light": "#f8f7f5",
+                        "background-dark": "#221910",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#181411] dark:text-white">
+<div class="relative flex min-h-screen flex-col max-w-[480px] mx-auto bg-white dark:bg-background-dark shadow-xl">
+<!-- Top Navigation -->
+<div class="sticky top-0 z-50 flex items-center bg-white/90 dark:bg-background-dark/90 backdrop-blur-md p-4 pb-2 justify-between">
+<div class="text-[#181411] dark:text-white flex size-12 shrink-0 items-center cursor-pointer">
+<span class="material-symbols-outlined">arrow_back_ios</span>
+</div>
+<h2 class="text-[#181411] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center">Spot Detail</h2>
+<div class="flex w-12 items-center justify-end">
+<button class="flex cursor-pointer items-center justify-center rounded-xl h-12 bg-transparent text-[#181411] dark:text-white">
+<span class="material-symbols-outlined">share</span>
+</button>
+</div>
+</div>
+<!-- Scrollable Content Area -->
+<div class="flex-1 overflow-y-auto pb-24">
+<!-- Photo Gallery (Swipeable Mockup) -->
+<div class="@container">
+<div class="@[480px]:px-4 @[480px]:py-3">
+<div class="bg-cover bg-center flex flex-col justify-end overflow-hidden bg-white @[480px]:rounded-xl min-h-80" data-alt="Interior of a clean well-lit modern underground parking garage" style='background-image: linear-gradient(0deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0) 25%), url("https://lh3.googleusercontent.com/aida-public/AB6AXuCZ-NZg4gO1Oy0Qi-m9UtyyoSDdWzXIB8W7AaTix1P-aYDP4m4RWsxDcsdu_57RnIZ7gFOsrFAZlsVLyRrRtO_LE3kVJklATo3AoUi757LiCv60nHRK0LW7tnlxwKlxRIJBRYXAWRHDuFOcBJHcD2RYP6I4JAgKsQMLPkhvvSwxRX8pOkpQpiRo5TH2ShjP8-qMEQbpvjx5sLSETZ2Rv8AAsAeAQjIyUBj-0e5V_RrHWroGdbY8C2g0PkV9bbanNRNn-gsAoHGYyXKl");'>
+<div class="flex justify-center gap-2 p-5">
+<div class="size-1.5 rounded-full bg-white"></div>
+<div class="size-1.5 rounded-full bg-white opacity-50"></div>
+<div class="size-1.5 rounded-full bg-white opacity-50"></div>
+<div class="size-1.5 rounded-full bg-white opacity-50"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Title and Price -->
+<div class="px-4 pt-5 pb-2">
+<h2 class="text-[#181411] dark:text-white tracking-light text-[28px] font-bold leading-tight">Secure Garage in Le Marais</h2>
+<div class="flex items-center gap-2 mt-2">
+<p class="text-accent-green text-xl font-bold leading-normal">€5/hour</p>
+<span class="text-[#8a7560] dark:text-gray-400">•</span>
+<p class="text-[#181411] dark:text-gray-300 text-base font-normal leading-normal">400m away</p>
+</div>
+</div>
+<div class="h-px bg-gray-100 dark:bg-gray-800 mx-4 my-4"></div>
+<!-- Host Card -->
+<div class="flex items-center gap-4 bg-transparent px-4 py-2 justify-between">
+<div class="flex items-center gap-4">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-14 w-14 border-2 border-primary/20" data-alt="Portrait of a friendly female parking spot host" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAhUKDjW92AuVe6oTq862PgfR2p5_g_ZMRgeaYNJ7uTufo0BqXAJyH75Dkjce_oTRHKzKkul5ahO0aQbIBcJ5B0RVxiqT1yWq7ip8sbwYuf2NJLcLqdZzP4osyXX3RWt3AjqaPWDraKNXZVp78dPGpKaaes2uWuUC3Z3x9N98PK7iKFwCYNxfegSnj-4zPJyV4feZ4bDJE0yn0_omZWzbM93ZpEfTv9rw6qWsxfZ88s6N5_NyDDAhzAudW9PR3itBgUmXy0_qcnUwGp");'></div>
+<div class="flex flex-col justify-center">
+<p class="text-[#181411] dark:text-white text-base font-medium leading-normal">Marie</p>
+<p class="text-[#8a7560] dark:text-gray-400 text-sm font-normal leading-normal">Verified Spot Owner</p>
+</div>
+</div>
+<div class="flex items-center gap-1 bg-primary/10 dark:bg-primary/20 px-3 py-1 rounded-full">
+<span class="material-symbols-outlined text-primary text-sm" style="font-variation-settings: 'FILL' 1">star</span>
+<p class="text-[#181411] dark:text-white text-sm font-bold">4.9</p>
+</div>
+</div>
+<!-- Amenities Grid -->
+<div class="grid grid-cols-4 gap-4 px-4 py-6">
+<div class="flex flex-col items-center gap-2">
+<div class="size-12 rounded-xl bg-background-light dark:bg-gray-800 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">videocam</span>
+</div>
+<span class="text-[11px] font-medium text-center">CCTV</span>
+</div>
+<div class="flex flex-col items-center gap-2">
+<div class="size-12 rounded-xl bg-background-light dark:bg-gray-800 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">ev_station</span>
+</div>
+<span class="text-[11px] font-medium text-center">EV Charging</span>
+</div>
+<div class="flex flex-col items-center gap-2">
+<div class="size-12 rounded-xl bg-background-light dark:bg-gray-800 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">door_front</span>
+</div>
+<span class="text-[11px] font-medium text-center">In/Out</span>
+</div>
+<div class="flex flex-col items-center gap-2">
+<div class="size-12 rounded-xl bg-background-light dark:bg-gray-800 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">accessible</span>
+</div>
+<span class="text-[11px] font-medium text-center">Accessible</span>
+</div>
+</div>
+<!-- Description -->
+<div class="px-4 py-2">
+<h3 class="text-[#181411] dark:text-white text-lg font-bold mb-2">About this spot</h3>
+<p class="text-[#181411] dark:text-gray-300 text-base font-normal leading-relaxed">
+                    Centrally located in the heart of Le Marais. This is a private, secure underground garage with 24/7 access. The space is wide enough for SUVs and features bright lighting. Just a 2-minute walk from the Saint-Paul Metro station.
+                </p>
+</div>
+<!-- Map Preview -->
+<div class="px-4 py-6">
+<h3 class="text-[#181411] dark:text-white text-lg font-bold mb-3">Location</h3>
+<div class="w-full h-40 rounded-xl overflow-hidden bg-gray-200" data-location="Paris, France" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDMyWOdERFm7XP4eM-Fy0rVxUcV5E89V1QccF3UiA_-BFhbxcPZ3RhBkBPOlJQ1Kvtl82NIixTR1O1Hqb7985dA2mQr0X7Bjc1AAi0g5QGCSUYbm7_K-7evP7tDSmSFFRN8E2lP8o9vhuRF8svUET8904Z8oCqa1Kesa9aLkYwEmZ4AhHqKzjk7h5p3gzsfOhJVILyqB5SA5qPskwaAFh-pjzsIQMLUTmCoyKzXIqEP38vDlh2xbkkijG0zi1ApLirlvNd6bFc0nLiJ"); background-size: cover; background-position: center;'>
+<div class="w-full h-full flex items-center justify-center bg-black/10">
+<div class="bg-primary p-2 rounded-full shadow-lg">
+<span class="material-symbols-outlined text-white">location_on</span>
+</div>
+</div>
+</div>
+<p class="text-sm text-[#8a7560] dark:text-gray-400 mt-2">Rue des Francs Bourgeois, 75004 Paris</p>
+</div>
+<!-- Reviews Summary -->
+<div class="px-4 py-4 mb-4">
+<div class="flex justify-between items-center mb-4">
+<h3 class="text-[#181411] dark:text-white text-lg font-bold">Reviews (124)</h3>
+<button class="text-primary font-bold text-sm">See all</button>
+</div>
+<div class="space-y-4">
+<div class="bg-background-light dark:bg-gray-800/50 p-4 rounded-xl">
+<div class="flex items-center gap-2 mb-2">
+<div class="flex text-primary">
+<span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1">star</span>
+<span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1">star</span>
+<span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1">star</span>
+<span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1">star</span>
+<span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1">star</span>
+</div>
+<span class="text-xs text-[#8a7560] dark:text-gray-400 font-medium">Jean D. • 2 days ago</span>
+</div>
+<p class="text-sm text-[#181411] dark:text-gray-300">Perfect spot, very easy to access and felt very safe leaving my car here overnight.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Sticky Footer Action -->
+<div class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] bg-white/95 dark:bg-background-dark/95 backdrop-blur-md border-t border-gray-100 dark:border-gray-800 p-4 flex items-center justify-between gap-4 z-50">
+<div class="flex flex-col">
+<span class="text-xs text-[#8a7560] dark:text-gray-400">Total estimated</span>
+<span class="text-xl font-bold text-[#181411] dark:text-white">€15.00 <small class="text-sm font-normal">/ 3h</small></span>
+</div>
+<button class="flex-1 bg-primary text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/20 active:scale-95 transition-transform">
+                Book Now
+            </button>
+</div>
+</div>
+</body></html>

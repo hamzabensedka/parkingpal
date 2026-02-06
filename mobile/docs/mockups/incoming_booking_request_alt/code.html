@@ -1,0 +1,123 @@
+<html class="light"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0077b8",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#0f1c23",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display">
+<div class="relative flex min-h-screen w-full flex-col bg-white dark:bg-background-dark group/design-root overflow-x-hidden max-w-[430px] mx-auto shadow-2xl">
+<!-- TopAppBar -->
+<div class="flex items-center bg-white dark:bg-background-dark p-4 pb-2 justify-between border-b border-gray-100 dark:border-gray-800">
+<div class="text-[#101618] dark:text-white flex size-12 shrink-0 items-center justify-start">
+<span class="material-symbols-outlined cursor-pointer">close</span>
+</div>
+<h2 class="text-[#101618] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-12">Booking Request</h2>
+</div>
+<div class="flex flex-col flex-1 overflow-y-auto pb-24">
+<!-- ProfileHeader -->
+<div class="flex p-6 @container">
+<div class="flex w-full flex-col gap-4 items-center">
+<div class="flex gap-4 flex-col items-center">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full min-h-32 w-32 border-4 border-primary/10" data-alt="Close up portrait of a smiling male renter" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBmYbM0uK-NRVSxtDw0PJtzVNK_GRPQ6oex3edpk0mly6VYA2tCuzVr_9Pn_i06YvYMv0Efj_QU3YZCio9XW1BLpoTsotrVeHeWJ5vDJ-jZPLruW4IRX6YF4iZBD_XcGI5-GX2ekr55BUP_YpiII5BFrSX3CP7kIMBko-K2hhR8IwA5OlJh55QqJgHyXu2TgHrNGd3BBqqA4JipPd_RH9Gc79xszppInjFUcWOkFKQWp5oGMkVVoKvhtI5V3KRQtxWbXI3m50dzF-OV");'>
+</div>
+<div class="flex flex-col items-center justify-center">
+<p class="text-[#101618] dark:text-white text-[24px] font-bold leading-tight tracking-[-0.015em] text-center">James R.</p>
+<div class="flex items-center gap-1 mt-1">
+<span class="material-symbols-outlined text-yellow-500 text-sm fill-1" style="font-variation-settings: 'FILL' 1">star</span>
+<p class="text-[#5e7c8d] dark:text-gray-400 text-base font-medium leading-normal text-center">4.9 Rating</p>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-green-600 text-sm">verified</span>
+<p class="text-[#5e7c8d] dark:text-gray-400 text-base font-normal leading-normal text-center">Verified Renter</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="px-4">
+<div class="bg-background-light dark:bg-gray-800/50 rounded-xl p-4 space-y-4">
+<!-- SectionHeader & ListItem -->
+<div>
+<h3 class="text-[#101618] dark:text-white text-sm font-bold uppercase tracking-wider px-0 pb-2">Parking Spot</h3>
+<div class="flex items-center gap-4 bg-white dark:bg-gray-800 rounded-lg p-3 shadow-sm border border-gray-100 dark:border-gray-700">
+<div class="text-primary flex items-center justify-center rounded-lg bg-primary/10 shrink-0 size-12">
+<span class="material-symbols-outlined">garage</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-[#101618] dark:text-white text-base font-semibold leading-normal line-clamp-1">Garage Le Marais</p>
+<p class="text-[#5e7c8d] dark:text-gray-400 text-sm font-normal leading-normal line-clamp-2">Rue de Rivoli, Paris</p>
+</div>
+</div>
+</div>
+<!-- SectionHeader (Duration) -->
+<div>
+<h3 class="text-[#101618] dark:text-white text-sm font-bold uppercase tracking-wider px-0 pb-2 pt-2">Duration</h3>
+<div class="flex items-center gap-4 bg-white dark:bg-gray-800 rounded-lg p-3 shadow-sm border border-gray-100 dark:border-gray-700">
+<div class="text-primary flex items-center justify-center rounded-lg bg-primary/10 shrink-0 size-12">
+<span class="material-symbols-outlined">schedule</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-[#101618] dark:text-white text-base font-semibold leading-normal">Today, 3:00 PM - 6:00 PM</p>
+<p class="text-[#5e7c8d] dark:text-gray-400 text-sm font-normal leading-normal">Total duration: 3 hours</p>
+</div>
+</div>
+</div>
+<!-- Earnings Section -->
+<div class="pt-2">
+<div class="flex items-center justify-between bg-primary/5 dark:bg-primary/20 p-4 rounded-lg border border-primary/20">
+<div>
+<p class="text-[#101618] dark:text-white text-sm font-medium">Estimated Earnings</p>
+<p class="text-xs text-[#5e7c8d] dark:text-gray-400">After platform fee</p>
+</div>
+<div class="text-right">
+<p class="text-primary text-2xl font-bold">€12.00</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Message Link -->
+<div class="flex justify-center p-6">
+<a class="flex items-center gap-2 text-primary font-semibold hover:underline" href="#">
+<span class="material-symbols-outlined text-lg">chat_bubble</span>
+                    Message James
+                </a>
+</div>
+</div>
+<!-- Sticky Footer Buttons -->
+<div class="fixed bottom-0 left-0 right-0 max-w-[430px] mx-auto bg-white dark:bg-background-dark p-4 pb-8 flex flex-col gap-3 shadow-[0_-10px_20px_rgba(0,0,0,0.05)]">
+<button class="w-full bg-primary hover:bg-[#0066a0] text-white font-bold py-4 rounded-xl transition-colors">
+                Accept Booking
+            </button>
+<button class="w-full bg-[#f0f3f5] dark:bg-gray-800 text-[#5e7c8d] dark:text-gray-300 font-bold py-4 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                Decline
+            </button>
+</div>
+</div>
+
+```</body></html>

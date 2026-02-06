@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Payment Method Selection</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13ec5b",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#102216",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display">
+<div class="relative flex h-screen w-full max-w-[430px] mx-auto flex-col bg-white dark:bg-background-dark overflow-x-hidden">
+<!-- Top App Bar -->
+<div class="flex items-center bg-white dark:bg-background-dark p-4 pb-2 justify-between">
+<div class="text-[#111813] dark:text-white flex size-12 shrink-0 items-center cursor-pointer">
+<span class="material-symbols-outlined">arrow_back_ios</span>
+</div>
+<h2 class="text-[#111813] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1">Payment Methods</h2>
+<div class="size-12"></div> <!-- Spacer for symmetry -->
+</div>
+<div class="flex-1 overflow-y-auto">
+<!-- Section Header: Cards -->
+<div class="flex items-center justify-between px-4 pb-2 pt-6">
+<h3 class="text-[#111813] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Saved Cards</h3>
+</div>
+<!-- List Item: Visa Card (Selected/Default) -->
+<div class="flex items-center gap-4 bg-white dark:bg-background-dark px-4 min-h-[80px] py-3 justify-between border-b border-gray-100 dark:border-gray-800">
+<div class="flex items-center gap-4">
+<div class="bg-center bg-no-repeat aspect-video bg-contain h-8 w-12 shrink-0 rounded-md bg-gray-50 flex items-center justify-center p-1" data-alt="Visa credit card logo on white background" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBeV2EWsW9wF2GG9c80DI-hCzvVdJuzV_F_VrtZNxLY4LUO_EDB8fz-hnBjoOTSx_LXWoaE8MvhHTt3b7iQL6KbcYO56_7fJhdNLSsPvTta0KlxdLnNnl4HoejPa4Yw586UL048maNFeFFHPZ0fp6mNER8btPwAY7C0qV8Lfr5yu6TnUe6kCEWp8OsSJivnf_zWaYxRcvMlr2LVTuWjW74xH-z2zaYr-xZ5F9RFHQetKmkDyrMCJyEGjx4UWCxUy93IKhT8hltvbMI_");'>
+</div>
+<div class="flex flex-col justify-center">
+<div class="flex items-center gap-2">
+<p class="text-[#111813] dark:text-white text-base font-semibold leading-normal line-clamp-1">Visa ending in 4242</p>
+<span class="bg-primary/20 text-[#078829] text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">Default</span>
+</div>
+<p class="text-[#61896f] dark:text-gray-400 text-sm font-normal leading-normal line-clamp-2">Expires 12/26</p>
+</div>
+</div>
+<div class="shrink-0">
+<div class="flex size-7 items-center justify-center">
+<div class="size-4 rounded-full bg-primary border-4 border-primary/30 flex items-center justify-center">
+<div class="size-1.5 rounded-full bg-white"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- List Item: Secondary Card -->
+<div class="flex items-center gap-4 bg-white dark:bg-background-dark px-4 min-h-[80px] py-3 justify-between border-b border-gray-100 dark:border-gray-800 opacity-80">
+<div class="flex items-center gap-4">
+<div class="bg-center bg-no-repeat aspect-video bg-contain h-8 w-12 shrink-0 rounded-md bg-gray-50 flex items-center justify-center p-1" data-alt="Mastercard logo on white background" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCiSQSo62ZqD-aMj8zqN8vwmXH0VLbPU0D7eu8VruO7eUjYuc7AvN_75HjaQwf_KCsdYwrbt3-nlsJUMUhUEaK_PhdzlrY-yw8lRuIUPZV6yMYsxk1bAUXlSF55qbKkgEU5D9z-qBpBYwoSp5F2COJzMLNuM93pPzyNXV0V_C5k_kIfviQGFevCHif0QDjSc-QN_pBJgYPAqKFARWbJPA3Zl-EIoXcf2UAcBz4-H7ivqRZCbVlqQ61ozSDLVECNnCLYKKDZXEpIZgzP");'>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-[#111813] dark:text-white text-base font-medium leading-normal line-clamp-1">Mastercard ending in 8890</p>
+<p class="text-[#61896f] dark:text-gray-400 text-sm font-normal leading-normal line-clamp-2">Expires 05/25</p>
+</div>
+</div>
+<div class="shrink-0">
+<div class="flex size-7 items-center justify-center">
+<div class="size-5 rounded-full border-2 border-gray-300"></div>
+</div>
+</div>
+</div>
+<!-- Section Header: Bank Accounts -->
+<div class="flex items-center justify-between px-4 pb-2 pt-8">
+<h3 class="text-[#111813] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Payout Methods</h3>
+</div>
+<!-- List Item: Bank Account -->
+<div class="flex items-center gap-4 bg-white dark:bg-background-dark px-4 min-h-[80px] py-3 justify-between">
+<div class="flex items-center gap-4">
+<div class="text-[#111813] dark:text-white flex items-center justify-center rounded-xl bg-[#f0f4f2] dark:bg-gray-800 shrink-0 size-12">
+<span class="material-symbols-outlined">account_balance</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-[#111813] dark:text-white text-base font-medium leading-normal line-clamp-1">Chase Bank</p>
+<p class="text-[#61896f] dark:text-gray-400 text-sm font-normal leading-normal line-clamp-2">Primary Host Payouts</p>
+</div>
+</div>
+<div class="shrink-0">
+<label class="relative flex h-[31px] w-[51px] cursor-pointer items-center rounded-full border-none bg-gray-200 dark:bg-gray-700 p-0.5 has-[:checked]:justify-end has-[:checked]:bg-primary">
+<div class="h-full w-[27px] rounded-full bg-white" style="box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 8px, rgba(0, 0, 0, 0.06) 0px 3px 1px;"></div>
+<input checked="" class="invisible absolute" type="checkbox"/>
+</label>
+</div>
+</div>
+<!-- Add New Card Button -->
+<div class="flex px-4 py-8">
+<button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-14 px-5 flex-1 bg-primary text-background-dark gap-3 text-base font-bold leading-normal tracking-[0.015em] hover:opacity-90 transition-all">
+<span class="material-symbols-outlined font-bold">add</span>
+<span class="truncate">Add New Card</span>
+</button>
+</div>
+</div>
+<!-- Safe Area Spacer for iOS -->
+<div class="h-8 bg-white dark:bg-background-dark"></div>
+</div>
+</body></html>

@@ -1,0 +1,18 @@
+{
+  "name": "@parkingpal/shared-types",
+  "version": "1.0.0",
+  "description": "Shared TypeScript types for ParkingPal frontend and backend",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "prepare": "npm run build"
+  },
+  "keywords": ["parkingpal", "types", "shared"],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}

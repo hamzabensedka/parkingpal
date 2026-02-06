@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ParkingPal - Add Photos</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#137fec",
+            "background-light": "#f6f7f8",
+            "background-dark": "#101922",
+          },
+          fontFamily: {
+            "display": ["Inter", "sans-serif"]
+          },
+          borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+        },
+      },
+    }
+  </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#111418] dark:text-white antialiased overflow-x-hidden">
+<div class="relative flex h-full min-h-screen w-full flex-col group/design-root">
+<!-- Top App Bar -->
+<header class="flex items-center px-4 py-3 justify-between sticky top-0 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-transparent dark:border-gray-800">
+<div class="flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer" data-icon="ArrowLeft">
+<span class="material-symbols-outlined text-[#111418] dark:text-white">arrow_back</span>
+</div>
+<h2 class="text-[#111418] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-10">
+        Add your space
+      </h2>
+</header>
+<!-- Progress Bar -->
+<div class="flex flex-col gap-3 px-4 pt-2 pb-6">
+<div class="flex gap-6 justify-between items-center">
+<p class="text-[#111418] dark:text-white text-sm font-medium leading-normal">Step 2 of 8</p>
+<p class="text-[#617589] dark:text-gray-400 text-xs font-medium uppercase tracking-wide">Photos</p>
+</div>
+<div class="rounded-full bg-[#dbe0e6] dark:bg-gray-700 h-2 overflow-hidden">
+<div class="h-full bg-primary rounded-full" style="width: 25%;"></div>
+</div>
+</div>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col px-4 pb-24">
+<!-- Headline & Description -->
+<div class="mb-6">
+<h1 class="text-[#111418] dark:text-white tracking-tight text-[28px] font-bold leading-tight mb-3">
+          Add photos (3 minimum)
+        </h1>
+<p class="text-[#617589] dark:text-gray-300 text-base font-normal leading-relaxed">
+          Travelers love photos. We recommend adding at least 3 to help them understand what it's like to park at your place.
+        </p>
+</div>
+<!-- Tips Box -->
+<div class="mb-6 bg-white dark:bg-gray-800 border border-[#e5e7eb] dark:border-gray-700 rounded-xl p-4 flex gap-4 items-start shadow-sm">
+<div class="bg-primary/10 dark:bg-primary/20 p-2 rounded-full shrink-0 text-primary">
+<span class="material-symbols-outlined" style="font-size: 20px;">lightbulb</span>
+</div>
+<div class="flex flex-col gap-1">
+<p class="text-sm font-semibold text-[#111418] dark:text-white">What to include</p>
+<p class="text-sm text-[#617589] dark:text-gray-400 leading-normal">
+            Show entrance from the street, the space itself clearly, and any helpful signage.
+          </p>
+</div>
+</div>
+<!-- Photo Grid -->
+<div class="grid grid-cols-2 gap-3">
+<!-- Add Photo Placeholder Button -->
+<button class="flex flex-col gap-3 aspect-square w-full rounded-xl border-2 border-dashed border-[#dbe0e6] dark:border-gray-600 bg-transparent hover:bg-black/5 dark:hover:bg-white/5 transition-colors items-center justify-center group cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-background-dark">
+<div class="size-12 rounded-full bg-primary/10 group-hover:bg-primary/20 flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-primary font-bold" style="font-size: 28px;">add</span>
+</div>
+<span class="text-primary font-medium text-sm">Add photo</span>
+</button>
+<!-- Sample Image 1: Garage -->
+<div class="relative w-full aspect-square rounded-xl overflow-hidden group shadow-sm">
+<div class="w-full h-full bg-center bg-no-repeat bg-cover transition-transform duration-500 group-hover:scale-105" data-alt="Empty concrete parking space in an underground garage with pillars" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCxmFsH8jfZnT2dCn4qDv9NhM59NPEPAFT3hqe8qjx3lNR9qBp1f0K9UfTHXrsAqhaN7mm6OXZPIAHsH5uT7-KZxyVi4-Rn7_KXzsCkeyF9MRWihxS0fFR9IT52xYnyaQgfSGZPx30ALnQl_EZL6fv08doLiI_voCKFSZWWBqWAkxijS5fyLvPUWbXIrE4j0ND1j1rZ9NDIb2Qwv40VnwNUF40jMiF2L4zECi6x9-8z05WyLaKUljIUPPw3zxuuwIQ18ALlRREFYDqj");'>
+</div>
+<!-- Delete Button Overlay -->
+<button class="absolute top-2 right-2 size-7 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded-full flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-white" style="font-size: 16px;">close</span>
+</button>
+<!-- Cover Badge -->
+<div class="absolute bottom-2 left-2 px-2 py-0.5 bg-black/50 backdrop-blur-sm rounded text-white text-[10px] font-medium uppercase tracking-wider">
+            Cover
+          </div>
+</div>
+<!-- Sample Image 2: Driveway -->
+<div class="relative w-full aspect-square rounded-xl overflow-hidden group shadow-sm">
+<div class="w-full h-full bg-center bg-no-repeat bg-cover transition-transform duration-500 group-hover:scale-105" data-alt="Paved driveway parking spot in front of a modern suburban house" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCpwh06zm5EiBtl9L4ogcR6H2lOE1fp3WDvkZpySExbLP0K6ovDs7WQQBgNr8HX5Tg_yZD5fco6_iVfcaOdiNwSEFbm4CX2nCLALFo2djvEzdupomm02ChxN50GT_AkRTanXriDYA_2OJnU8aI5wPYGpwAwuBUWwV5e40bosvfwZSqt469qNWklVLuTe3fiqeyYnqn3_navv5f0JeAcnTQnwbeNKWv6n2VjATZHQ3LgeaegPiBcJXIxvZIbcP_rPdN5IbZEnjrnQjNI");'>
+</div>
+<button class="absolute top-2 right-2 size-7 bg-black/50 hover:bg-black/70 backdrop-blur-sm rounded-full flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-white" style="font-size: 16px;">close</span>
+</button>
+</div>
+</div>
+</main>
+<!-- Footer Action -->
+<footer class="fixed bottom-0 left-0 w-full p-4 bg-background-light dark:bg-background-dark border-t border-[#dbe0e6] dark:border-gray-800 z-30">
+<div class="max-w-md mx-auto w-full">
+<button class="w-full flex items-center justify-center bg-primary hover:bg-blue-600 active:bg-blue-700 text-white font-bold text-base h-12 rounded-xl transition-all shadow-lg hover:shadow-xl hover:shadow-primary/20">
+          Next
+        </button>
+</div>
+</footer>
+</div>
+</body></html>

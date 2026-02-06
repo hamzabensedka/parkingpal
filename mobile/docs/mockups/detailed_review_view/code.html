@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Review Details - ParkingPal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13ec80",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#102219",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#111814] dark:text-white antialiased">
+<div class="relative flex h-auto min-h-screen w-full flex-col max-w-[430px] mx-auto bg-white dark:bg-background-dark shadow-xl overflow-x-hidden">
+<!-- Top Navigation Bar -->
+<div class="sticky top-0 z-50 flex items-center bg-white dark:bg-background-dark p-4 pb-2 justify-between border-b border-gray-100 dark:border-gray-800">
+<div class="text-[#111814] dark:text-white flex size-12 shrink-0 items-center cursor-pointer">
+<span class="material-symbols-outlined">arrow_back</span>
+</div>
+<h2 class="text-[#111814] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center">Review Details</h2>
+<div class="flex w-12 items-center justify-end">
+<button class="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-12 bg-transparent text-[#111814] dark:text-white gap-2 text-base font-bold leading-normal tracking-[0.015em] min-w-0 p-0">
+<span class="material-symbols-outlined">share</span>
+</button>
+</div>
+</div>
+<!-- Profile Header Section -->
+<div class="flex p-4 @container">
+<div class="flex w-full flex-col gap-4">
+<div class="flex gap-4 items-center">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-20 w-20 ring-4 ring-primary/20" data-alt="User circular profile avatar photo" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuC4LBFNDD-chWf326WuKDMvfuT3dYAhKMCC4R0epURE2K5-QVCixlaXXwNwM92ee5YXffQCowOx_Lr7-cfdDEhC7fO5uapiKPOZtrdKCHFsir4_utc1sj3YbhqSPQfiSBI2UyH3-3vfUoHF10ewW-fUHoK4yO8HVjG36KXaiXI42ZRmxfa7rmpyziQCLFsIF9YngmMOsktgEaedObKGnX8faWk66WRRos9bmIYMr4ivD4ZozojbW9zB9LgNvOhf2aWLCiMbX6LRyrgg");'>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-[#111814] dark:text-white text-xl font-bold leading-tight tracking-[-0.015em]">Alex Johnson</p>
+<p class="text-[#618975] dark:text-primary/70 text-sm font-medium leading-normal">March 2024</p>
+<div class="flex items-center gap-1 mt-1">
+<span class="material-symbols-outlined text-primary text-xs">verified</span>
+<p class="text-[#618975] dark:text-primary/70 text-xs font-normal leading-normal">Verified Stay</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Overall Rating Summary -->
+<div class="flex flex-wrap gap-x-8 gap-y-6 p-4 border-b border-gray-100 dark:border-gray-800">
+<div class="flex flex-col gap-2">
+<p class="text-[#111814] dark:text-white text-5xl font-black leading-tight tracking-[-0.033em]">4.8</p>
+<div class="flex gap-0.5 text-primary">
+<span class="material-symbols-outlined">star</span>
+<span class="material-symbols-outlined">star</span>
+<span class="material-symbols-outlined">star</span>
+<span class="material-symbols-outlined">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">star_half</span>
+</div>
+<p class="text-[#111814] dark:text-white/70 text-sm font-medium leading-normal">Excellent experience</p>
+</div>
+<div class="grid min-w-[200px] max-w-[400px] flex-1 grid-cols-[20px_1fr_40px] items-center gap-y-2">
+<p class="text-[#111814] dark:text-white text-xs font-bold">5</p>
+<div class="flex h-1.5 flex-1 overflow-hidden rounded-full bg-[#dbe6e0] dark:bg-gray-700">
+<div class="rounded-full bg-primary" style="width: 85%;"></div>
+</div>
+<p class="text-[#618975] dark:text-primary/60 text-xs font-medium text-right">85%</p>
+<p class="text-[#111814] dark:text-white text-xs font-bold">4</p>
+<div class="flex h-1.5 flex-1 overflow-hidden rounded-full bg-[#dbe6e0] dark:bg-gray-700">
+<div class="rounded-full bg-primary" style="width: 15%;"></div>
+</div>
+<p class="text-[#618975] dark:text-primary/60 text-xs font-medium text-right">15%</p>
+<p class="text-[#111814] dark:text-white text-xs font-bold">3</p>
+<div class="flex h-1.5 flex-1 overflow-hidden rounded-full bg-[#dbe6e0] dark:bg-gray-700">
+<div class="rounded-full bg-primary" style="width: 0%;"></div>
+</div>
+<p class="text-[#618975] dark:text-primary/60 text-xs font-medium text-right">0%</p>
+</div>
+</div>
+<!-- Category Ratings Breakdown -->
+<div class="bg-background-light dark:bg-background-dark/50 py-2">
+<h3 class="text-[#111814] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] px-4 pt-4 pb-2">Category Ratings</h3>
+<div class="px-4 pb-4">
+<div class="flex justify-between items-center py-3 border-b border-gray-100 dark:border-gray-800">
+<p class="text-[#618975] dark:text-white/80 text-base font-medium">Cleanliness</p>
+<div class="flex items-center gap-2">
+<div class="w-24 h-2 bg-[#dbe6e0] dark:bg-gray-700 rounded-full overflow-hidden">
+<div class="h-full bg-primary w-full"></div>
+</div>
+<p class="text-[#111814] dark:text-white text-sm font-bold w-6 text-right">5.0</p>
+</div>
+</div>
+<div class="flex justify-between items-center py-3 border-b border-gray-100 dark:border-gray-800">
+<p class="text-[#618975] dark:text-white/80 text-base font-medium">Accuracy</p>
+<div class="flex items-center gap-2">
+<div class="w-24 h-2 bg-[#dbe6e0] dark:bg-gray-700 rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[90%]"></div>
+</div>
+<p class="text-[#111814] dark:text-white text-sm font-bold w-6 text-right">4.5</p>
+</div>
+</div>
+<div class="flex justify-between items-center py-3">
+<p class="text-[#618975] dark:text-white/80 text-base font-medium">Communication</p>
+<div class="flex items-center gap-2">
+<div class="w-24 h-2 bg-[#dbe6e0] dark:bg-gray-700 rounded-full overflow-hidden">
+<div class="h-full bg-primary w-full"></div>
+</div>
+<p class="text-[#111814] dark:text-white text-sm font-bold w-6 text-right">5.0</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Reviewer Photo Gallery -->
+<div class="p-4">
+<h3 class="text-[#111814] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] mb-3">Photos from Alex</h3>
+<div class="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+<div class="shrink-0 w-32 h-32 rounded-lg bg-cover bg-center" data-alt="Photo of a clean private driveway parking spot" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBTDnYsQJDwUsflCw2pfRelKKwZbxFW3k3hvUfWBeTIQTSJO4PlIISW5SZfUula951WmWVLG5FnMyV8XHFLKpMghBuVXlnTV-1hB8BPDwsUqZA4OmwMuB69iQ3an9GDERhAmTmzTuX1U1r9eABMQxAe6di-1_BU7Cu4FDSTXbdoMhxr924eeZCkChk73c5tUPee0uaCZ9NUJ_B4gKF5TfzECt9TgcWiKnbV19gKcEdpbUYXcYJkn3bqCfnWo8N3bhCU4CHKOvU1Tpse');"></div>
+<div class="shrink-0 w-32 h-32 rounded-lg bg-cover bg-center" data-alt="Wide shot of the parking entrance" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCc4nxwoxIyNgxTIn-ZrMD4mlVd9NQGLPBePgPyP3tEPkzj1qVP3CoNfPcb8w5JJ3lWqt7HiAv51MQp2B7mvWbu3I3KHtWQorUOoGR2iWER8hT2hEvYnYtufqPqfXQuOFaAdK99W7qX5fbuYv7AfRPgogN_WUTP67L65-5Ja6XSjEVEqrxk8kad_JWSi7dfIgFQJGS5ICP71k0CXoTxvlyyK4xIohNZSLg5I_dKtF7dOxHfX-lVQaxEApCHjbjpizfCBdYhq8QRQysR');"></div>
+<div class="shrink-0 w-32 h-32 rounded-lg bg-cover bg-center flex items-center justify-center relative overflow-hidden" data-alt="Detailed view of parking signage">
+<div class="absolute inset-0 bg-black/40"></div>
+<div class="relative z-10 text-white font-bold text-sm">+2 more</div>
+<img alt="Parking spot signs" class="absolute inset-0 w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBgwG36eQZVn4AaJQoUMKSEpZsr6WAX2XwB_XrvLyA6Sg7Emt4GsVK1lBU9Ck2X9G2w4hh92JU7z5HweeSjY_OOUy7q7WD3UWSjCIbeDJDg3RzBAvKSYXHuK2h5Gdamc-K0EiF0ImP30P7AcbYm10wFeX2ulhOU1SFFRP4F0qlTu_0Lmw2C1Kntr0UaXJj77VaPuJWixltwjwvwSqxgMKqpHxoXUkNpVz-_0GYzJWYCJ5zUMLPGiw7Oa3r6Tb7Ijc1LbQbBG-FTCPfn"/>
+</div>
+</div>
+</div>
+<!-- Review Text Body -->
+<div class="px-4 pb-6">
+<p class="text-[#111814] dark:text-white text-base leading-relaxed">
+                "The parking spot was exactly as described. Very easy to find and the owner was incredibly helpful with directions. The driveway was clean and felt very safe for my car. Highly recommend to anyone needing a reliable spot downtown!"
+            </p>
+</div>
+<!-- Host Response Section -->
+<div class="mx-4 mb-8">
+<div class="bg-primary/10 dark:bg-primary/5 rounded-lg p-5 border-l-4 border-primary">
+<div class="flex items-center gap-3 mb-3">
+<div class="w-8 h-8 rounded-full bg-cover bg-center" data-alt="Host profile image" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDeaS2zBbZWSDGg_NKBrio7zzOrO3gIngsD8zvd2f3VvLA4TaDFf8Rgvk-jcddnX-yU71HPa8c7XXHidUwA8mOAL-S_AdQ5LgQgGkW-Us4y2ySeOiqXjNoTDkYEX_Bn7vS6OLOnys5XCT5A6sKZgSdEPPq7zU64SYFk1NV4mtvqoYAYj9pHTFeVtnyJz7Dx3lAt6eRnNWqTs2sOMdvkI-zr876c-JkRKvLZrXagkfitSEFuNRl64dVleQgL_XRo-3YqX-cy3po8q5S8');"></div>
+<div>
+<p class="text-[#111814] dark:text-white text-sm font-bold">Sarah (Host) Response</p>
+<p class="text-[#618975] dark:text-primary/60 text-xs">2 days later</p>
+</div>
+</div>
+<p class="text-[#111814] dark:text-white text-sm leading-relaxed italic">
+                    "Thank you so much for the kind words, Alex! We're glad we could make your trip downtown a bit easier. Hope to see you again next time you're in town!"
+                </p>
+</div>
+</div>
+<!-- Footer Action -->
+<div class="mt-auto p-4 flex flex-col gap-3 pb-10">
+<button class="w-full bg-primary text-[#102219] font-bold py-4 rounded-full transition-all active:scale-95 shadow-lg shadow-primary/20">
+                Contact Host
+            </button>
+<p class="text-center text-xs text-gray-400 dark:text-gray-600">Report this review</p>
+</div>
+</div>
+</body></html>

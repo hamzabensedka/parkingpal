@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13ec49",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#102215",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-fill {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 transition-colors duration-300">
+<div class="relative flex h-screen max-w-md mx-auto flex-col bg-background-light dark:bg-background-dark overflow-x-hidden shadow-2xl">
+<!-- TopAppBar -->
+<div class="flex items-center bg-background-light dark:bg-background-dark p-4 pb-2 justify-between">
+<div class="text-slate-900 dark:text-slate-100 flex size-12 shrink-0 items-center cursor-pointer">
+<span class="material-symbols-outlined text-2xl">arrow_back_ios</span>
+</div>
+<h2 class="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-12">My Bookings</h2>
+</div>
+<!-- Main Content Area -->
+<div class="flex-1 flex flex-col justify-center px-4 py-6">
+<!-- EmptyState -->
+<div class="flex flex-col items-center gap-8">
+<div class="relative w-full max-w-[320px] aspect-square flex items-center justify-center">
+<!-- Custom Illustration Placeholder with Primary Color accents -->
+<div class="absolute inset-0 bg-primary/10 dark:bg-primary/5 rounded-full blur-3xl"></div>
+<div class="relative w-full h-full bg-slate-200/50 dark:bg-slate-800/50 rounded-xl overflow-hidden flex flex-col items-center justify-center border border-slate-200 dark:border-slate-800" data-alt="Minimalist illustration of an empty parking space with green lines">
+<div class="w-48 h-32 border-2 border-dashed border-primary/40 rounded-lg flex items-center justify-center relative">
+<span class="material-symbols-outlined text-primary/20 text-7xl select-none">directions_car</span>
+<div class="absolute -bottom-2 -left-2 w-4 h-4 bg-primary rounded-full"></div>
+<div class="absolute -bottom-2 -right-2 w-4 h-4 bg-primary rounded-full"></div>
+</div>
+</div>
+</div>
+<div class="flex max-w-[480px] flex-col items-center gap-3">
+<p class="text-slate-900 dark:text-slate-100 text-2xl font-bold leading-tight tracking-[-0.015em] text-center">No bookings yet</p>
+<p class="text-slate-500 dark:text-slate-400 text-base font-normal leading-normal max-w-[280px] text-center">Ready to find your first spot? Explore nearby parking in seconds.</p>
+</div>
+<button class="flex min-w-[200px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-14 px-8 bg-primary text-slate-950 text-base font-bold leading-normal tracking-wide shadow-lg shadow-primary/20 active:scale-95 transition-transform">
+<span class="truncate">Find Parking</span>
+</button>
+</div>
+</div>
+<!-- BottomNavBar -->
+<div class="flex gap-2 border-t border-slate-200 dark:border-slate-800 bg-background-light dark:bg-background-dark px-4 pb-8 pt-3">
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500 hover:text-primary transition-colors" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined">search</span>
+</div>
+<p class="text-[10px] font-semibold uppercase tracking-wider">Explore</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-primary" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined material-symbols-fill">calendar_today</span>
+</div>
+<p class="text-[10px] font-semibold uppercase tracking-wider">Bookings</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500 hover:text-primary transition-colors" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined">chat_bubble</span>
+</div>
+<p class="text-[10px] font-semibold uppercase tracking-wider">Messages</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center gap-1 text-slate-400 dark:text-slate-500 hover:text-primary transition-colors" href="#">
+<div class="flex h-8 items-center justify-center">
+<span class="material-symbols-outlined">person</span>
+</div>
+<p class="text-[10px] font-semibold uppercase tracking-wider">Profile</p>
+</a>
+</div>
+</div>
+</body></html>

@@ -1,0 +1,27 @@
+# Dependencies
+**/node_modules/
+
+# Build output
+**/dist/
+**/.expo/
+**/.turbo/
+**/.next/
+
+# Logs
+**/*.log
+
+# Env files
+**/.env
+**/.env.*
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+**/.idea/
+**/.vscode/
+**/.claude/
+
+# Backend uploads (keep folder, ignore contents)
+parkingpal-backend/uploads/*
+!parkingpal-backend/uploads/.gitkeep
+

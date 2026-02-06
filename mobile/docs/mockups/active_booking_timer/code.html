@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Active Booking - ParkingPal</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#2c61e8",
+              "background-light": "#f6f6f8",
+              "background-dark": "#111521",
+              "surface-light": "#ffffff",
+              "surface-dark": "#1a202e",
+              "text-main-light": "#111318",
+              "text-main-dark": "#ffffff",
+              "text-sub-light": "#636d88",
+              "text-sub-dark": "#9ca3af",
+            },
+            fontFamily: {
+              "display": ["Inter", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', "Noto Sans", sans-serif;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen flex flex-col items-center justify-center">
+<div class="relative flex h-full min-h-screen w-full max-w-[480px] flex-col bg-background-light dark:bg-background-dark group/design-root overflow-x-hidden shadow-xl mx-auto">
+<!-- TopAppBar -->
+<div class="sticky top-0 z-10 flex items-center bg-background-light dark:bg-background-dark p-4 pb-2 justify-between">
+<div class="text-text-main-light dark:text-text-main-dark flex size-12 shrink-0 items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/10 cursor-pointer">
+<span class="material-symbols-outlined">arrow_back</span>
+</div>
+<h2 class="text-text-main-light dark:text-text-main-dark text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center">Active Booking</h2>
+<div class="flex w-12 items-center justify-end">
+<button class="flex size-12 cursor-pointer items-center justify-center overflow-hidden rounded-full hover:bg-black/5 dark:hover:bg-white/10 text-text-main-light dark:text-text-main-dark">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+</div>
+<!-- Main Content Scroll Area -->
+<div class="flex-1 flex flex-col gap-6 p-4">
+<!-- Timer Section -->
+<div class="flex flex-col items-center justify-center pt-4">
+<div class="flex gap-3 w-full justify-center">
+<!-- Hours -->
+<div class="flex flex-col items-center gap-2">
+<div class="flex h-20 w-20 sm:h-24 sm:w-24 items-center justify-center rounded-2xl bg-surface-light dark:bg-surface-dark shadow-sm border border-black/5 dark:border-white/5">
+<p class="text-primary text-4xl sm:text-5xl font-bold leading-tight tracking-tight">02</p>
+</div>
+<p class="text-text-sub-light dark:text-text-sub-dark text-xs font-medium uppercase tracking-wide">Hours</p>
+</div>
+<div class="flex h-20 sm:h-24 items-center justify-center pb-6">
+<span class="text-text-sub-light dark:text-text-sub-dark text-2xl font-bold">:</span>
+</div>
+<!-- Minutes -->
+<div class="flex flex-col items-center gap-2">
+<div class="flex h-20 w-20 sm:h-24 sm:w-24 items-center justify-center rounded-2xl bg-surface-light dark:bg-surface-dark shadow-sm border border-black/5 dark:border-white/5">
+<p class="text-primary text-4xl sm:text-5xl font-bold leading-tight tracking-tight">45</p>
+</div>
+<p class="text-text-sub-light dark:text-text-sub-dark text-xs font-medium uppercase tracking-wide">Minutes</p>
+</div>
+<div class="flex h-20 sm:h-24 items-center justify-center pb-6">
+<span class="text-text-sub-light dark:text-text-sub-dark text-2xl font-bold">:</span>
+</div>
+<!-- Seconds -->
+<div class="flex flex-col items-center gap-2">
+<div class="flex h-20 w-20 sm:h-24 sm:w-24 items-center justify-center rounded-2xl bg-surface-light dark:bg-surface-dark shadow-sm border border-black/5 dark:border-white/5">
+<p class="text-primary text-4xl sm:text-5xl font-bold leading-tight tracking-tight">00</p>
+</div>
+<p class="text-text-sub-light dark:text-text-sub-dark text-xs font-medium uppercase tracking-wide">Seconds</p>
+</div>
+</div>
+</div>
+<!-- ProgressBar -->
+<div class="flex flex-col gap-2">
+<div class="flex justify-between items-end">
+<p class="text-text-main-light dark:text-text-main-dark text-sm font-semibold leading-normal">Remaining Time</p>
+<p class="text-text-sub-light dark:text-text-sub-dark text-xs font-medium">60%</p>
+</div>
+<div class="h-3 w-full rounded-full bg-[#dcdee5] dark:bg-gray-700 overflow-hidden">
+<div class="h-full rounded-full bg-primary transition-all duration-500 ease-out" style="width: 60%;"></div>
+</div>
+<p class="text-text-sub-light dark:text-text-sub-dark text-xs text-center mt-1">Ends today at 4:30 PM</p>
+</div>
+<!-- Access Card (DescriptionList Styled) -->
+<div class="bg-surface-light dark:bg-surface-dark rounded-2xl p-5 shadow-sm border border-black/5 dark:border-white/5 flex flex-col gap-4 mt-2">
+<div class="flex items-center gap-3 mb-1">
+<div class="p-2 bg-primary/10 rounded-full text-primary">
+<span class="material-symbols-outlined text-xl">vpn_key</span>
+</div>
+<h3 class="text-text-main-light dark:text-text-main-dark text-base font-bold">Access Credentials</h3>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="flex flex-col gap-1 p-3 rounded-xl bg-background-light dark:bg-background-dark/50 border border-transparent dark:border-white/5">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-text-sub-light dark:text-text-sub-dark text-lg">pin</span>
+<p class="text-text-sub-light dark:text-text-sub-dark text-xs font-medium uppercase tracking-wide">Gate code</p>
+</div>
+<p class="text-text-main-light dark:text-text-main-dark text-xl font-bold pl-7 tracking-wider">1234#</p>
+</div>
+<div class="flex flex-col gap-1 p-3 rounded-xl bg-background-light dark:bg-background-dark/50 border border-transparent dark:border-white/5">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-text-sub-light dark:text-text-sub-dark text-lg">local_parking</span>
+<p class="text-text-sub-light dark:text-text-sub-dark text-xs font-medium uppercase tracking-wide">Spot</p>
+</div>
+<p class="text-text-main-light dark:text-text-main-dark text-xl font-bold pl-7 tracking-wider">B23</p>
+</div>
+</div>
+<div class="flex items-center gap-2 mt-2 pt-4 border-t border-dashed border-gray-200 dark:border-gray-700">
+<span class="material-symbols-outlined text-text-sub-light dark:text-text-sub-dark text-sm">info</span>
+<p class="text-text-sub-light dark:text-text-sub-dark text-xs leading-relaxed">
+                        Enter the code at the main gate keypad. Your spot is on the 2nd level.
+                    </p>
+</div>
+</div>
+<!-- Spacer to push buttons to bottom on large screens, though in flex-col standard flow it just sits below -->
+<div class="flex-1"></div>
+<!-- ButtonGroup -->
+<div class="flex flex-col gap-3 mt-4 pb-4">
+<button class="group flex cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-4 bg-primary text-white text-base font-bold leading-normal tracking-[0.015em] w-full shadow-lg shadow-primary/30 transition-transform active:scale-[0.98]">
+<span class="material-symbols-outlined mr-2 group-hover:animate-pulse">near_me</span>
+<span class="truncate">Navigate to Spot</span>
+</button>
+<div class="grid grid-cols-2 gap-3">
+<button class="flex cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-4 bg-surface-light dark:bg-surface-dark border border-gray-200 dark:border-gray-700 text-text-main-light dark:text-text-main-dark text-sm font-semibold leading-normal w-full transition-colors hover:bg-gray-50 dark:hover:bg-gray-800">
+<span class="material-symbols-outlined mr-2 text-primary">update</span>
+<span class="truncate">Extend</span>
+</button>
+<button class="flex cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-4 bg-surface-light dark:bg-surface-dark border border-gray-200 dark:border-gray-700 text-text-main-light dark:text-text-main-dark text-sm font-semibold leading-normal w-full transition-colors hover:bg-gray-50 dark:hover:bg-gray-800">
+<span class="material-symbols-outlined mr-2 text-primary">chat_bubble</span>
+<span class="truncate">Contact Host</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</body></html>

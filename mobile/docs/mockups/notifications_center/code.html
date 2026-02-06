@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ParkingPal - Notifications</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display">
+<div class="relative flex min-h-screen w-full flex-col max-w-[430px] mx-auto bg-white dark:bg-background-dark shadow-xl overflow-x-hidden">
+<!-- TopAppBar -->
+<div class="sticky top-0 z-10 flex items-center bg-white/80 dark:bg-background-dark/80 backdrop-blur-md p-4 pb-2 justify-between border-b border-gray-100 dark:border-gray-800">
+<div class="text-gray-900 dark:text-white flex size-12 shrink-0 items-center">
+<span class="material-symbols-outlined cursor-pointer">arrow_back_ios</span>
+</div>
+<h2 class="text-gray-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center">Notifications</h2>
+<div class="flex w-12 items-center justify-end">
+<button class="flex items-center justify-center rounded-xl h-12 bg-transparent text-primary gap-2 text-base font-bold p-0">
+<span class="material-symbols-outlined">done_all</span>
+</button>
+</div>
+</div>
+<!-- Tabs -->
+<div class="bg-white dark:bg-background-dark">
+<div class="flex border-b border-gray-100 dark:border-gray-800 px-4 gap-8">
+<a class="flex flex-col items-center justify-center border-b-[3px] border-primary text-primary pb-[13px] pt-4" href="#">
+<p class="text-sm font-bold tracking-[0.015em]">All</p>
+</a>
+<a class="flex flex-col items-center justify-center border-b-[3px] border-transparent text-gray-500 dark:text-gray-400 pb-[13px] pt-4" href="#">
+<p class="text-sm font-bold tracking-[0.015em]">Bookings</p>
+</a>
+<a class="flex flex-col items-center justify-center border-b-[3px] border-transparent text-gray-500 dark:text-gray-400 pb-[13px] pt-4" href="#">
+<p class="text-sm font-bold tracking-[0.015em]">Messages</p>
+</a>
+<a class="flex flex-col items-center justify-center border-b-[3px] border-transparent text-gray-500 dark:text-gray-400 pb-[13px] pt-4" href="#">
+<p class="text-sm font-bold tracking-[0.015em]">Payments</p>
+</a>
+</div>
+</div>
+<!-- Section: Today -->
+<div class="flex flex-col">
+<h3 class="text-gray-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-6">Today</h3>
+<!-- ListItem: Booking -->
+<div class="flex items-center gap-4 bg-white dark:bg-background-dark px-4 min-h-[72px] py-3 justify-between hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="text-primary flex items-center justify-center rounded-xl bg-primary/10 shrink-0 size-12">
+<span class="material-symbols-outlined">event_available</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-gray-900 dark:text-white text-base font-semibold leading-normal line-clamp-1">Booking confirmed!</p>
+<p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal line-clamp-2">Your spot at Downtown Plaza is ready for tomorrow.</p>
+</div>
+</div>
+<div class="shrink-0 flex items-center gap-2">
+<span class="text-[10px] text-gray-400 font-medium">2m</span>
+<div class="flex size-3 items-center justify-center"><div class="size-2.5 rounded-full bg-primary"></div></div>
+</div>
+</div>
+<!-- ListItem: Message -->
+<div class="flex items-center gap-4 bg-white dark:bg-background-dark px-4 min-h-[72px] py-3 justify-between hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-12 w-12 shrink-0" data-alt="Profile photo of a smiling woman" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuD93AzNrvkyYO4VzfVUbMzAJGxWrnk_S6_arXk2YUgREepanx946hWmu2-QjFf7R6dpDaBWaT55ASH_UhoE2Ql3WmU_r80KLunMRlUerVMQHyAAh5C7qn_1kSsfW3S4pv7PueD3CbMLEvzCIs56skeBtsIhSmUgSUqe__SwWsdwZlRWTJmM3loRz8y9JSM2Hu_aRJotDYgAgg8iyAEis-dkczXgoNe0TbJ0-8S5WCvCfaMhW0Oi4rhx3L151VGlpKwPNT0iPguiZX5j");'></div>
+<div class="flex flex-col justify-center">
+<p class="text-gray-900 dark:text-white text-base font-semibold leading-normal line-clamp-1">Sarah Miller</p>
+<p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal line-clamp-2">"Is the parking spot accessible for SUVs?"</p>
+</div>
+</div>
+<div class="shrink-0 flex items-center gap-2">
+<span class="text-[10px] text-gray-400 font-medium">1h</span>
+<div class="flex size-3 items-center justify-center"><div class="size-2.5 rounded-full bg-primary"></div></div>
+</div>
+</div>
+</div>
+<!-- Section: Yesterday -->
+<div class="flex flex-col">
+<h3 class="text-gray-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-6">Yesterday</h3>
+<!-- ListItem: Payment -->
+<div class="flex items-center gap-4 bg-white dark:bg-background-dark px-4 min-h-[72px] py-3 justify-between hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="text-green-600 flex items-center justify-center rounded-xl bg-green-50 dark:bg-green-900/20 shrink-0 size-12">
+<span class="material-symbols-outlined">payments</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-gray-900 dark:text-white text-base font-medium leading-normal line-clamp-1">Payment Received</p>
+<p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal line-clamp-2">You earned $25.00 for the booking at Sunset Blvd.</p>
+</div>
+</div>
+<div class="shrink-0">
+<span class="text-[10px] text-gray-400 font-medium">Yesterday</span>
+</div>
+</div>
+<!-- ListItem: Review -->
+<div class="flex items-center gap-4 bg-white dark:bg-background-dark px-4 min-h-[72px] py-3 justify-between hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="text-orange-500 flex items-center justify-center rounded-xl bg-orange-50 dark:bg-orange-900/20 shrink-0 size-12">
+<span class="material-symbols-outlined">star</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-gray-900 dark:text-white text-base font-medium leading-normal line-clamp-1">New 5-star review!</p>
+<p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal line-clamp-2">"Great spot, very easy to park and safe area."</p>
+</div>
+</div>
+<div class="shrink-0">
+<span class="text-[10px] text-gray-400 font-medium">Yesterday</span>
+</div>
+</div>
+</div>
+<!-- Section: This Week -->
+<div class="flex flex-col">
+<h3 class="text-gray-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-6">This Week</h3>
+<!-- ListItem: System Alert -->
+<div class="flex items-center gap-4 bg-white dark:bg-background-dark px-4 min-h-[72px] py-3 justify-between hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="text-gray-600 dark:text-gray-300 flex items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-800 shrink-0 size-12">
+<span class="material-symbols-outlined">security</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-gray-900 dark:text-white text-base font-medium leading-normal line-clamp-1">Account Security Update</p>
+<p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal line-clamp-2">Your password was successfully updated on Oct 12.</p>
+</div>
+</div>
+<div class="shrink-0">
+<span class="text-[10px] text-gray-400 font-medium">Oct 12</span>
+</div>
+</div>
+<!-- ListItem: Promotional -->
+<div class="flex items-center gap-4 bg-white dark:bg-background-dark px-4 min-h-[72px] py-3 justify-between hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="text-primary flex items-center justify-center rounded-xl bg-primary/10 shrink-0 size-12">
+<span class="material-symbols-outlined">local_offer</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-gray-900 dark:text-white text-base font-medium leading-normal line-clamp-1">Refer a friend, earn $10</p>
+<p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal line-clamp-2">Get rewards when your friends list their first spot.</p>
+</div>
+</div>
+<div class="shrink-0">
+<span class="text-[10px] text-gray-400 font-medium">Oct 10</span>
+</div>
+</div>
+</div>
+<!-- Padding for bottom nav if needed -->
+<div class="h-24 bg-transparent"></div>
+</div>
+</body></html>

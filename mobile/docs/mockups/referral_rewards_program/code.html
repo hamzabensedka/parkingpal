@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0df259",
+                        "background-light": "#f5f8f6",
+                        "background-dark": "#102216",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<title>Referral Rewards</title>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#111813] dark:text-white transition-colors duration-200">
+<div class="relative flex h-auto min-h-screen w-full flex-col max-w-[430px] mx-auto overflow-x-hidden">
+<!-- TopAppBar -->
+<div class="flex items-center bg-background-light dark:bg-background-dark p-4 pb-2 justify-between sticky top-0 z-10">
+<div class="text-[#111813] dark:text-white flex size-12 shrink-0 items-center justify-start cursor-pointer">
+<span class="material-symbols-outlined">arrow_back</span>
+</div>
+<h2 class="text-[#111813] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center">Referral Rewards</h2>
+<div class="size-12 flex items-center justify-end">
+<span class="material-symbols-outlined">help_outline</span>
+</div>
+</div>
+<div class="flex flex-col flex-1 px-4">
+<!-- HeaderImage -->
+<div class="@container">
+<div class="py-3">
+<div class="w-full bg-center bg-no-repeat bg-cover flex flex-col justify-end overflow-hidden bg-primary/20 rounded-xl min-h-64 relative" data-alt="Illustration of a festive gift box with floating euro coins" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDzj_KpVM32-Na7vQUm_JS4nePQ5n4lMa6Vp_oZNZdgJQFjTk_x7LwSA-oSZ1u-0bSlrPmJxVGjrsuk34xL3QNlqG_ziy8IQ4Hf1XzoD_I80jsGx197egzLyStxJihPE2-Yqxp40nPHE7Gbh_Fd8Yl6cL6klASn5iqOQA1_hHamjibijseDOv2AKn13vX2kyptAKJzaF66FABAu7_Ka3cSQV1jXnBhCTZQd1-1CWJ7J2I0L2gBM3TIGk-XMrpdgY-FKsfUdp5j2dLl5");'>
+<div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+</div>
+</div>
+</div>
+<!-- HeadlineText -->
+<h1 class="text-[#111813] dark:text-white tracking-tight text-[32px] font-extrabold leading-tight text-center pb-3 pt-6">Give €10, Get €10</h1>
+<!-- BodyText -->
+<p class="text-[#111813]/70 dark:text-white/70 text-base font-medium leading-relaxed pb-8 pt-1 px-4 text-center">
+                Share the love of easy parking with your friends and you both get rewards to use on your next spot.
+            </p>
+<!-- Referral Code Section -->
+<div class="flex flex-col items-center justify-center bg-white dark:bg-white/5 rounded-xl p-6 border border-gray-100 dark:border-white/10 shadow-sm mb-8">
+<!-- SectionHeader -->
+<h4 class="text-primary text-xs font-bold leading-normal tracking-[0.1em] pb-3 text-center uppercase">Your Referral Code</h4>
+<div class="flex items-center justify-between w-full bg-background-light dark:bg-white/10 rounded-lg p-4 border-2 border-dashed border-primary/30">
+<span class="text-2xl font-black tracking-widest text-[#111813] dark:text-white">PARKPAL123</span>
+<button class="bg-primary text-[#102216] p-2 rounded flex items-center justify-center">
+<span class="material-symbols-outlined text-sm">content_copy</span>
+</button>
+</div>
+</div>
+<!-- Stats/Steps (Optional but adds value) -->
+<div class="grid grid-cols-3 gap-4 mb-8">
+<div class="flex flex-col items-center text-center">
+<div class="size-10 bg-primary/10 rounded-full flex items-center justify-center mb-2">
+<span class="material-symbols-outlined text-primary">send</span>
+</div>
+<p class="text-[10px] font-bold uppercase tracking-tighter opacity-60">Send Link</p>
+</div>
+<div class="flex flex-col items-center text-center">
+<div class="size-10 bg-primary/10 rounded-full flex items-center justify-center mb-2">
+<span class="material-symbols-outlined text-primary">directions_car</span>
+</div>
+<p class="text-[10px] font-bold uppercase tracking-tighter opacity-60">They Park</p>
+</div>
+<div class="flex flex-col items-center text-center">
+<div class="size-10 bg-primary/10 rounded-full flex items-center justify-center mb-2">
+<span class="material-symbols-outlined text-primary">redeem</span>
+</div>
+<p class="text-[10px] font-bold uppercase tracking-tighter opacity-60">Both Earn</p>
+</div>
+</div>
+<div class="mt-auto pb-10">
+<!-- Primary Action Button -->
+<button class="w-full bg-primary hover:bg-primary/90 text-[#102216] font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-primary/20 transition-all">
+<span class="material-symbols-outlined">share</span>
+                    Share with Friends
+                </button>
+<p class="text-center text-[12px] mt-4 opacity-40 font-medium">Terms and conditions apply</p>
+</div>
+</div>
+<!-- iOS Indicator -->
+<div class="h-1.5 w-32 bg-gray-300 dark:bg-gray-700 rounded-full mx-auto mb-2 mt-2"></div>
+</div>
+</body></html>
