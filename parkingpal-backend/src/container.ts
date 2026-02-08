@@ -25,14 +25,20 @@ import { BcryptPasswordUtil } from './utils/bcrypt-password.util';
 import { JWTTokenUtil } from './utils/jwt-token.util';
 import { NodemailerEmailService } from './services/nodemailer-email.service';
 import { PrismaUserRepository } from './repositories/prisma-user.repository';
+import { PrismaVehicleRepository } from './repositories/prisma-vehicle.repository';
+import { PrismaPaymentMethodRepository } from './repositories/prisma-payment-method.repository';
 
 // Services
 import { AuthService } from './modules/auth/auth.service';
 import { UserProfileService } from './modules/auth/user-profile.service';
+import { VehicleService } from './modules/vehicles/vehicle.service';
+import { PaymentMethodService } from './modules/payment-methods/payment-method.service';
 
 // Controllers
 import { AuthController } from './modules/auth/auth.controller';
 import { UserProfileController } from './modules/auth/user-profile.controller';
+import { VehicleController } from './modules/vehicles/vehicle.controller';
+import { PaymentMethodController } from './modules/payment-methods/payment-method.controller';
 
 // Middleware factory
 import { createAuthMiddleware } from './middleware/authenticate';
@@ -68,6 +74,12 @@ const emailService = new NodemailerEmailService(
 /** User database access via Prisma -- swap with MongoUserRepository if needed */
 const userRepository = new PrismaUserRepository(prisma);
 
+/** Vehicle database access via Prisma */
+const vehicleRepository = new PrismaVehicleRepository(prisma);
+
+/** Payment method database access via Prisma (metadata only) */
+const paymentMethodRepository = new PrismaPaymentMethodRepository(prisma);
+
 // ==========================================
 // 3. CREATE SERVICES (Business logic)
 //    Dependencies injected via constructor
@@ -82,8 +94,18 @@ const authService = new AuthService(
   env.appUrl
 );
 
-/** User profile business logic */
-const userProfileService = new UserProfileService(userRepository);
+/** User profile business logic (returns full UserProfileDTO with vehicles & payment methods) */
+const userProfileService = new UserProfileService(
+  userRepository,
+  vehicleRepository,
+  paymentMethodRepository
+);
+
+/** Vehicle business logic */
+const vehicleService = new VehicleService(vehicleRepository);
+
+/** Payment method business logic */
+const paymentMethodService = new PaymentMethodService(paymentMethodRepository);
 
 // ==========================================
 // 4. CREATE CONTROLLERS (HTTP handling only)
@@ -95,6 +117,12 @@ const authController = new AuthController(authService);
 
 /** User profile HTTP handler */
 const userProfileController = new UserProfileController(userProfileService);
+
+/** Vehicle HTTP handler */
+const vehicleController = new VehicleController(vehicleService);
+
+/** Payment method HTTP handler */
+const paymentMethodController = new PaymentMethodController(paymentMethodService);
 
 // ==========================================
 // 5. CREATE MIDDLEWARE (with injected dependencies)
@@ -126,6 +154,8 @@ export {
   // Controllers
   authController,
   userProfileController,
+  vehicleController,
+  paymentMethodController,
 
   // Middleware
   authenticate,

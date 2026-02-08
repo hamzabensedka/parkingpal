@@ -13,23 +13,21 @@ import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
-import { Vehicle } from '../../types';
+import type { VehicleDTO } from '@parkingpal/shared-types';
 import { Card, Badge, EmptyState, Button } from '../../components/common';
 
 const VehiclesScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const { colors, NEUTRAL_COLORS } = useTheme();
-  const { user, removeVehicle, setDefaultVehicle } = useAuth();
+  const { vehicles, deleteVehicle, setDefaultVehicle } = useAuth();
 
-  const vehicles = user?.vehicles || [];
-
-  const getVehicleIcon = (type: Vehicle['type']) => {
+  const getVehicleIcon = (type: VehicleDTO['type']) => {
     switch (type) {
-      case 'car': return 'car';
+      case 'sedan': return 'car';
       case 'motorcycle': return 'motorbike';
       case 'suv': return 'car-sports';
       case 'van': return 'van-utility';
-      case 'truck': return 'truck';
+      case 'compact': return 'car';
       default: return 'car';
     }
   };
@@ -38,7 +36,7 @@ const VehiclesScreen: React.FC = () => {
     navigation.navigate('AddVehicle');
   }, [navigation]);
 
-  const handleEditVehicle = useCallback((vehicle: Vehicle) => {
+  const handleEditVehicle = useCallback((vehicle: VehicleDTO) => {
     navigation.navigate('AddVehicle', { vehicleId: vehicle.id });
   }, [navigation]);
 
@@ -51,17 +49,17 @@ const VehiclesScreen: React.FC = () => {
         {
           text: 'Delete',
           style: 'destructive',
-          onPress: () => removeVehicle(vehicleId),
+          onPress: () => deleteVehicle(vehicleId),
         },
       ]
     );
-  }, [removeVehicle]);
+  }, [deleteVehicle]);
 
   const handleSetDefault = useCallback((vehicleId: string) => {
     setDefaultVehicle(vehicleId);
   }, [setDefaultVehicle]);
 
-  const renderVehicle = ({ item }: { item: Vehicle }) => (
+  const renderVehicle = ({ item }: { item: VehicleDTO }) => (
     <Card style={styles.vehicleCard}>
       <View style={styles.vehicleHeader}>
         <View style={[styles.vehicleIconContainer, { backgroundColor: colors.lightest }]}>
@@ -69,7 +67,7 @@ const VehiclesScreen: React.FC = () => {
         </View>
         <View style={styles.vehicleInfo}>
           <Text style={styles.vehicleName}>{item.make} {item.model}</Text>
-          <Text style={styles.vehicleDetails}>{item.color} • {item.year}</Text>
+          <Text style={styles.vehicleDetails}>{item.color}{item.year ? ` • ${item.year}` : ''}</Text>
           <View style={styles.plateRow}>
             <Icon name="card-text" size={14} color={NEUTRAL_COLORS.gray} />
             <Text style={styles.plateText}>{item.licensePlate}</Text>

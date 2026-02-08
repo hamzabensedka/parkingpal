@@ -99,6 +99,7 @@ export const updateProfileSchema = z.object({
   lastName: nameSchema.optional(),
   phone: phoneSchema,
   profilePhoto: z.string().url('Invalid photo URL').optional(),
+  bio: z.string().max(500).optional().nullable(),
 });
 
 // Export types inferred from schemas

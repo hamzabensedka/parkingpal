@@ -12,6 +12,8 @@ import {
   tokenRefreshLimiter,
 } from '../../middleware/rateLimiter';
 import { uploadIdDocument, handleMulterError } from '../../middleware/upload';
+import vehicleRoutes from '../vehicles/vehicle.routes';
+import paymentMethodRoutes from '../payment-methods/payment-method.routes';
 import {
   registerSchema,
   loginSchema,
@@ -151,5 +153,15 @@ userRouter.post(
   handleMulterError,
   userProfileController.verifyId.bind(userProfileController)
 );
+
+/**
+ * Vehicles: GET/POST /api/users/vehicles, PUT/DELETE /api/users/vehicles/:id, POST /api/users/vehicles/:id/default
+ */
+userRouter.use('/vehicles', vehicleRoutes);
+
+/**
+ * Payment methods: GET/POST /api/users/payment-methods, DELETE /api/users/payment-methods/:id, POST /api/users/payment-methods/:id/default
+ */
+userRouter.use('/payment-methods', paymentMethodRoutes);
 
 export default router;

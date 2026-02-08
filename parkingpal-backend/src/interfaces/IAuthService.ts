@@ -10,6 +10,7 @@ import {
   RegisterRequest,
   LoginRequest,
   UpdateProfileRequest,
+  UserProfileDTO,
 } from '@parkingpal/shared-types';
 
 export interface IAuthService {
@@ -60,9 +61,9 @@ export interface IAuthService {
  */
 export interface IUserProfileService {
   /**
-   * Get user profile
+   * Get full user profile (user, stats, vehicles, payment methods)
    */
-  getProfile(userId: string): Promise<UserDTO>;
+  getProfile(userId: string): Promise<UserProfileDTO>;
 
   /**
    * Update user profile

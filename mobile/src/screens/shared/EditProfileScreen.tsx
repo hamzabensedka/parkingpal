@@ -24,9 +24,9 @@ const EditProfileScreen: React.FC = () => {
   const [firstName, setFirstName] = useState(user?.firstName || '');
   const [lastName, setLastName] = useState(user?.lastName || '');
   const [email, setEmail] = useState(user?.email || '');
-  const [phone, setPhone] = useState(user?.phone || '');
-  const [bio, setBio] = useState(user?.bio || '');
-  const [avatar, setAvatar] = useState(user?.avatar || '');
+  const [phone, setPhone] = useState(user?.phone ?? '');
+  const [bio, setBio] = useState(user?.bio ?? '');
+  const [avatar, setAvatar] = useState(user?.avatar ?? user?.profilePhoto ?? '');
   const [isLoading, setIsLoading] = useState(false);
 
   const handlePickAvatar = useCallback(async () => {
@@ -61,9 +61,10 @@ const EditProfileScreen: React.FC = () => {
       await updateProfile({
         firstName: firstName.trim(),
         lastName: lastName.trim(),
-        phone: phone.trim(),
-        bio: bio.trim(),
-        avatar,
+        phone: phone.trim() || undefined,
+        bio: bio.trim() || undefined,
+        avatar: avatar || undefined,
+        profilePhoto: avatar || undefined,
       });
 
       Alert.alert('Success', 'Your profile has been updated.');
@@ -169,15 +170,15 @@ const EditProfileScreen: React.FC = () => {
               <Icon
                 name="phone-check"
                 size={24}
-                color={user?.isPhoneVerified ? NEUTRAL_COLORS.darkGray : NEUTRAL_COLORS.gray}
+                color={user?.verified?.phone ? NEUTRAL_COLORS.darkGray : NEUTRAL_COLORS.gray}
               />
               <View style={styles.verificationInfo}>
                 <Text style={styles.verificationLabel}>Phone</Text>
                 <Text style={styles.verificationStatus}>
-                  {user?.isPhoneVerified ? 'Verified' : 'Not verified'}
+                  {user?.verified?.phone ? 'Verified' : 'Not verified'}
                 </Text>
               </View>
-              {user?.isPhoneVerified ? (
+              {user?.verified?.phone ? (
                 <Icon name="check-circle" size={20} color={NEUTRAL_COLORS.darkGray} />
               ) : (
                 <TouchableOpacity>
@@ -192,15 +193,15 @@ const EditProfileScreen: React.FC = () => {
               <Icon
                 name="card-account-details"
                 size={24}
-                color={user?.isIdVerified ? NEUTRAL_COLORS.darkGray : NEUTRAL_COLORS.gray}
+                color={user?.verified?.id ? NEUTRAL_COLORS.darkGray : NEUTRAL_COLORS.gray}
               />
               <View style={styles.verificationInfo}>
                 <Text style={styles.verificationLabel}>ID</Text>
                 <Text style={styles.verificationStatus}>
-                  {user?.isIdVerified ? 'Verified' : 'Not verified'}
+                  {user?.verified?.id ? 'Verified' : 'Not verified'}
                 </Text>
               </View>
-              {user?.isIdVerified ? (
+              {user?.verified?.id ? (
                 <Icon name="check-circle" size={20} color={NEUTRAL_COLORS.darkGray} />
               ) : (
                 <TouchableOpacity>

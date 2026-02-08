@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Booking, BookingStatus, Vehicle, Spot, BookingPricing } from '../types';
+import { Booking, BookingStatus, Vehicle, Spot, BookingPricing, User } from '../types';
 import { mockBookings } from '../data/mockBookings';
 import { mockSpots } from '../data/mockSpots';
 import { mockUsers } from '../data/mockUsers';
@@ -109,7 +109,7 @@ export const BookingProvider: React.FC<BookingProviderProps> = ({ children }) =>
         spotId: data.spotId,
         spot,
         renterId: user.id,
-        renter: user,
+        renter: { ...user, phone: user.phone ?? '' } as User,
         hostId: spot.hostId,
         host: mockUsers.find((u) => u.id === spot.hostId),
         startTime: data.startTime,

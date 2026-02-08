@@ -1,7 +1,11 @@
 import { IUserProfileService } from '../../interfaces/IAuthService';
 import { IUserRepository } from '../../interfaces/IUserRepository';
-import { UserDTO, UpdateProfileRequest } from '@parkingpal/shared-types';
+import { IVehicleRepository } from '../../interfaces/IVehicleRepository';
+import { IPaymentMethodRepository } from '../../interfaces/IPaymentMethodRepository';
+import { UserDTO, UpdateProfileRequest, UserProfileDTO } from '@parkingpal/shared-types';
 import { toUserDTO } from '../../utils/user.mapper';
+import { toVehicleDTO } from '../vehicles/vehicle.mappers';
+import { toPaymentMethodDTO } from '../payment-methods/payment-method.mappers';
 import { ApiError } from '../../middleware/errorHandler';
 import { ERROR_MESSAGES } from '../../config/constants';
 
@@ -10,25 +14,41 @@ import { ERROR_MESSAGES } from '../../config/constants';
  * Implements IUserProfileService
  *
  * Single Responsibility: Profile management (get, update, verify ID)
- * Separated from AuthService per Interface Segregation Principle
+ * GET /api/users/profile returns full UserProfileDTO (user, stats, vehicles, payment methods)
  *
- * Dependencies injected via constructor (Dependency Inversion Principle):
- * - IUserRepository: Database access abstraction
+ * Dependencies injected via constructor (DIP):
+ * - IUserRepository, IVehicleRepository, IPaymentMethodRepository
  */
 export class UserProfileService implements IUserProfileService {
-  constructor(private readonly userRepository: IUserRepository) {}
+  constructor(
+    private readonly userRepository: IUserRepository,
+    private readonly vehicleRepository: IVehicleRepository,
+    private readonly paymentMethodRepository: IPaymentMethodRepository
+  ) {}
 
   /**
-   * Get user profile by ID
+   * Get full user profile (user, stats, vehicles, payment methods)
    */
-  async getProfile(userId: string): Promise<UserDTO> {
+  async getProfile(userId: string): Promise<UserProfileDTO> {
     const user = await this.userRepository.findById(userId);
 
     if (!user) {
       throw ApiError.notFound('User not found');
     }
 
-    return toUserDTO(user);
+    const [vehicles, paymentMethods] = await Promise.all([
+      this.vehicleRepository.findByUserId(userId),
+      this.paymentMethodRepository.findByUserId(userId),
+    ]);
+
+    return {
+      user: toUserDTO(user),
+      bio: user.bio ?? null,
+      profilePhoto: user.profilePhoto ?? null,
+      stats: { totalBookings: 0, totalSpent: 0 },
+      vehicles: vehicles.map(toVehicleDTO),
+      paymentMethods: paymentMethods.map(toPaymentMethodDTO),
+    };
   }
 
   /**
@@ -48,6 +68,7 @@ export class UserProfileService implements IUserProfileService {
       ...(input.lastName !== undefined && { lastName: input.lastName }),
       ...(input.phone !== undefined && { phone: input.phone || null }),
       ...(input.profilePhoto !== undefined && { profilePhoto: input.profilePhoto || null }),
+      ...(input.bio !== undefined && { bio: input.bio ?? null }),
     });
 
     return toUserDTO(user);

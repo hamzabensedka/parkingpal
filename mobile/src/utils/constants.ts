@@ -1,3 +1,5 @@
+import Constants from 'expo-constants';
+
 // ParkingPal Design System – Black, White & #19e664 (Airbnb-style)
 
 const ACCENT = '#000000';
@@ -257,12 +259,29 @@ export const PAYMENT_STATUS = {
   refunded: { label: 'Refunded', color: '#6B7280' },
 } as const;
 
-// API Base URL
-export const API_BASE_URL = 'https://api.parkingpal.fr/v1';
+// API Base URL (backend routes are /api/... with no /v1 prefix)
+// In dev, derive your machine IP from Expo so physical devices can reach it.
+
+function getDevHost(): string | null {
+  // Most reliable in Expo: debuggerHost like "192.168.x.x:19000"
+  const debuggerHost =
+    (Constants as any)?.manifest?.debuggerHost ??
+    (Constants as any)?.expoConfig?.hostUri ??
+    (Constants as any)?.manifest2?.extra?.expoClient?.hostUri;
+
+  if (typeof debuggerHost !== 'string' || debuggerHost.length === 0) return null;
+  return debuggerHost.split(':')[0] ?? null;
+}
+
+const DEV_API_HOST = getDevHost() ?? 'localhost';
+export const API_BASE_URL = __DEV__
+  ? `http://${DEV_API_HOST}:5000`
+  : 'https://api.parkingpal.fr';
 
 // Storage Keys
 export const STORAGE_KEYS = {
   authToken: 'auth_token',
+  refreshToken: 'refresh_token',
   user: 'user_data',
   userType: 'user_type',
   onboardingComplete: 'onboarding_complete',

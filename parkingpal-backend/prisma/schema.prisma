@@ -22,6 +22,7 @@ model User {
   firstName         String
   lastName          String
   profilePhoto      String?   // URL to uploaded photo
+  bio               String?   // Optional bio for profile
 
   // User Type
   userType          UserType  @default(RENTER)
@@ -59,6 +60,10 @@ model User {
   updatedAt         DateTime  @updatedAt
   lastLoginAt       DateTime?
 
+  // Renter profile relations
+  vehicles          Vehicle[]
+  paymentMethods    PaymentMethod[]
+
   // Future Relations (uncomment when building other modules)
   // spots          Spot[]
   // bookingsAsRenter  Booking[] @relation("RenterBookings")
@@ -80,4 +85,54 @@ enum UserType {
   RENTER    // User who rents parking spots
   HOST      // User who lists parking spots
   BOTH      // User can do both
+}
+
+// Vehicle size/type for renter vehicles
+enum VehicleSize {
+  COMPACT
+  SEDAN
+  SUV
+  VAN
+  MOTORCYCLE
+}
+
+model Vehicle {
+  id           String      @id @default(uuid())
+  userId       String
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  make         String
+  model        String
+  licensePlate String
+  color        String
+  type         VehicleSize
+  year         Int?
+  isDefault    Boolean      @default(false)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@map("vehicles")
+  @@index([userId])
+}
+
+// Payment method type (metadata only - never store full card/CVC)
+enum PaymentMethodType {
+  CARD
+  BANK
+}
+
+model PaymentMethod {
+  id          String            @id @default(uuid())
+  userId      String
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type        PaymentMethodType
+  last4       String
+  brand       String?           // e.g. Visa, Mastercard
+  expiryMonth Int?
+  expiryYear  Int?
+  isDefault   Boolean           @default(false)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@map("payment_methods")
+  @@index([userId])
 }

@@ -35,6 +35,15 @@ const startServer = async (): Promise<void> => {
       console.log('  GET    /api/users/profile');
       console.log('  PUT    /api/users/profile');
       console.log('  POST   /api/users/verify-id');
+      console.log('  GET    /api/users/vehicles');
+      console.log('  POST   /api/users/vehicles');
+      console.log('  PUT    /api/users/vehicles/:id');
+      console.log('  DELETE /api/users/vehicles/:id');
+      console.log('  POST   /api/users/vehicles/:id/default');
+      console.log('  GET    /api/users/payment-methods');
+      console.log('  POST   /api/users/payment-methods');
+      console.log('  DELETE /api/users/payment-methods/:id');
+      console.log('  POST   /api/users/payment-methods/:id/default');
       console.log('');
     });
   } catch (error) {

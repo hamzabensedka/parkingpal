@@ -17,7 +17,7 @@
       "@data/*": ["src/data/*"]
     },
     "jsx": "react-native",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "esModuleInterop": true,
     "skipLibCheck": true,
     "resolveJsonModule": true

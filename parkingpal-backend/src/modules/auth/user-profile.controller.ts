@@ -23,15 +23,15 @@ export class UserProfileController {
 
   /**
    * GET /api/users/profile
-   * Get user profile
+   * Get full user profile (UserProfileDTO: user, stats, vehicles, payment methods)
    */
   async getProfile(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const user = await this.userProfileService.getProfile(req.user!.id);
+      const profile = await this.userProfileService.getProfile(req.user!.id);
 
       res.status(HTTP_STATUS.OK).json({
         success: true,
-        data: { user },
+        data: profile,
       });
     } catch (error) {
       next(error);

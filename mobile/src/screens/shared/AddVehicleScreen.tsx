@@ -13,17 +13,15 @@ import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
-import { Vehicle } from '../../types';
+import type { VehicleSizeType } from '@parkingpal/shared-types';
 import { Button, Input, Card } from '../../components/common';
 
-type VehicleType = Vehicle['type'];
-
-const VEHICLE_TYPES: { type: VehicleType; label: string; icon: string }[] = [
-  { type: 'car', label: 'Car', icon: 'car' },
+const VEHICLE_TYPES: { type: VehicleSizeType; label: string; icon: string }[] = [
+  { type: 'compact', label: 'Compact', icon: 'car' },
+  { type: 'sedan', label: 'Sedan', icon: 'car' },
   { type: 'motorcycle', label: 'Motorcycle', icon: 'motorbike' },
   { type: 'suv', label: 'SUV', icon: 'car-sports' },
   { type: 'van', label: 'Van', icon: 'van-utility' },
-  { type: 'truck', label: 'Truck', icon: 'truck' },
 ];
 
 const AddVehicleScreen: React.FC = () => {
@@ -36,7 +34,7 @@ const AddVehicleScreen: React.FC = () => {
   const [year, setYear] = useState('');
   const [color, setColor] = useState('');
   const [licensePlate, setLicensePlate] = useState('');
-  const [vehicleType, setVehicleType] = useState<VehicleType>('car');
+  const [vehicleType, setVehicleType] = useState<VehicleSizeType>('sedan');
   const [isDefault, setIsDefault] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 

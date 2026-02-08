@@ -93,5 +93,6 @@ export interface UpdateUserData {
   lastName?: string;
   phone?: string | null;
   profilePhoto?: string | null;
+  bio?: string | null;
   idDocument?: string;
 }

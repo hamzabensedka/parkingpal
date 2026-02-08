@@ -133,7 +133,7 @@ const RenterProfileScreen: React.FC = () => {
           <TouchableOpacity onPress={handleEditProfile}>
             <Avatar
               name={user?.firstName}
-              imageUrl={user?.avatar}
+              imageUrl={user?.avatar ?? user?.profilePhoto ?? undefined}
               size={80}
             />
             <View style={[styles.editBadge, { backgroundColor: colors.primary }]}>
@@ -147,19 +147,19 @@ const RenterProfileScreen: React.FC = () => {
           <Text style={styles.userEmail}>{user?.email}</Text>
 
           <View style={styles.verificationRow}>
-            {user?.isEmailVerified && (
+            {user?.verified?.email && (
               <View style={styles.verificationBadge}>
                 <Icon name="email-check" size={14} color={NEUTRAL_COLORS.darkGray} />
                 <Text style={styles.verificationText}>Email Verified</Text>
               </View>
             )}
-            {user?.isPhoneVerified && (
+            {user?.verified?.phone && (
               <View style={styles.verificationBadge}>
                 <Icon name="phone-check" size={14} color={NEUTRAL_COLORS.darkGray} />
                 <Text style={styles.verificationText}>Phone Verified</Text>
               </View>
             )}
-            {user?.isIdVerified && (
+            {user?.verified?.id && (
               <View style={styles.verificationBadge}>
                 <Icon name="card-account-details-outline" size={14} color={NEUTRAL_COLORS.darkGray} />
                 <Text style={styles.verificationText}>ID Verified</Text>
@@ -172,14 +172,14 @@ const RenterProfileScreen: React.FC = () => {
         <Card style={styles.statsCard}>
           <View style={styles.statItem}>
             <Text style={[styles.statNumber, { color: colors.primary }]}>
-              {user?.stats?.totalBookings || 0}
+              {user?.stats?.totalBookings ?? 0}
             </Text>
             <Text style={styles.statLabel}>Bookings</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
             <Text style={[styles.statNumber, { color: colors.primary }]}>
-              €{user?.stats?.totalSpent?.toFixed(0) || 0}
+              €{(user?.stats?.totalSpent ?? 0).toFixed(0)}
             </Text>
             <Text style={styles.statLabel}>Total Spent</Text>
           </View>

@@ -2,7 +2,8 @@ import dotenv from 'dotenv';
 import { z } from 'zod';
 
 // Load environment variables
-dotenv.config();
+// Ensure local `.env` takes precedence over any globally-set env vars (common on dev machines)
+dotenv.config({ override: true });
 
 // Environment variable schema
 const envSchema = z.object({
