@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, CommonActions } from '@react-navigation/native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
@@ -59,11 +59,14 @@ const HostProfileScreen: React.FC = () => {
     navigation.navigate('EditProfile');
   }, [navigation]);
 
-  const handleSwitchToRenter = useCallback(() => {
+  const handleSwitchToRenter = useCallback(async () => {
     if (user?.userType === 'both') {
-      switchUserType('renter');
+      await switchUserType('renter');
+      navigation.dispatch(
+        CommonActions.reset({ index: 0, routes: [{ name: 'RenterTabs' }] })
+      );
     }
-  }, [user, switchUserType]);
+  }, [user, switchUserType, navigation]);
 
   const handleLogout = useCallback(() => {
     Alert.alert(
@@ -207,7 +210,7 @@ const HostProfileScreen: React.FC = () => {
             <MenuItem
               icon="file-document"
               label="Terms & Privacy"
-              onPress={() => navigation.navigate('Terms')}
+              onPress={() => navigation.navigate('Legal')}
             />
           </Card>
         </View>

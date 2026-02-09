@@ -3,6 +3,7 @@ import {
   authController,
   userProfileController,
   authenticate,
+  favoriteController,
 } from '../../container';
 import { validate } from '../../middleware/validate';
 import {
@@ -163,5 +164,13 @@ userRouter.use('/vehicles', vehicleRoutes);
  * Payment methods: GET/POST /api/users/payment-methods, DELETE /api/users/payment-methods/:id, POST /api/users/payment-methods/:id/default
  */
 userRouter.use('/payment-methods', paymentMethodRoutes);
+
+/**
+ * Favorites: GET /api/users/favorites, POST /api/users/favorites/:spotId, DELETE /api/users/favorites/:spotId
+ */
+userRouter.get('/favorites', authenticate, favoriteController.getFavorites.bind(favoriteController));
+userRouter.post('/favorites/:spotId', authenticate, favoriteController.addFavorite.bind(favoriteController));
+userRouter.delete('/favorites/:spotId', authenticate, favoriteController.removeFavorite.bind(favoriteController));
+userRouter.get('/favorites/:spotId/check', authenticate, favoriteController.checkFavorite.bind(favoriteController));
 
 export default router;

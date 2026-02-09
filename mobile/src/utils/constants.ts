@@ -1,8 +1,9 @@
 import Constants from 'expo-constants';
+import { Platform } from 'react-native';
 
 // ParkingPal Design System – Black, White & #19e664 (Airbnb-style)
 
-const ACCENT = '#000000';
+const ACCENT = '#ff0a54';
 
 // Renter Theme (black, white, accent)
 export const RENTER_COLORS = {
@@ -273,10 +274,17 @@ function getDevHost(): string | null {
   return debuggerHost.split(':')[0] ?? null;
 }
 
-const DEV_API_HOST = getDevHost() ?? 'localhost';
-export const API_BASE_URL = __DEV__
-  ? `http://${DEV_API_HOST}:5000`
-  : 'https://api.parkingpal.fr';
+const DEV_API_HOST =
+  getDevHost() ??
+  // If Expo host detection fails, prefer emulator loopback on Android.
+  // For physical devices, set EXPO_PUBLIC_API_URL to your machine LAN IP.
+  (Platform.OS === 'android' ? '10.0.2.2' : 'localhost');
+
+const ENV_API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
+
+export const API_BASE_URL =
+  ENV_API_BASE_URL ??
+  (__DEV__ ? `http://${DEV_API_HOST}:5000` : 'https://api.parkingpal.fr');
 
 // Storage Keys
 export const STORAGE_KEYS = {
@@ -284,6 +292,7 @@ export const STORAGE_KEYS = {
   refreshToken: 'refresh_token',
   user: 'user_data',
   userType: 'user_type',
+  activeUserMode: 'active_user_mode',
   onboardingComplete: 'onboarding_complete',
   recentSearches: 'recent_searches',
   savedSpots: 'saved_spots',

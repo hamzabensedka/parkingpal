@@ -217,14 +217,14 @@ const SettingsScreen: React.FC = () => {
               'file-document',
               'Terms of Service',
               undefined,
-              () => {}
+              () => navigation.navigate('Legal', { initialSection: 'terms' })
             )}
             <View style={styles.divider} />
             {renderNavItem(
               'shield-check',
               'Privacy Policy',
               undefined,
-              () => {}
+              () => navigation.navigate('Legal', { initialSection: 'privacy' })
             )}
             <View style={styles.divider} />
             {renderNavItem(

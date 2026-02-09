@@ -1,8 +1,11 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
+import type { RouteProp } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useTheme } from '../contexts/ThemeContext';
+import { useAuth } from '../contexts/AuthContext';
 import { NEUTRAL_COLORS } from '../utils/constants';
 import { useNotifications } from '../contexts/NotificationContext';
 import { HostTabParamList } from '../types';
@@ -137,9 +140,34 @@ const ProfileStackNavigator: React.FC = () => {
   );
 };
 
+/**
+ * Returns true when the focused route inside the Listings stack
+ * is one of the AddListing* wizard screens.
+ */
+function isOnAddListingRoute(route: RouteProp<HostTabParamList, 'Listings'>): boolean {
+  const routeName = getFocusedRouteNameFromRoute(route) ?? 'ListingsMain';
+  return routeName.startsWith('AddListing');
+}
+
+const defaultTabBarStyle = {
+  backgroundColor: NEUTRAL_COLORS.white,
+  borderTopWidth: 1,
+  borderTopColor: NEUTRAL_COLORS.lightGray,
+  borderTopStyle: 'solid' as const,
+  paddingBottom: 8,
+  paddingTop: 8,
+  height: 60,
+};
+
+const hiddenTabBarStyle = {
+  ...defaultTabBarStyle,
+  display: 'none' as const,
+};
+
 const HostNavigator: React.FC = () => {
   const { theme } = useTheme();
   const { unreadCount } = useNotifications();
+  const { user } = useAuth();
 
   return (
     <Tab.Navigator
@@ -147,18 +175,10 @@ const HostNavigator: React.FC = () => {
         headerShown: false,
         tabBarActiveTintColor: theme.colors.primary,
         tabBarInactiveTintColor: NEUTRAL_COLORS.gray,
-        tabBarStyle: {
-          backgroundColor: NEUTRAL_COLORS.white,
-          borderTopWidth: 1,
-          borderTopColor: NEUTRAL_COLORS.lightGray,
-          borderTopStyle: 'solid',
-          paddingBottom: 8,
-          paddingTop: 8,
-          height: 60,
-        },
+        tabBarStyle: defaultTabBarStyle,
         tabBarLabelStyle: {
           fontSize: 12,
-          fontWeight: '500',
+          fontWeight: '500' as const,
         },
         tabBarIcon: ({ focused, color, size }) => {
           let iconName: string;
@@ -191,7 +211,15 @@ const HostNavigator: React.FC = () => {
       <Tab.Screen
         name="Listings"
         component={ListingsStackNavigator}
-        options={{ title: 'Listings' }}
+        options={({ route }) => ({
+          title: 'Listings',
+          // Hide the tab bar on AddListing* routes for renter users
+          // (hosts/both keep the tab bar visible throughout)
+          tabBarStyle:
+            user?.userType === 'renter' && isOnAddListingRoute(route as RouteProp<HostTabParamList, 'Listings'>)
+              ? hiddenTabBarStyle
+              : defaultTabBarStyle,
+        })}
       />
       <Tab.Screen
         name="Messages"

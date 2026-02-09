@@ -149,7 +149,7 @@ const ActiveBookingScreen = ({ navigation, route }: Props) => {
   const endDate = new Date(booking.endTime);
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Timer Card */}
         <Card style={[styles.timerCard, { borderColor: colors.primary }]}>

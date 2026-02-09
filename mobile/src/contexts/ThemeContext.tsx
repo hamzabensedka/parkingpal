@@ -4,6 +4,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { RENTER_COLORS, HOST_COLORS, NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS, STORAGE_KEYS } from '../utils/constants';
 import { UserType } from '../types';
 
+/** Active UI mode stored separately from the backend user.userType */
+type ActiveMode = 'renter' | 'host';
+
 // Theme colors type
 export type ThemeColors = typeof RENTER_COLORS | typeof HOST_COLORS;
 
@@ -62,35 +65,57 @@ interface ThemeProviderProps {
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   const systemColorScheme = useColorScheme();
   const [userType, setUserTypeState] = useState<UserType | null>(null);
+  const [activeMode, setActiveModeState] = useState<ActiveMode>('renter');
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load saved user type on mount
+  // Load saved active mode on mount (theme tracks activeUserMode, not userType)
   useEffect(() => {
-    const loadUserType = async () => {
+    const loadActiveMode = async () => {
       try {
+        // Read the active UI mode (persisted by AuthContext)
+        const savedMode = await AsyncStorage.getItem(STORAGE_KEYS.activeUserMode);
+        if (savedMode === 'host' || savedMode === 'renter') {
+          setActiveModeState(savedMode);
+        }
+
+        // Also load userType for the theme.userType field
         const savedType = await AsyncStorage.getItem(STORAGE_KEYS.userType);
         if (savedType && (savedType === 'renter' || savedType === 'host' || savedType === 'both')) {
           setUserTypeState(savedType as UserType);
         }
       } catch (error) {
-        console.error('Error loading user type:', error);
+        console.error('Error loading theme mode:', error);
       } finally {
         setIsLoading(false);
       }
     };
-    loadUserType();
+    loadActiveMode();
   }, []);
 
-  // Get colors based on user type
+  // Listen for changes to activeUserMode storage key (written by AuthContext)
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      try {
+        const mode = await AsyncStorage.getItem(STORAGE_KEYS.activeUserMode);
+        if (mode === 'host' || mode === 'renter') {
+          setActiveModeState((prev) => (prev !== mode ? mode : prev));
+        }
+      } catch {
+        // ignore
+      }
+    }, 500);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Get colors based on active UI mode
   const getColors = useCallback((): ThemeColors => {
-    if (userType === 'host') {
+    if (activeMode === 'host') {
       return HOST_COLORS;
     }
-    // Default to renter colors
     return RENTER_COLORS;
-  }, [userType]);
+  }, [activeMode]);
 
-  // Set user type and persist
+  // Set user type and persist (still useful for onboarding etc.)
   const setUserType = useCallback(async (type: UserType) => {
     try {
       await AsyncStorage.setItem(STORAGE_KEYS.userType, type);
@@ -100,11 +125,12 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     }
   }, []);
 
-  // Toggle between renter and host
+  // Toggle between renter and host active mode
   const toggleUserType = useCallback(async () => {
-    const newType: UserType = userType === 'host' ? 'renter' : 'host';
-    await setUserType(newType);
-  }, [userType, setUserType]);
+    const newMode: ActiveMode = activeMode === 'host' ? 'renter' : 'host';
+    setActiveModeState(newMode);
+    await AsyncStorage.setItem(STORAGE_KEYS.activeUserMode, newMode);
+  }, [activeMode]);
 
   // Build complete theme object
   const theme = useMemo<Theme>(() => ({
@@ -116,7 +142,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     shadows: SHADOWS,
     userType,
     isDark: systemColorScheme === 'dark',
-  }), [getColors, userType, systemColorScheme]);
+  }), [getColors, userType, activeMode, systemColorScheme]);
 
   const contextValue = useMemo<ThemeContextType>(() => ({
     theme,

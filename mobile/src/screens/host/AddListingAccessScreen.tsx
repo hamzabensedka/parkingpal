@@ -17,7 +17,7 @@ import { Button, Input } from '../../components/common';
 type Props = NativeStackScreenProps<HostStackParamList, 'AddListingAccess'>;
 
 const AddListingAccessScreen = ({ navigation, route }: Props) => {
-  const { location, photos, spotType, amenities, vehicleSizes } = route.params;
+  const { location, photos, spotType, amenities, vehicleSizes, numberOfSpots } = route.params;
   const { colors } = useTheme();
 
   const [accessType, setAccessType] = useState<AccessType | null>(null);
@@ -43,6 +43,7 @@ const AddListingAccessScreen = ({ navigation, route }: Props) => {
       vehicleSizes,
       accessInstructions,
       accessType,
+      numberOfSpots,
     });
   };
 

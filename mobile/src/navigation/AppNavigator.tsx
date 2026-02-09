@@ -20,6 +20,7 @@ import ReviewScreen from '../screens/shared/ReviewScreen';
 import ReportIssueScreen from '../screens/shared/ReportIssueScreen';
 import HelpScreen from '../screens/shared/HelpScreen';
 import EditProfileScreen from '../screens/shared/EditProfileScreen';
+import LegalScreen from '../screens/shared/LegalScreen';
 
 // Renter screens that need to be accessible from anywhere
 import SpotDetailScreen from '../screens/renter/SpotDetailScreen';
@@ -36,7 +37,7 @@ import HostActiveBookingScreen from '../screens/host/HostActiveBookingScreen';
 const Stack = createNativeStackNavigator();
 
 const AppNavigator: React.FC = () => {
-  const { isAuthenticated, isLoading, user } = useAuth();
+  const { isAuthenticated, isLoading, user, activeUserMode } = useAuth();
   const { theme } = useTheme();
 
   if (isLoading) {
@@ -67,15 +68,15 @@ const AppNavigator: React.FC = () => {
           <Stack.Screen name="Auth" component={AuthNavigator} />
         ) : (
           <>
-            {/* Main tab navigators based on user type */}
-            {user?.userType === 'host' ? (
+            {/* Main tab navigators based on active UI mode (not user.userType) */}
+            {activeUserMode === 'host' ? (
               <Stack.Screen name="HostTabs" component={HostNavigator} />
             ) : (
               <Stack.Screen name="RenterTabs" component={RenterNavigator} />
             )}
 
-            {/* Secondary navigator for opposite mode */}
-            {user?.userType === 'host' ? (
+            {/* Secondary navigator for opposite mode (for navigation.navigate to work) */}
+            {activeUserMode === 'host' ? (
               <Stack.Screen name="RenterTabs" component={RenterNavigator} />
             ) : (
               <Stack.Screen name="HostTabs" component={HostNavigator} />
@@ -188,6 +189,16 @@ const AppNavigator: React.FC = () => {
               options={{
                 headerShown: true,
                 title: 'Edit Profile',
+                headerStyle: { backgroundColor: NEUTRAL_COLORS.white },
+                headerTintColor: NEUTRAL_COLORS.black,
+              }}
+            />
+            <Stack.Screen
+              name="Legal"
+              component={LegalScreen}
+              options={{
+                headerShown: true,
+                title: 'Terms & Privacy',
                 headerStyle: { backgroundColor: NEUTRAL_COLORS.white },
                 headerTintColor: NEUTRAL_COLORS.black,
               }}

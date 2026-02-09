@@ -7,19 +7,21 @@ import {
   Dimensions,
   FlatList,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import MapView, { UrlTile } from 'react-native-maps';
 import * as Location from 'expo-location';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../contexts/ThemeContext';
-import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS, MAP_DEFAULTS } from '../../utils/constants';
-import { mockSpots } from '../../data/mockSpots';
+import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS, MAP_DEFAULTS, API_BASE_URL } from '../../utils/constants';
 import { SpotMarker } from '../../components/map';
 import { Spot } from '../../types';
 import { calculateDistance } from '../../utils/helpers';
 import { formatPrice, formatDistance2, formatRating } from '../../utils/formatting';
 import { Card, Badge } from '../../components/common';
+import { spotApi } from '../../services/api';
+import { mapSpotSummaryToSpot } from '../../utils/spotMappers';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 48;
@@ -36,16 +38,18 @@ const MapScreen: React.FC = () => {
 
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [selectedSpotId, setSelectedSpotId] = useState<string | null>(null);
+  const [spots, setSpots] = useState<Spot[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Keep spots stable - never update the array, just use mockSpots directly
-  // Calculate distances only for display in the cards (via useMemo)
+  // Calculate distances for display in the cards
   const spotsWithDistance = useMemo(() => {
-    if (!userLocation) return mockSpots;
-    return mockSpots.map((spot) => ({
+    if (!userLocation) return spots;
+    return spots.map((spot) => ({
       ...spot,
       distance: calculateDistance(userLocation.latitude, userLocation.longitude, spot.latitude, spot.longitude),
     }));
-  }, [userLocation]);
+  }, [userLocation, spots]);
 
   // Sort spots so selected marker renders last (on top) for z-index layering
   const sortedSpots = useMemo(() => {
@@ -55,13 +59,37 @@ const MapScreen: React.FC = () => {
     return selected ? [...others, selected] : spotsWithDistance;
   }, [spotsWithDistance, selectedSpotId]);
 
-  // Get user location - only once on mount
+  // Fetch spots near user location
+  const fetchSpots = useCallback(async (latitude: number, longitude: number) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const result = await spotApi.search({
+        latitude,
+        longitude,
+        radius: 10, // 10km radius
+      });
+
+      const mappedSpots = result.spots.map(mapSpotSummaryToSpot);
+      setSpots(mappedSpots);
+    } catch (err) {
+      console.error('Failed to fetch spots:', err);
+      setError(`Failed to load parking spots. API: ${API_BASE_URL}`);
+      setSpots([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Get user location and fetch spots
   useEffect(() => {
     let isMounted = true;
 
     (async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted' || !isMounted) {
+        setLoading(false);
         return;
       }
 
@@ -74,24 +102,29 @@ const MapScreen: React.FC = () => {
       };
       setUserLocation(userCoords);
 
+      // Fetch spots near user location
+      await fetchSpots(userCoords.latitude, userCoords.longitude);
+
       // Animate to user location
-      mapRef.current?.animateToRegion({
-        ...userCoords,
-        latitudeDelta: 0.05,
-        longitudeDelta: 0.05,
-      }, 500);
+      if (isMounted) {
+        mapRef.current?.animateToRegion({
+          ...userCoords,
+          latitudeDelta: 0.05,
+          longitudeDelta: 0.05,
+        }, 500);
+      }
     })();
 
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [fetchSpots]);
 
   const handleMarkerPress = useCallback((spot: Spot) => {
     setSelectedSpotId(spot.id);
 
     // Find index and scroll to it
-    const index = mockSpots.findIndex((s) => s.id === spot.id);
+    const index = spots.findIndex((s) => s.id === spot.id);
     if (index !== -1 && flatListRef.current) {
       flatListRef.current.scrollToIndex({
         index,
@@ -107,7 +140,7 @@ const MapScreen: React.FC = () => {
       latitudeDelta: 0.01,
       longitudeDelta: 0.01,
     }, 300);
-  }, []);
+  }, [spots]);
 
   const handleSpotCardPress = useCallback((spot: Spot) => {
     navigation.navigate('SpotDetail', { spotId: spot.id });
@@ -273,9 +306,35 @@ const MapScreen: React.FC = () => {
       </TouchableOpacity>
 
       {/* Spots Count */}
-      <View style={styles.spotsCountContainer}>
-        <Text style={styles.spotsCount}>{mockSpots.length} spots available</Text>
-      </View>
+      {!loading && (
+        <View style={styles.spotsCountContainer}>
+          <Text style={styles.spotsCount}>
+            {spots.length} spot{spots.length !== 1 ? 's' : ''} available
+          </Text>
+        </View>
+      )}
+
+      {/* Loading Indicator */}
+      {loading && (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={styles.loadingText}>Loading spots...</Text>
+        </View>
+      )}
+
+      {/* Error Message */}
+      {error && !loading && (
+        <View style={styles.errorContainer}>
+          <Icon name="alert-circle" size={24} color={NEUTRAL_COLORS.error} />
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity
+            style={[styles.retryButton, { backgroundColor: colors.primary }]}
+            onPress={() => userLocation && fetchSpots(userLocation.latitude, userLocation.longitude)}
+          >
+            <Text style={styles.retryButtonText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* OSM Attribution */}
       <View style={styles.attribution}>
@@ -283,20 +342,22 @@ const MapScreen: React.FC = () => {
       </View>
 
       {/* Bottom Spot Cards */}
-      <View style={styles.bottomContainer}>
-        <FlatList
-          ref={flatListRef}
-          data={spotsWithDistance}
-          renderItem={renderSpotCard}
-          keyExtractor={(item) => item.id}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.cardsList}
-          snapToInterval={CARD_WIDTH + SPACING.md}
-          decelerationRate="fast"
-          onScrollToIndexFailed={() => {}}
-        />
-      </View>
+      {!loading && spots.length > 0 && (
+        <View style={styles.bottomContainer}>
+          <FlatList
+            ref={flatListRef}
+            data={spotsWithDistance}
+            renderItem={renderSpotCard}
+            keyExtractor={(item) => item.id}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.cardsList}
+            snapToInterval={CARD_WIDTH + SPACING.md}
+            decelerationRate="fast"
+            onScrollToIndexFailed={() => {}}
+          />
+        </View>
+      )}
     </View>
   );
 };
@@ -501,6 +562,49 @@ const styles = StyleSheet.create({
     fontSize: TYPOGRAPHY.fontSize.sm,
     fontWeight: '600',
     marginRight: 2,
+  },
+  loadingContainer: {
+    position: 'absolute',
+    top: '45%',
+    alignSelf: 'center',
+    backgroundColor: NEUTRAL_COLORS.white,
+    padding: SPACING.xl,
+    borderRadius: RADIUS.lg,
+    alignItems: 'center',
+    ...SHADOWS.large,
+  },
+  loadingText: {
+    marginTop: SPACING.sm,
+    fontSize: TYPOGRAPHY.fontSize.base,
+    color: NEUTRAL_COLORS.darkGray,
+  },
+  errorContainer: {
+    position: 'absolute',
+    top: '40%',
+    alignSelf: 'center',
+    backgroundColor: NEUTRAL_COLORS.white,
+    padding: SPACING.xl,
+    borderRadius: RADIUS.lg,
+    alignItems: 'center',
+    maxWidth: '80%',
+    ...SHADOWS.large,
+  },
+  errorText: {
+    marginTop: SPACING.sm,
+    marginBottom: SPACING.md,
+    fontSize: TYPOGRAPHY.fontSize.base,
+    color: NEUTRAL_COLORS.darkGray,
+    textAlign: 'center',
+  },
+  retryButton: {
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.sm,
+    borderRadius: RADIUS.md,
+  },
+  retryButtonText: {
+    color: NEUTRAL_COLORS.white,
+    fontSize: TYPOGRAPHY.fontSize.base,
+    fontWeight: '600',
   },
 });
 

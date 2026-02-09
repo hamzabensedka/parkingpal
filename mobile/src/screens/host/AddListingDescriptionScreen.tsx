@@ -18,7 +18,7 @@ import { Button, Input, Card } from '../../components/common';
 type Props = NativeStackScreenProps<HostStackParamList, 'AddListingDescription'>;
 
 const AddListingDescriptionScreen = ({ navigation, route }: Props) => {
-  const { location, photos, spotType, amenities, vehicleSizes, accessInstructions, accessType, hourlyRate, dailyRate, availability } = route.params;
+  const { location, photos, spotType, amenities, vehicleSizes, accessInstructions, accessType, hourlyRate, dailyRate, availability, numberOfSpots } = route.params;
   const { colors } = useTheme();
 
   const [title, setTitle] = useState('');
@@ -46,6 +46,7 @@ const AddListingDescriptionScreen = ({ navigation, route }: Props) => {
       title,
       description,
       houseRules: houseRules.trim() || undefined,
+      numberOfSpots,
     });
   };
 

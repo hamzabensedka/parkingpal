@@ -85,6 +85,19 @@ export const uploadMultiplePhotos = multer({
 }).array('photos', 10);
 
 /**
+ * Single file upload middleware for spot ownership documents
+ * Supports PDF and images, max 10MB
+ */
+export const uploadSpotDocument = multer({
+  storage,
+  fileFilter,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB for documents
+    files: 1,
+  },
+}).single('document');
+
+/**
  * Handle multer errors
  */
 export const handleMulterError = (

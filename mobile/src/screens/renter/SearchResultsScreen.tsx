@@ -1,10 +1,11 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -13,7 +14,8 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
 import { RenterStackParamList, Spot } from '../../types';
 import { Card, Badge, EmptyState, Chip } from '../../components/common';
-import { mockSpots } from '../../data/mockSpots';
+import { spotApi } from '../../services/api';
+import { mapSpotSummaryToSpot } from '../../utils/spotMappers';
 
 type Props = NativeStackScreenProps<RenterStackParamList, 'SearchResults'>;
 
@@ -32,58 +34,80 @@ const SearchResultsScreen = ({ navigation, route }: Props) => {
 
   const [sortBy, setSortBy] = useState<SortOption>('distance');
   const [showSortMenu, setShowSortMenu] = useState(false);
+  const [spots, setSpots] = useState<Spot[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Filter and sort spots
+  // Fetch spots from API
+  useEffect(() => {
+    const fetchSpots = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Default to Toulouse coordinates if no location provided
+        const latitude = filters?.location?.latitude || 43.604652;
+        const longitude = filters?.location?.longitude || 1.444209;
+
+        const result = await spotApi.search({
+          latitude,
+          longitude,
+          radius: filters?.radius || 10,
+          spotType: filters?.spotTypes?.[0],
+          vehicleSize: filters?.vehicleSize,
+          minPrice: filters?.minPrice,
+          maxPrice: filters?.maxPrice,
+          amenities: filters?.amenities,
+          instantBook: filters?.instantBook,
+        });
+
+        let mappedSpots = result.spots.map(mapSpotSummaryToSpot);
+
+        // Apply text search query (client-side filter)
+        if (query) {
+          const lowerQuery = query.toLowerCase();
+          mappedSpots = mappedSpots.filter(
+            spot =>
+              spot.title.toLowerCase().includes(lowerQuery) ||
+              spot.address.toLowerCase().includes(lowerQuery)
+          );
+        }
+
+        setSpots(mappedSpots);
+      } catch (err) {
+        console.error('Failed to fetch spots:', err);
+        setError('Failed to load search results');
+        setSpots([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSpots();
+  }, [query, filters]);
+
+  // Sort spots
   const filteredSpots = useMemo(() => {
-    let spots = [...mockSpots];
+    let sorted = [...spots];
 
-    // Apply search query
-    if (query) {
-      const lowerQuery = query.toLowerCase();
-      spots = spots.filter(
-        spot =>
-          spot.title.toLowerCase().includes(lowerQuery) ||
-          spot.address.toLowerCase().includes(lowerQuery)
-      );
-    }
-
-    // Apply filters
-    if (filters) {
-      if (filters.maxPrice) {
-        spots = spots.filter(spot => spot.hourlyRate <= filters.maxPrice);
-      }
-      if (filters.spotTypes?.length) {
-        spots = spots.filter(spot => filters.spotTypes.includes(spot.type));
-      }
-      if (filters.amenities?.length) {
-        spots = spots.filter(spot =>
-          filters.amenities.some((amenity: string) => spot.amenities.includes(amenity))
-        );
-      }
-      if (filters.minRating) {
-        spots = spots.filter(spot => spot.rating >= filters.minRating);
-      }
-    }
-
-    // Apply sorting
     switch (sortBy) {
       case 'price_low':
-        spots.sort((a, b) => a.hourlyRate - b.hourlyRate);
+        sorted.sort((a, b) => a.hourlyRate - b.hourlyRate);
         break;
       case 'price_high':
-        spots.sort((a, b) => b.hourlyRate - a.hourlyRate);
+        sorted.sort((a, b) => b.hourlyRate - a.hourlyRate);
         break;
       case 'rating':
-        spots.sort((a, b) => b.rating - a.rating);
+        sorted.sort((a, b) => b.rating - a.rating);
         break;
       case 'distance':
       default:
-        // Keep default order (simulated by distance)
+        // Keep default order from API (already sorted by distance)
         break;
     }
 
-    return spots;
-  }, [query, filters, sortBy]);
+    return sorted;
+  }, [spots, sortBy]);
 
   const handleSpotPress = useCallback((spot: Spot) => {
     navigation.navigate('SpotDetail', { spotId: spot.id });
@@ -241,15 +265,42 @@ const SearchResultsScreen = ({ navigation, route }: Props) => {
     </View>
   );
 
-  const renderEmptyState = () => (
-    <EmptyState
-      icon="map-marker-off"
-      title="No spots found"
-      description="Try adjusting your search or filters to find more parking spots."
-      actionLabel="Clear Filters"
-      onAction={() => navigation.setParams({ filters: undefined })}
-    />
-  );
+  const renderEmptyState = () => {
+    if (loading) {
+      return (
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={styles.loadingText}>Searching for spots...</Text>
+        </View>
+      );
+    }
+
+    if (error) {
+      return (
+        <View style={styles.centerContainer}>
+          <Icon name="alert-circle" size={48} color={NEUTRAL_COLORS.error} />
+          <Text style={styles.errorTitle}>Failed to load spots</Text>
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity
+            style={[styles.retryButton, { backgroundColor: colors.primary }]}
+            onPress={() => navigation.replace('SearchResults', { query, filters })}
+          >
+            <Text style={styles.retryButtonText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
+    return (
+      <EmptyState
+        icon="map-marker-off"
+        title="No spots found"
+        description="Try adjusting your search or filters to find more parking spots."
+        actionLabel="Clear Filters"
+        onAction={() => navigation.setParams({ filters: undefined })}
+      />
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
@@ -257,7 +308,7 @@ const SearchResultsScreen = ({ navigation, route }: Props) => {
         data={filteredSpots}
         renderItem={renderSpotCard}
         keyExtractor={(item) => item.id}
-        ListHeaderComponent={renderHeader}
+        ListHeaderComponent={!loading ? renderHeader : undefined}
         ListEmptyComponent={renderEmptyState}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
@@ -469,6 +520,41 @@ const styles = StyleSheet.create({
     fontSize: TYPOGRAPHY.fontSize.sm,
     color: NEUTRAL_COLORS.gray,
     marginLeft: SPACING.md,
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: SPACING.xxl * 2,
+  },
+  loadingText: {
+    marginTop: SPACING.md,
+    fontSize: TYPOGRAPHY.fontSize.base,
+    color: NEUTRAL_COLORS.darkGray,
+  },
+  errorTitle: {
+    marginTop: SPACING.md,
+    fontSize: TYPOGRAPHY.fontSize.lg,
+    fontWeight: '600',
+    color: NEUTRAL_COLORS.black,
+  },
+  errorText: {
+    marginTop: SPACING.xs,
+    marginBottom: SPACING.lg,
+    fontSize: TYPOGRAPHY.fontSize.base,
+    color: NEUTRAL_COLORS.gray,
+    textAlign: 'center',
+    paddingHorizontal: SPACING.xl,
+  },
+  retryButton: {
+    paddingHorizontal: SPACING.xl,
+    paddingVertical: SPACING.sm,
+    borderRadius: RADIUS.md,
+  },
+  retryButtonText: {
+    color: NEUTRAL_COLORS.white,
+    fontSize: TYPOGRAPHY.fontSize.base,
+    fontWeight: '600',
   },
 });
 

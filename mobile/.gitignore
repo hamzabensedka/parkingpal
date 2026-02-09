@@ -1,21 +1,54 @@
 # Dependencies
 node_modules/
 
-# Expo
+# Expo / React Native
 .expo/
+.expo-shared/
 web-build/
+dist/
+
+# Metro bundler cache
+.metro-health-check*
+
+# Native builds (if using bare workflow)
+ios/Pods/
+ios/build/
+ios/*.xcworkspace
+android/app/build/
+android/build/
+android/.gradle/
 
 # Logs
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
 # Env files
 .env
 .env.*
+!.env.example
 
-# OS / Editor
+# OS files
 .DS_Store
 Thumbs.db
+desktop.ini
+*.swp
+*.swo
+
+# IDE / Editor
 .idea/
 .vscode/
 .claude/
+.fleet/
+
+# TypeScript
+*.tsbuildinfo
+
+# Testing
+coverage/
+
+# Temporary files
+*.tmp
+*.temp
 

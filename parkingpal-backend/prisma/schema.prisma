@@ -64,8 +64,10 @@ model User {
   vehicles          Vehicle[]
   paymentMethods    PaymentMethod[]
 
+  // Host profile relations
+  spots             Spot[]
+
   // Future Relations (uncomment when building other modules)
-  // spots          Spot[]
   // bookingsAsRenter  Booking[] @relation("RenterBookings")
   // bookingsAsHost    Booking[] @relation("HostBookings")
   // reviewsGiven      Review[]  @relation("ReviewsGiven")
@@ -135,4 +137,188 @@ model PaymentMethod {
 
   @@map("payment_methods")
   @@index([userId])
+}
+
+// ==========================================
+// Spot (Parking Listing) Models
+// ==========================================
+
+enum SpotType {
+  DRIVEWAY
+  GARAGE
+  COVERED
+  LOT
+  UNDERGROUND
+}
+
+enum SpotStatus {
+  DRAFT
+  PENDING_VERIFICATION
+  UNDER_REVIEW
+  ACTIVE
+  PAUSED
+  REJECTED
+  DELETED
+}
+
+enum AccessType {
+  CODE
+  KEY
+  SMART_LOCK
+  REMOTE
+  BADGE
+  OPEN
+}
+
+enum CancellationPolicy {
+  FLEXIBLE
+  MODERATE
+  STRICT
+  NON_REFUNDABLE
+}
+
+enum LocationType {
+  RESIDENTIAL
+  COMMERCIAL
+  PUBLIC
+}
+
+enum DocumentType {
+  PROPERTY_TAX
+  RENTAL_AGREEMENT
+  PARKING_DEED
+  MANAGEMENT_AUTH
+  BUSINESS_LEASE
+  UTILITY_BILL
+  LANDLORD_PERMISSION
+}
+
+enum DocumentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Spot {
+  id                   String              @id @default(uuid())
+  hostId               String
+  host                 User                @relation(fields: [hostId], references: [id], onDelete: Cascade)
+
+  // Listing info
+  title                String
+  description          String
+
+  // Location
+  address              String
+  city                 String
+  postalCode           String
+  country              String              @default("France")
+  latitude             Float
+  longitude            Float
+
+  // Spot details
+  spotType             SpotType
+  locationType         LocationType
+  capacity             Int                 @default(1) // Number of vehicles the spot can hold
+  vehicleSizes         VehicleSize[]
+  amenities            String[]            // Array of amenity keys
+  accessType           AccessType
+  accessInstructions   String
+  accessCode           String?             // Encrypted access code
+  spotLocation         String?             // e.g. "Spot #12, Level -1"
+
+  // Pricing
+  hourlyRate           Float
+  dailyRate            Float?
+  weeklyRate           Float?
+  monthlyRate          Float?
+
+  // Rules & policies
+  houseRules           String?
+  cancellationPolicy   CancellationPolicy  @default(FLEXIBLE)
+  instantBook          Boolean             @default(false)
+
+  // Booking constraints
+  minBookingMinutes    Int                 @default(60)
+  maxBookingMinutes    Int?
+  advanceNoticeMinutes Int                 @default(120)
+  bookingWindowDays    Int                 @default(30)
+
+  // Status & ratings
+  status               SpotStatus          @default(DRAFT)
+  rating               Float               @default(0)
+  reviewCount          Int                 @default(0)
+
+  // Timestamps
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+
+  // Relations
+  photos               SpotPhoto[]
+  documents            SpotDocument[]
+  availability         SpotAvailability[]
+
+  @@map("spots")
+  @@index([hostId])
+  @@index([status])
+  @@index([latitude, longitude])
+  @@index([city, status])
+}
+
+model SpotPhoto {
+  id         String   @id @default(uuid())
+  spotId     String
+  spot       Spot     @relation(fields: [spotId], references: [id], onDelete: Cascade)
+  url        String
+  caption    String?
+  sortOrder  Int
+  isPrimary  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@map("spot_photos")
+  @@index([spotId])
+}
+
+model SpotDocument {
+  id              String         @id @default(uuid())
+  spotId          String
+  spot            Spot           @relation(fields: [spotId], references: [id], onDelete: Cascade)
+  type            DocumentType
+  url             String
+  status          DocumentStatus @default(PENDING)
+  rejectionReason String?
+  createdAt       DateTime       @default(now())
+  reviewedAt      DateTime?
+
+  @@map("spot_documents")
+  @@index([spotId])
+}
+
+model SpotAvailability {
+  id        String  @id @default(uuid())
+  spotId    String
+  spot      Spot    @relation(fields: [spotId], references: [id], onDelete: Cascade)
+  dayOfWeek Int     // 0 = Sunday, 6 = Saturday
+  startTime String  // "HH:mm" format
+  endTime   String  // "HH:mm" format
+  isAllDay  Boolean @default(false)
+
+  @@map("spot_availability")
+  @@index([spotId])
+}
+
+model FavoriteSpot {
+  id        String   @id @default(uuid())
+  userId    String
+  spotId    String
+  createdAt DateTime @default(now())
+
+  // Relations will be added when we uncomment user favorites
+  // user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // spot      Spot     @relation(fields: [spotId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, spotId])
+  @@map("favorite_spots")
+  @@index([userId])
+  @@index([spotId])
 }

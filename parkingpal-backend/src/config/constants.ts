@@ -107,6 +107,12 @@ export const ERROR_MESSAGES = {
   NOT_FOUND: 'Resource not found',
   INTERNAL_ERROR: 'Internal server error',
   RATE_LIMIT_EXCEEDED: 'Too many requests, please try again later',
+
+  // Spots
+  SPOT_NOT_FOUND: 'Spot not found',
+  SPOT_NOT_OWNER: 'You are not the owner of this spot',
+  SPOT_ALREADY_ACTIVE: 'Spot is already active',
+  MIN_PHOTOS_REQUIRED: 'At least one photo is required',
 } as const;
 
 // Success Messages
@@ -119,4 +125,11 @@ export const SUCCESS_MESSAGES = {
   PASSWORD_RESET_SUCCESS: 'Password reset successful. Please login with your new password.',
   PROFILE_UPDATED: 'Profile updated successfully',
   TOKEN_REFRESHED: 'Token refreshed successfully',
+
+  // Spots
+  SPOT_CREATED: 'Spot created successfully',
+  SPOT_UPDATED: 'Spot updated successfully',
+  SPOT_DELETED: 'Spot deleted successfully',
+  SPOT_PAUSED: 'Spot paused',
+  SPOT_ACTIVATED: 'Spot activated',
 } as const;

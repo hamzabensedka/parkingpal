@@ -316,6 +316,7 @@ export type HostStackParamList = {
     spotType: SpotType;
     amenities: AmenityType[];
     vehicleSizes: VehicleSize[];
+    numberOfSpots: number;
   };
   AddListingPricing: {
     location: { address: string; latitude: number; longitude: number };
@@ -325,6 +326,7 @@ export type HostStackParamList = {
     vehicleSizes: VehicleSize[];
     accessInstructions: string;
     accessType: AccessType;
+    numberOfSpots: number;
   };
   AddListingAvailability: {
     location: { address: string; latitude: number; longitude: number };
@@ -336,6 +338,7 @@ export type HostStackParamList = {
     accessType: AccessType;
     hourlyRate: number;
     dailyRate?: number;
+    numberOfSpots: number;
   };
   AddListingDescription: {
     location: { address: string; latitude: number; longitude: number };
@@ -348,6 +351,7 @@ export type HostStackParamList = {
     hourlyRate: number;
     dailyRate?: number;
     availability: Record<string, SpotAvailability>;
+    numberOfSpots: number;
   };
   AddListingPreview: {
     location: { address: string; latitude: number; longitude: number };
@@ -363,6 +367,7 @@ export type HostStackParamList = {
     title: string;
     description: string;
     houseRules?: string;
+    numberOfSpots: number;
   };
   ListingManagement: undefined;
   EditListing: { spotId: string };
@@ -384,4 +389,5 @@ export type SharedStackParamList = {
   ReportIssue: { bookingId?: string };
   Help: undefined;
   EditProfile: undefined;
+  Legal: { initialSection?: 'terms' | 'privacy' } | undefined;
 };

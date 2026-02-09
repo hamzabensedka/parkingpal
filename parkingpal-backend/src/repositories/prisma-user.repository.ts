@@ -53,6 +53,7 @@ export class PrismaUserRepository implements IUserRepository {
         ...(data.profilePhoto !== undefined && { profilePhoto: data.profilePhoto }),
         ...(data.bio !== undefined && { bio: data.bio }),
         ...(data.idDocument !== undefined && { idDocument: data.idDocument }),
+        ...(data.userType !== undefined && { userType: data.userType }),
       },
     });
   }

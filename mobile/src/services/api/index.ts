@@ -5,6 +5,8 @@ import { createAuthApi } from './authApi';
 import { createUserApi } from './userApi';
 import { createVehicleApi } from './vehicleApi';
 import { createPaymentApi } from './paymentApi';
+import { createSpotApi } from './spotApi';
+import { createFavoriteApi } from './favoriteApi';
 
 const apiClient = createApiClient({
   baseURL: API_BASE_URL,
@@ -15,5 +17,7 @@ export const authApi = createAuthApi(apiClient);
 export const userApi = createUserApi(apiClient);
 export const vehicleApi = createVehicleApi(apiClient);
 export const paymentApi = createPaymentApi(apiClient);
+export const spotApi = createSpotApi(apiClient);
+export const favoriteApi = createFavoriteApi(apiClient);
 
-export { apiClient, createAuthApi, createUserApi, createVehicleApi, createPaymentApi };
+export { apiClient, createAuthApi, createUserApi, createVehicleApi, createPaymentApi, createSpotApi, createFavoriteApi };

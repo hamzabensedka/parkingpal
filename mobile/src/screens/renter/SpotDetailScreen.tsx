@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,19 +7,20 @@ import {
   TouchableOpacity,
   Dimensions,
   Image,
+  ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import MapView, { Marker, UrlTile } from 'react-native-maps';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS, AMENITIES, SPOT_TYPES } from '../../utils/constants';
-import { mockSpots, getSpotById } from '../../data/mockSpots';
-import { mockUsers, getUserById } from '../../data/mockUsers';
-import { mockReviews, getReviewsBySpot } from '../../data/mockReviews';
 import { formatPrice, formatRating, formatRelativeTime } from '../../utils/formatting';
 import { getStarArray } from '../../utils/helpers';
 import { Button, Card, Avatar, Badge } from '../../components/common';
+import { spotApi } from '../../services/api';
+import { mapSpotDTOToSpot } from '../../utils/spotMappers';
+import { Spot } from '../../types';
 
 // CartoDB Voyager - clean style with green parks and subtle colors
 const OSM_TILE_URL = 'https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png';
@@ -34,23 +35,55 @@ const SpotDetailScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<RouteProp<SpotDetailRouteParams, 'SpotDetail'>>();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+  const [spot, setSpot] = useState<Spot | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const spotId = route.params?.spotId;
-  const spot = useMemo(() => getSpotById(spotId) || mockSpots[0], [spotId]);
-  const host = useMemo(() => getUserById(spot.hostId), [spot.hostId]);
-  const reviews = useMemo(() => getReviewsBySpot(spotId).slice(0, 3), [spotId]);
 
-  const spotType = SPOT_TYPES.find((t) => t.id === spot.spotType);
-  const starArray = getStarArray(spot.rating);
+  // Fetch spot details from API
+  useEffect(() => {
+    const fetchSpot = async () => {
+      if (!spotId) return;
+
+      try {
+        setLoading(true);
+        setError(null);
+
+        const spotDTO = await spotApi.getById(spotId);
+        const mappedSpot = mapSpotDTOToSpot(spotDTO);
+        setSpot(mappedSpot);
+      } catch (err) {
+        console.error('Failed to fetch spot:', err);
+        setError('Failed to load spot details');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSpot();
+  }, [spotId]);
+
+  const spotType = useMemo(() => {
+    if (!spot) return null;
+    return SPOT_TYPES.find((t) => t.id === spot.spotType);
+  }, [spot]);
+
+  const starArray = useMemo(() => {
+    if (!spot) return [];
+    return getStarArray(spot.rating);
+  }, [spot]);
 
   const handleBookNow = useCallback(() => {
+    if (!spot) return;
     navigation.navigate('BookingDateTime', { 
       spotId: spot.id,
       spotTitle: spot.title,
       hourlyRate: spot.hourlyRate,
     });
-  }, [navigation, spot.id, spot.title, spot.hourlyRate]);
+  }, [navigation, spot]);
 
   const handleContactHost = useCallback(() => {
     // Navigate to chat
@@ -68,153 +101,164 @@ const SpotDetailScreen: React.FC = () => {
     // Save to favorites
   }, []);
 
-  const renderPhotoGallery = () => (
-    <View style={styles.photoGallery}>
-      <ScrollView
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        onMomentumScrollEnd={(e) => {
-          const index = Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH);
-          setCurrentPhotoIndex(index);
-        }}
-      >
-        {spot.photos.map((photo, index) => (
-          <View key={index} style={styles.photoContainer}>
-            <View style={[styles.photoPlaceholder, { backgroundColor: NEUTRAL_COLORS.lightGray }]}>
-              <Icon name="image" size={48} color={NEUTRAL_COLORS.gray} />
-            </View>
-          </View>
-        ))}
-      </ScrollView>
-
-      {/* Photo indicators */}
-      <View style={styles.photoIndicators}>
-        {spot.photos.map((_, index) => (
-          <View
-            key={index}
-            style={[
-              styles.photoIndicator,
-              currentPhotoIndex === index && styles.photoIndicatorActive,
-            ]}
-          />
-        ))}
-      </View>
-
-      {/* Header actions */}
-      <View style={styles.headerActions}>
-        <TouchableOpacity style={styles.headerButton} onPress={handleGoBack}>
-          <Icon name="arrow-left" size={24} color={NEUTRAL_COLORS.black} />
-        </TouchableOpacity>
-        <View style={styles.headerRight}>
-          <TouchableOpacity style={styles.headerButton} onPress={handleShare}>
-            <Icon name="share-variant" size={24} color={NEUTRAL_COLORS.black} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.headerButton} onPress={handleSave}>
-            <Icon name="heart-outline" size={24} color={NEUTRAL_COLORS.black} />
-          </TouchableOpacity>
-        </View>
-      </View>
-    </View>
-  );
-
-  const renderAmenities = () => (
-    <View style={styles.amenitiesGrid}>
-      {spot.amenities.map((amenityId) => {
-        const amenity = AMENITIES.find((a) => a.id === amenityId);
-        if (!amenity) return null;
-        return (
-          <View key={amenityId} style={styles.amenityItem}>
-            <View style={[styles.amenityIcon, { backgroundColor: colors.lightest }]}>
-              <Icon name={amenity.icon} size={20} color={colors.primary} />
-            </View>
-            <Text style={styles.amenityLabel}>{amenity.label}</Text>
-          </View>
-        );
-      })}
-    </View>
-  );
-
-  const renderHost = () => (
-    <Card style={styles.hostCard} elevation="small">
-      <View style={styles.hostContent}>
-        <Avatar
-          uri={host?.profilePhoto}
-          firstName={host?.firstName}
-          lastName={host?.lastName}
-          size="large"
-          showBadge={host?.isSuperhost}
-        />
-        <View style={styles.hostInfo}>
-          <Text style={styles.hostName}>
-            Hosted by {host?.firstName}
-          </Text>
-          {host?.isSuperhost && (
-            <Badge text="Superhost" variant="primary" size="small" icon="star" />
-          )}
-          <Text style={styles.hostStats}>
-            {host?.reviewCount} reviews • Joined {formatRelativeTime(host?.memberSince || '')}
-          </Text>
-        </View>
-        <TouchableOpacity
-          style={[styles.contactButton, { borderColor: colors.primary }]}
-          onPress={handleContactHost}
+  const renderPhotoGallery = () => {
+    if (!spot) return null;
+    return (
+      <View style={styles.photoGallery}>
+        <ScrollView
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onMomentumScrollEnd={(e) => {
+            const index = Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH);
+            setCurrentPhotoIndex(index);
+          }}
         >
-          <Icon name="message-outline" size={20} color={colors.primary} />
-        </TouchableOpacity>
-      </View>
-    </Card>
-  );
-
-  const renderReviews = () => (
-    <View style={styles.reviewsSection}>
-      <View style={styles.reviewsHeader}>
-        <View style={styles.ratingOverview}>
-          <Icon name="star" size={24} color={NEUTRAL_COLORS.darkGray} />
-          <Text style={styles.ratingText}>{spot.rating.toFixed(1)}</Text>
-          <Text style={styles.reviewCount}>({spot.reviewCount} reviews)</Text>
-        </View>
-        <TouchableOpacity>
-          <Text style={[styles.seeAllLink, { color: colors.primary }]}>See all</Text>
-        </TouchableOpacity>
-      </View>
-
-      {reviews.map((review) => {
-        const reviewer = getUserById(review.reviewerId);
-        return (
-          <View key={review.id} style={styles.reviewItem}>
-            <View style={styles.reviewHeader}>
-              <Avatar
-                uri={reviewer?.profilePhoto}
-                firstName={reviewer?.firstName}
-                lastName={reviewer?.lastName}
-                size="small"
-              />
-              <View style={styles.reviewerInfo}>
-                <Text style={styles.reviewerName}>
-                  {reviewer?.firstName} {reviewer?.lastName?.charAt(0)}.
-                </Text>
-                <Text style={styles.reviewDate}>
-                  {formatRelativeTime(review.createdAt)}
-                </Text>
-              </View>
-              <View style={styles.reviewStars}>
-                {getStarArray(review.rating).map((star, i) => (
-                  <Icon
-                    key={i}
-                    name={star === 'full' ? 'star' : star === 'half' ? 'star-half-full' : 'star-outline'}
-                    size={14}
-                    color={NEUTRAL_COLORS.darkGray}
-                  />
-                ))}
+          {spot.photos.map((photo, index) => (
+            <View key={index} style={styles.photoContainer}>
+              <View style={[styles.photoPlaceholder, { backgroundColor: NEUTRAL_COLORS.lightGray }]}>
+                <Icon name="image" size={48} color={NEUTRAL_COLORS.gray} />
               </View>
             </View>
-            <Text style={styles.reviewText}>{review.comment}</Text>
+          ))}
+        </ScrollView>
+
+        {/* Photo indicators */}
+        <View style={styles.photoIndicators}>
+          {spot.photos.map((_, index) => (
+            <View
+              key={index}
+              style={[
+                styles.photoIndicator,
+                currentPhotoIndex === index && styles.photoIndicatorActive,
+              ]}
+            />
+          ))}
+        </View>
+
+        {/* Header actions – offset by the status bar inset */}
+        <View style={[styles.headerActions, { top: insets.top + SPACING.sm }]}>
+          <TouchableOpacity style={styles.headerButton} onPress={handleGoBack}>
+            <Icon name="arrow-left" size={24} color={NEUTRAL_COLORS.black} />
+          </TouchableOpacity>
+          <View style={styles.headerRight}>
+            <TouchableOpacity style={styles.headerButton} onPress={handleShare}>
+              <Icon name="share-variant" size={24} color={NEUTRAL_COLORS.black} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.headerButton} onPress={handleSave}>
+              <Icon name="heart-outline" size={24} color={NEUTRAL_COLORS.black} />
+            </TouchableOpacity>
           </View>
-        );
-      })}
-    </View>
-  );
+        </View>
+      </View>
+    );
+  };
+
+  const renderAmenities = () => {
+    if (!spot) return null;
+    return (
+      <View style={styles.amenitiesGrid}>
+        {spot.amenities.map((amenityId) => {
+          const amenity = AMENITIES.find((a) => a.id === amenityId);
+          if (!amenity) return null;
+          return (
+            <View key={amenityId} style={styles.amenityItem}>
+              <View style={[styles.amenityIcon, { backgroundColor: colors.lightest }]}>
+                <Icon name={amenity.icon} size={20} color={colors.primary} />
+              </View>
+              <Text style={styles.amenityLabel}>{amenity.label}</Text>
+            </View>
+          );
+        })}
+      </View>
+    );
+  };
+
+  const renderHost = () => {
+    // The current spot endpoints don't include host profile yet.
+    // Keep the UI stable with a placeholder until we add host detail/reviews.
+    const host = spot?.host;
+    const hostName = host?.firstName ? `Hosted by ${host.firstName}` : 'Host details coming soon';
+    const joinedText = host?.memberSince ? `Joined ${formatRelativeTime(host.memberSince)}` : null;
+    const reviewsText =
+      typeof host?.reviewCount === 'number' ? `${host.reviewCount} reviews` : null;
+
+    return (
+      <Card style={styles.hostCard} elevation="small">
+        <View style={styles.hostContent}>
+          <Avatar
+            uri={host?.profilePhoto}
+            firstName={host?.firstName ?? 'Host'}
+            lastName={host?.lastName ?? ''}
+            size="large"
+            showBadge={host?.isSuperhost}
+          />
+          <View style={styles.hostInfo}>
+            <Text style={styles.hostName}>{hostName}</Text>
+            {host?.isSuperhost && (
+              <Badge text="Superhost" variant="primary" size="small" icon="star" />
+            )}
+            <Text style={styles.hostStats}>
+              {[reviewsText, joinedText].filter(Boolean).join(' • ') || '—'}
+            </Text>
+          </View>
+          <TouchableOpacity
+            style={[styles.contactButton, { borderColor: colors.primary }]}
+            onPress={handleContactHost}
+          >
+            <Icon name="message-outline" size={20} color={colors.primary} />
+          </TouchableOpacity>
+        </View>
+      </Card>
+    );
+  };
+
+  const renderReviews = () => {
+    if (!spot) return null;
+    // Reviews will be implemented in Phase 4
+    return (
+      <View style={styles.reviewsSection}>
+        <View style={styles.reviewsHeader}>
+          <View style={styles.ratingOverview}>
+            <Icon name="star" size={24} color={NEUTRAL_COLORS.darkGray} />
+            <Text style={styles.ratingText}>{spot.rating.toFixed(1)}</Text>
+            <Text style={styles.reviewCount}>({spot.reviewCount} reviews)</Text>
+          </View>
+          <TouchableOpacity>
+            <Text style={[styles.seeAllLink, { color: colors.primary }]}>See all</Text>
+          </TouchableOpacity>
+        </View>
+        <Text style={styles.reviewPlaceholder}>Reviews coming soon</Text>
+      </View>
+    );
+  };
+
+  // Loading state
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={styles.loadingText}>Loading spot details...</Text>
+      </View>
+    );
+  }
+
+  // Error state
+  if (error || !spot) {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <Icon name="alert-circle" size={64} color={NEUTRAL_COLORS.error} />
+        <Text style={styles.errorTitle}>Failed to load spot</Text>
+        <Text style={styles.errorText}>{error || 'Spot not found'}</Text>
+        <TouchableOpacity
+          style={[styles.retryButton, { backgroundColor: colors.primary }]}
+          onPress={() => navigation.goBack()}
+        >
+          <Text style={styles.retryButtonText}>Go Back</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -716,6 +760,45 @@ const styles = StyleSheet.create({
   },
   bookButton: {
     minWidth: 140,
+  },
+  centerContent: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: SPACING.xl,
+  },
+  loadingText: {
+    marginTop: SPACING.md,
+    fontSize: TYPOGRAPHY.fontSize.base,
+    color: NEUTRAL_COLORS.darkGray,
+  },
+  errorTitle: {
+    marginTop: SPACING.md,
+    fontSize: TYPOGRAPHY.fontSize.xl,
+    fontWeight: '600',
+    color: NEUTRAL_COLORS.black,
+  },
+  errorText: {
+    marginTop: SPACING.xs,
+    marginBottom: SPACING.lg,
+    fontSize: TYPOGRAPHY.fontSize.base,
+    color: NEUTRAL_COLORS.gray,
+    textAlign: 'center',
+  },
+  retryButton: {
+    paddingHorizontal: SPACING.xl,
+    paddingVertical: SPACING.sm,
+    borderRadius: RADIUS.md,
+  },
+  retryButtonText: {
+    color: NEUTRAL_COLORS.white,
+    fontSize: TYPOGRAPHY.fontSize.base,
+    fontWeight: '600',
+  },
+  reviewPlaceholder: {
+    fontSize: TYPOGRAPHY.fontSize.base,
+    color: NEUTRAL_COLORS.gray,
+    textAlign: 'center',
+    paddingVertical: SPACING.lg,
   },
 });
 

@@ -95,4 +95,5 @@ export interface UpdateUserData {
   profilePhoto?: string | null;
   bio?: string | null;
   idDocument?: string;
+  userType?: UserType;
 }

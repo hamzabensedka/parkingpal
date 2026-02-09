@@ -20,7 +20,7 @@ type Props = NativeStackScreenProps<HostStackParamList, 'AddListingPricing'>;
 const SERVICE_FEE_PERCENTAGE = 0.15; // 15% service fee
 
 const AddListingPricingScreen = ({ navigation, route }: Props) => {
-  const { location, photos, spotType, amenities, vehicleSizes, accessInstructions, accessType } = route.params;
+  const { location, photos, spotType, amenities, vehicleSizes, accessInstructions, accessType, numberOfSpots } = route.params;
   const { colors } = useTheme();
 
   const [hourlyRate, setHourlyRate] = useState('');
@@ -79,6 +79,7 @@ const AddListingPricingScreen = ({ navigation, route }: Props) => {
       accessType,
       hourlyRate: parseFloat(hourlyRate),
       dailyRate: dailyRate ? parseFloat(dailyRate) : undefined,
+      numberOfSpots,
     });
   };
 

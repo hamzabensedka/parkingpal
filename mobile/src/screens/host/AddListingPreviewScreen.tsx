@@ -12,43 +12,104 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { CommonActions } from '@react-navigation/native';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
 import { HostStackParamList } from '../../types';
 import { Button, Card, Badge, Chip } from '../../components/common';
+import { spotApi } from '../../services/api';
+import type { CreateSpotRequest, SpotAvailabilityInput, SpotTypeDTO, AccessTypeDTO, AmenityTypeDTO } from '@parkingpal/shared-types';
 
 type Props = NativeStackScreenProps<HostStackParamList, 'AddListingPreview'>;
 
 const AddListingPreviewScreen = ({ navigation, route }: Props) => {
-  const { location, photos, spotType, amenities, vehicleSizes, accessInstructions, accessType, hourlyRate, dailyRate, availability, title, description, houseRules } = route.params;
+  const { location, photos, spotType, amenities, vehicleSizes, accessInstructions, accessType, hourlyRate, dailyRate, availability, title, description, houseRules, numberOfSpots } = route.params;
   const { colors } = useTheme();
+  const { refreshProfile, switchUserType } = useAuth();
 
   const [isPublishing, setIsPublishing] = useState(false);
 
   const handlePublish = async () => {
     setIsPublishing(true);
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    try {
+      // Convert the availability map { "Monday": { available, timeSlots }, ... }
+      // to SpotAvailabilityInput[] with dayOfWeek (Sunday=0)
+      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const availabilityInput: SpotAvailabilityInput[] = [];
 
-    setIsPublishing(false);
+      Object.entries(availability).forEach(([dayName, slot]) => {
+        if (!slot.available) return;
+        const dayOfWeek = dayNames.indexOf(dayName);
+        if (dayOfWeek === -1) return;
 
-    Alert.alert(
-      'Listing Published!',
-      'Your parking spot is now live and visible to renters.',
-      [
-        {
-          text: 'View Dashboard',
-          onPress: () => {
-            navigation.dispatch(
-              CommonActions.reset({
-                index: 0,
-                routes: [{ name: 'HostTabs' }],
-              })
-            );
+        availabilityInput.push({
+          dayOfWeek,
+          startTime: '00:00',
+          endTime: '23:59',
+          isAllDay: true,
+        });
+      });
+
+      const body: CreateSpotRequest = {
+        title,
+        description,
+        address: location.address,
+        city: location.address.split(',').slice(-2, -1)[0]?.trim() || 'Toulouse',
+        postalCode: '31000',
+        latitude: location.latitude,
+        longitude: location.longitude,
+        spotType: spotType as SpotTypeDTO,
+        locationType: 'residential',
+        capacity: numberOfSpots,
+        vehicleSizes,
+        amenities: amenities as AmenityTypeDTO[],
+        accessType: accessType as AccessTypeDTO,
+        accessInstructions,
+        hourlyRate,
+        dailyRate,
+        houseRules,
+        cancellationPolicy: 'flexible',
+        instantBook: true,
+        minBookingMinutes: 60,
+        advanceNoticeMinutes: 60,
+        bookingWindowDays: 90,
+        availability: availabilityInput,
+      };
+
+      await spotApi.create(body, photos);
+
+      // Refresh profile so the app sees userType become 'both' (if upgraded)
+      await refreshProfile();
+
+      // Switch to host mode and reset navigation
+      await switchUserType('host');
+
+      setIsPublishing(false);
+
+      Alert.alert(
+        'Listing Published!',
+        'Your parking spot is now live and visible to renters.',
+        [
+          {
+            text: 'View Dashboard',
+            onPress: () => {
+              navigation.dispatch(
+                CommonActions.reset({
+                  index: 0,
+                  routes: [{ name: 'HostTabs' }],
+                })
+              );
+            },
           },
-        },
-      ]
-    );
+        ]
+      );
+    } catch (error: any) {
+      setIsPublishing(false);
+      Alert.alert(
+        'Publishing Failed',
+        error?.message || 'Something went wrong. Please try again.',
+      );
+    }
   };
 
   const handleSaveDraft = () => {
@@ -148,6 +209,14 @@ const AddListingPreviewScreen = ({ navigation, route }: Props) => {
             <Text style={styles.detailLabel}>Vehicle Size</Text>
             <Text style={styles.detailValue}>
               {vehicleSizes[0].charAt(0).toUpperCase() + vehicleSizes[0].slice(1)}
+            </Text>
+          </View>
+
+          <View style={styles.detailRow}>
+            <Icon name="parking" size={20} color={NEUTRAL_COLORS.gray} />
+            <Text style={styles.detailLabel}>Capacity</Text>
+            <Text style={styles.detailValue}>
+              {numberOfSpots} {numberOfSpots === 1 ? 'vehicle' : 'vehicles'}
             </Text>
           </View>
 

@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, CommonActions } from '@react-navigation/native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
@@ -75,7 +75,7 @@ const RenterProfileScreen: React.FC = () => {
   }, [navigation]);
 
   const handleSavedSpots = useCallback(() => {
-    navigation.navigate('SavedSpots');
+    navigation.getParent()?.navigate('Bookings', { screen: 'SavedSpots' });
   }, [navigation]);
 
   const handleSettings = useCallback(() => {
@@ -86,9 +86,13 @@ const RenterProfileScreen: React.FC = () => {
     navigation.navigate('Help');
   }, [navigation]);
 
-  const handleSwitchToHost = useCallback(() => {
+  const handleSwitchToHost = useCallback(async () => {
     if (user?.userType === 'both') {
-      switchUserType('host');
+      // Fast switch – just flip the active UI mode
+      await switchUserType('host');
+      navigation.dispatch(
+        CommonActions.reset({ index: 0, routes: [{ name: 'HostTabs' }] })
+      );
     } else {
       Alert.alert(
         'Become a Host',
@@ -98,8 +102,11 @@ const RenterProfileScreen: React.FC = () => {
           {
             text: 'Get Started',
             onPress: () => {
-              // Navigate to host registration flow
-              navigation.navigate('HostOnboarding');
+              // Navigate to host listing flow (renters can create their first spot)
+              navigation.navigate('HostTabs', {
+                screen: 'Listings',
+                params: { screen: 'AddListingLocation' },
+              });
             },
           },
         ]
@@ -259,7 +266,7 @@ const RenterProfileScreen: React.FC = () => {
             <MenuItem
               icon="file-document"
               label="Terms & Privacy"
-              onPress={() => navigation.navigate('Terms')}
+              onPress={() => navigation.navigate('Legal')}
             />
           </Card>
         </View>

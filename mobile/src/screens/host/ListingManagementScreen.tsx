@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,24 +7,27 @@ import {
   TouchableOpacity,
   Switch,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
-import { Spot } from '../../types';
 import { Card, Badge, EmptyState } from '../../components/common';
-import { mockSpots } from '../../data/mockSpots';
+import { spotApi } from '../../services/api';
+import type { SpotSummaryDTO } from '@parkingpal/shared-types';
+
+type ListingItem = SpotSummaryDTO & { isActive: boolean };
 
 interface ListingItemProps {
-  listing: Spot & { isActive: boolean };
+  listing: ListingItem;
   onToggleActive: (id: string, active: boolean) => void;
   onPress: () => void;
   onEdit: () => void;
 }
 
-const ListingItem: React.FC<ListingItemProps> = ({
+const ListingItemCard: React.FC<ListingItemProps> = ({
   listing,
   onToggleActive,
   onPress,
@@ -91,9 +94,33 @@ const ListingManagementScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const { colors, NEUTRAL_COLORS } = useTheme();
 
-  // Mock listings data
-  const [listings, setListings] = useState<(Spot & { isActive: boolean })[]>(
-    mockSpots.slice(0, 3).map(spot => ({ ...spot, isActive: true }))
+  const [listings, setListings] = useState<ListingItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const fetchListings = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const spots = await spotApi.getMyListings();
+      setListings(
+        spots.map((spot) => ({
+          ...spot,
+          isActive: spot.status === 'active',
+        })),
+      );
+    } catch (error) {
+      console.error('Failed to fetch listings:', error);
+      // Fall back to empty list on error
+      setListings([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // Refresh listings every time the screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      fetchListings();
+    }, [fetchListings]),
   );
 
   const handleToggleActive = useCallback((id: string, active: boolean) => {
@@ -110,18 +137,26 @@ const ListingManagementScreen: React.FC = () => {
     Alert.alert(active ? 'Listing Activated' : 'Listing Paused', message);
   }, []);
 
-  const handleListingPress = useCallback((listing: Spot) => {
+  const handleListingPress = useCallback((listing: ListingItem) => {
     navigation.navigate('SpotDetail', { spotId: listing.id });
   }, [navigation]);
 
-  const handleEditListing = useCallback((listing: Spot) => {
+  const handleEditListing = useCallback((listing: ListingItem) => {
     navigation.navigate('EditListing', { listingId: listing.id });
   }, [navigation]);
 
   const handleAddListing = useCallback(() => {
+    if (listings.length > 0) {
+      Alert.alert(
+        'One Listing Allowed',
+        'You can only have one active listing at a time. Edit or remove your current listing to create a new one.',
+      );
+      return;
+    }
     navigation.navigate('AddListingLocation');
-  }, [navigation]);
+  }, [navigation, listings.length]);
 
+  const hasListing = listings.length > 0;
   const activeCount = listings.filter(l => l.isActive).length;
   const pausedCount = listings.filter(l => !l.isActive).length;
 
@@ -146,14 +181,25 @@ const ListingManagementScreen: React.FC = () => {
         </Card>
       </View>
 
-      {/* Add Button */}
-      <TouchableOpacity
-        style={[styles.addButton, { backgroundColor: colors.primary }]}
-        onPress={handleAddListing}
-      >
-        <Icon name="plus" size={20} color={NEUTRAL_COLORS.white} />
-        <Text style={styles.addButtonText}>Add New Listing</Text>
-      </TouchableOpacity>
+      {/* Add Button – hidden when a listing already exists */}
+      {!hasListing && (
+        <TouchableOpacity
+          style={[styles.addButton, { backgroundColor: colors.primary }]}
+          onPress={handleAddListing}
+        >
+          <Icon name="plus" size={20} color={NEUTRAL_COLORS.white} />
+          <Text style={styles.addButtonText}>Add New Listing</Text>
+        </TouchableOpacity>
+      )}
+
+      {hasListing && (
+        <View style={styles.oneListingNotice}>
+          <Icon name="information-outline" size={16} color={NEUTRAL_COLORS.gray} />
+          <Text style={styles.oneListingText}>
+            You can have one listing at a time. Edit your listing below.
+          </Text>
+        </View>
+      )}
     </View>
   );
 
@@ -167,12 +213,22 @@ const ListingManagementScreen: React.FC = () => {
     />
   );
 
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.container} edges={['bottom']}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <FlatList
         data={listings}
         renderItem={({ item }) => (
-          <ListingItem
+          <ListingItemCard
             listing={item}
             onToggleActive={handleToggleActive}
             onPress={() => handleListingPress(item)}
@@ -306,6 +362,27 @@ const styles = StyleSheet.create({
   editText: {
     fontSize: TYPOGRAPHY.fontSize.sm,
     fontWeight: '600',
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  oneListingNotice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.xs,
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    backgroundColor: NEUTRAL_COLORS.white,
+    borderRadius: RADIUS.md,
+    borderWidth: 1,
+    borderColor: NEUTRAL_COLORS.lightGray,
+  },
+  oneListingText: {
+    flex: 1,
+    fontSize: TYPOGRAPHY.fontSize.sm,
+    color: NEUTRAL_COLORS.gray,
   },
 });
 

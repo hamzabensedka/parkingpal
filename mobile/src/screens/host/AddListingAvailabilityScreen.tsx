@@ -20,7 +20,7 @@ type Props = NativeStackScreenProps<HostStackParamList, 'AddListingAvailability'
 const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 const AddListingAvailabilityScreen = ({ navigation, route }: Props) => {
-  const { location, photos, spotType, amenities, vehicleSizes, accessInstructions, accessType, hourlyRate, dailyRate } = route.params;
+  const { location, photos, spotType, amenities, vehicleSizes, accessInstructions, accessType, hourlyRate, dailyRate, numberOfSpots } = route.params;
   const { colors } = useTheme();
 
   const [availability, setAvailability] = useState<Record<string, SpotAvailability>>({
@@ -53,6 +53,7 @@ const AddListingAvailabilityScreen = ({ navigation, route }: Props) => {
       hourlyRate,
       dailyRate,
       availability,
+      numberOfSpots,
     });
   };
 

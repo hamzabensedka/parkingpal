@@ -73,6 +73,7 @@ const AddListingDetailsScreen = ({ navigation, route }: Props) => {
       spotType,
       amenities: selectedAmenities as any,
       vehicleSizes: [vehicleSize],
+      numberOfSpots: parseInt(numberOfSpots, 10),
     });
   };
 

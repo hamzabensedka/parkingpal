@@ -34,8 +34,12 @@ interface LoginCredentials {
   password: string;
 }
 
+/** The UI mode the user is currently viewing – separate from user.userType capability */
+export type ActiveMode = 'renter' | 'host';
+
 interface AuthContextType {
   user: ProfileUser | null;
+  activeUserMode: ActiveMode;
   isLoading: boolean;
   isAuthenticated: boolean;
   isOnboardingComplete: boolean;
@@ -48,7 +52,8 @@ interface AuthContextType {
   logout: () => Promise<void>;
   updateProfile: (data: Partial<ProfileUser>) => Promise<void>;
   setUserType: (type: UserType) => Promise<void>;
-  switchUserType: (type: UserType) => Promise<void>;
+  /** Switch the active UI mode (does NOT mutate user.userType) */
+  switchUserType: (mode: ActiveMode) => Promise<void>;
   completeOnboarding: () => Promise<void>;
   addVehicle: (vehicle: CreateVehicleRequest) => Promise<void>;
   updateVehicle: (id: string, vehicle: UpdateVehicleRequest) => Promise<void>;
@@ -86,8 +91,20 @@ interface AuthProviderProps {
   children: React.ReactNode;
 }
 
+/**
+ * Clamp the active UI mode based on the user's actual capability.
+ * Only users with capability 'host' or 'both' can be in host mode.
+ */
+function clampMode(mode: ActiveMode, userType: UserType | undefined): ActiveMode {
+  if (mode === 'host' && userType !== 'host' && userType !== 'both') {
+    return 'renter';
+  }
+  return mode;
+}
+
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [profile, setProfile] = useState<UserProfileDTO | null>(null);
+  const [activeUserMode, setActiveUserModeState] = useState<ActiveMode>('renter');
   const [isLoading, setIsLoading] = useState(true);
   const [isOnboardingComplete, setIsOnboardingComplete] = useState(false);
 
@@ -101,6 +118,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setProfile(p);
       if (p.user) {
         await AsyncStorage.setItem(STORAGE_KEYS.user, JSON.stringify(profileToUser(p)));
+        // Clamp active mode: if user lost 'host' capability, fall back to renter
+        setActiveUserModeState((prev) => clampMode(prev, p.user.userType as UserType));
       }
     } catch {
       setProfile(null);
@@ -111,6 +130,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const loadAuthState = async () => {
       try {
+        // Restore persisted active mode
+        const savedMode = await AsyncStorage.getItem(STORAGE_KEYS.activeUserMode);
+        if (savedMode === 'host' || savedMode === 'renter') {
+          setActiveUserModeState(savedMode);
+        }
+
         const token = await secureTokenStorage.getAccessToken();
         if (token) {
           await refreshProfile();
@@ -187,13 +212,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       await authApi.logout();
       await secureTokenStorage.clearTokens();
       await AsyncStorage.removeItem(STORAGE_KEYS.user);
+      await AsyncStorage.removeItem(STORAGE_KEYS.activeUserMode);
       await AsyncStorage.removeItem('vehicles');
       await AsyncStorage.removeItem('payment_methods');
       setProfile(null);
+      setActiveUserModeState('renter');
     } catch (e) {
       console.error('Logout error:', e);
       await secureTokenStorage.clearTokens();
       setProfile(null);
+      setActiveUserModeState('renter');
     } finally {
       setIsLoading(false);
     }
@@ -227,9 +255,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     await AsyncStorage.setItem(STORAGE_KEYS.userType, type);
   }, [profile]);
 
-  const switchUserType = useCallback(async (type: UserType) => {
-    await setUserType(type);
-  }, [setUserType]);
+  /**
+   * Switch the active UI mode. This does NOT change user.userType in the profile –
+   * it only changes which navigator is shown. Persisted to AsyncStorage so it
+   * survives app restarts.
+   */
+  const switchUserType = useCallback(async (mode: ActiveMode) => {
+    const clamped = clampMode(mode, user?.userType);
+    setActiveUserModeState(clamped);
+    await AsyncStorage.setItem(STORAGE_KEYS.activeUserMode, clamped);
+  }, [user?.userType]);
 
   const completeOnboarding = useCallback(async () => {
     await AsyncStorage.setItem(STORAGE_KEYS.onboardingComplete, 'true');
@@ -322,6 +357,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const contextValue = useMemo<AuthContextType>(
     () => ({
       user,
+      activeUserMode,
       isLoading,
       isAuthenticated: !!user,
       isOnboardingComplete,
@@ -349,6 +385,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }),
     [
       user,
+      activeUserMode,
       isLoading,
       isOnboardingComplete,
       vehicles,

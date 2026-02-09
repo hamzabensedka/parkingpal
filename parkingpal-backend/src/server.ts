@@ -14,7 +14,8 @@ const startServer = async (): Promise<void> => {
     await connectDatabase();
 
     // Start HTTP server
-    server = app.listen(env.port, () => {
+    // Bind to 0.0.0.0 so physical devices on LAN can reach it
+    server = app.listen(env.port, '0.0.0.0', () => {
       console.log('========================================');
       console.log('  ParkingPal Authentication API');
       console.log('========================================');

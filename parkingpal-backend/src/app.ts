@@ -6,6 +6,7 @@ import { env } from './config/env';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { generalLimiter } from './middleware/rateLimiter';
 import authRoutes, { userRouter } from './modules/auth/auth.routes';
+import spotRoutes from './modules/spots/spot.routes';
 
 // Create Express application
 const app: Application = express();
@@ -94,6 +95,9 @@ app.use('/api/auth', authRoutes);
 
 // User routes
 app.use('/api/users', userRouter);
+
+// Spot routes
+app.use('/api/spots', spotRoutes);
 
 // ==========================================
 // Error Handling
