@@ -113,6 +113,14 @@ export const ERROR_MESSAGES = {
   SPOT_NOT_OWNER: 'You are not the owner of this spot',
   SPOT_ALREADY_ACTIVE: 'Spot is already active',
   MIN_PHOTOS_REQUIRED: 'At least one photo is required',
+
+  // Bookings
+  BOOKING_NOT_FOUND: 'Booking not found',
+  BOOKING_OVERLAP: 'This time slot is already booked',
+  BOOKING_OWN_SPOT: 'You cannot book your own spot',
+  BOOKING_VEHICLE_SIZE: 'Your vehicle size is not accepted at this spot',
+  BOOKING_NOT_CANCELLABLE: 'This booking cannot be cancelled',
+  BOOKING_NOT_CONFIRMABLE: 'Only pending bookings can be confirmed',
 } as const;
 
 // Success Messages
@@ -132,4 +140,10 @@ export const SUCCESS_MESSAGES = {
   SPOT_DELETED: 'Spot deleted successfully',
   SPOT_PAUSED: 'Spot paused',
   SPOT_ACTIVATED: 'Spot activated',
+
+  // Bookings
+  BOOKING_CREATED: 'Booking created successfully',
+  BOOKING_CANCELLED: 'Booking cancelled',
+  BOOKING_CONFIRMED: 'Booking confirmed',
+  BOOKING_COMPLETED: 'Booking completed',
 } as const;

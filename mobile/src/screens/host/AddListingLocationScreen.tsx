@@ -8,31 +8,24 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import MapView, { Marker, UrlTile, Region } from 'react-native-maps';
+import MapLibreGL from '@maplibre/maplibre-react-native';
 import * as Location from 'expo-location';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme } from '../../contexts/ThemeContext';
-import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
+import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS, MAPLIBRE_STYLE } from '../../utils/constants';
 import { HostStackParamList } from '../../types';
 import { Button, Input, Card } from '../../components/common';
 import { geocode, reverseGeocode } from '../../services/osmService';
 
 type Props = NativeStackScreenProps<HostStackParamList, 'AddListingLocation'>;
 
-const INITIAL_REGION: Region = {
-  latitude: 48.8566,
-  longitude: 2.3522,
-  latitudeDelta: 0.01,
-  longitudeDelta: 0.01,
-};
-
-// CartoDB Voyager - clean style with green parks and subtle colors
-const OSM_TILE_URL = 'https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png';
+const INITIAL_CENTER: [number, number] = [2.3522, 48.8566]; // [lng, lat] Paris
+const INITIAL_ZOOM = 13;
 
 const AddListingLocationScreen = ({ navigation }: Props) => {
   const { colors } = useTheme();
-  const mapRef = useRef<MapView>(null);
+  const cameraRef = useRef<MapLibreGL.CameraRef>(null);
 
   const [address, setAddress] = useState('');
   const [selectedLocation, setSelectedLocation] = useState<{
@@ -77,13 +70,17 @@ const AddListingLocationScreen = ({ navigation }: Props) => {
   }, []);
 
   const handleMapPress = useCallback(async (event: any) => {
-    const { latitude, longitude } = event.nativeEvent.coordinate;
+    const coordinates = event.geometry?.coordinates;
+    if (!coordinates) return;
+    const [longitude, latitude] = coordinates;
     setSelectedLocation({ latitude, longitude });
     await updateAddressFromCoordinates(latitude, longitude);
   }, [updateAddressFromCoordinates]);
 
   const handleMarkerDragEnd = useCallback(async (e: any) => {
-    const { latitude, longitude } = e.nativeEvent.coordinate;
+    const coordinates = e.geometry?.coordinates;
+    if (!coordinates) return;
+    const [longitude, latitude] = coordinates;
     setSelectedLocation({ latitude, longitude });
     await updateAddressFromCoordinates(latitude, longitude);
   }, [updateAddressFromCoordinates]);
@@ -97,11 +94,11 @@ const AddListingLocationScreen = ({ navigation }: Props) => {
 
     if (result) {
       setSelectedLocation(result);
-      mapRef.current?.animateToRegion({
-        ...result,
-        latitudeDelta: 0.005,
-        longitudeDelta: 0.005,
-      }, 500);
+      cameraRef.current?.setCamera({
+        centerCoordinate: [result.longitude, result.latitude],
+        zoomLevel: 16,
+        animationDuration: 500,
+      });
       await updateAddressFromCoordinates(result.latitude, result.longitude);
     } else {
       Alert.alert('Not Found', 'Could not find this address. Please try a different search.');
@@ -123,11 +120,11 @@ const AddListingLocationScreen = ({ navigation }: Props) => {
       };
 
       setSelectedLocation(coords);
-      mapRef.current?.animateToRegion({
-        ...coords,
-        latitudeDelta: 0.005,
-        longitudeDelta: 0.005,
-      }, 500);
+      cameraRef.current?.setCamera({
+        centerCoordinate: [coords.longitude, coords.latitude],
+        zoomLevel: 16,
+        animationDuration: 500,
+      });
       await updateAddressFromCoordinates(coords.latitude, coords.longitude);
     } catch {
       Alert.alert('Error', 'Failed to get current location. Please try again.');
@@ -169,35 +166,34 @@ const AddListingLocationScreen = ({ navigation }: Props) => {
 
       {/* Map */}
       <View style={styles.mapContainer}>
-        <MapView
-          ref={mapRef}
+        <MapLibreGL.MapView
           style={styles.map}
-          initialRegion={INITIAL_REGION}
+          mapStyle={MAPLIBRE_STYLE}
           onPress={handleMapPress}
-          showsUserLocation
-          showsMyLocationButton={false}
-          mapType="none"
+          logoEnabled={false}
+          attributionEnabled={false}
         >
-          <UrlTile
-            urlTemplate={OSM_TILE_URL}
-            maximumZ={19}
-            minimumZ={1}
-            flipY={false}
-            tileSize={256}
-            zIndex={-1}
+          <MapLibreGL.Camera
+            ref={cameraRef}
+            defaultSettings={{
+              centerCoordinate: INITIAL_CENTER,
+              zoomLevel: INITIAL_ZOOM,
+            }}
           />
+          <MapLibreGL.UserLocation visible />
           {selectedLocation && (
-            <Marker
-              coordinate={selectedLocation}
+            <MapLibreGL.PointAnnotation
+              id="selected-location"
+              coordinate={[selectedLocation.longitude, selectedLocation.latitude]}
               draggable
               onDragEnd={handleMarkerDragEnd}
             >
               <View style={[styles.markerContainer, { backgroundColor: colors.primary }]}>
                 <Icon name="parking" size={20} color={NEUTRAL_COLORS.white} />
               </View>
-            </Marker>
+            </MapLibreGL.PointAnnotation>
           )}
-        </MapView>
+        </MapLibreGL.MapView>
 
         {/* Map Instructions */}
         <View style={styles.mapInstructions}>

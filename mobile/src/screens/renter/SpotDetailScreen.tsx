@@ -10,20 +10,17 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import MapView, { Marker, UrlTile } from 'react-native-maps';
+import MapLibreGL from '@maplibre/maplibre-react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useTheme } from '../../contexts/ThemeContext';
-import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS, AMENITIES, SPOT_TYPES } from '../../utils/constants';
+import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS, AMENITIES, SPOT_TYPES, MAPLIBRE_STYLE } from '../../utils/constants';
 import { formatPrice, formatRating, formatRelativeTime } from '../../utils/formatting';
 import { getStarArray } from '../../utils/helpers';
 import { Button, Card, Avatar, Badge } from '../../components/common';
 import { spotApi } from '../../services/api';
 import { mapSpotDTOToSpot } from '../../utils/spotMappers';
 import { Spot } from '../../types';
-
-// CartoDB Voyager - clean style with green parks and subtle colors
-const OSM_TILE_URL = 'https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -343,39 +340,31 @@ const SpotDetailScreen: React.FC = () => {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Location</Text>
             <View style={styles.mapPreviewContainer}>
-              <MapView
+              <MapLibreGL.MapView
                 style={styles.mapPreview}
-                initialRegion={{
-                  latitude: spot.latitude,
-                  longitude: spot.longitude,
-                  latitudeDelta: 0.005,
-                  longitudeDelta: 0.005,
-                }}
+                mapStyle={MAPLIBRE_STYLE}
                 scrollEnabled={false}
                 zoomEnabled={false}
                 rotateEnabled={false}
                 pitchEnabled={false}
-                mapType="none"
+                logoEnabled={false}
+                attributionEnabled={false}
               >
-                <UrlTile
-                  urlTemplate={OSM_TILE_URL}
-                  maximumZ={19}
-                  minimumZ={1}
-                  flipY={false}
-                  tileSize={256}
-                  zIndex={-1}
-                />
-                <Marker
-                  coordinate={{
-                    latitude: spot.latitude,
-                    longitude: spot.longitude,
+                <MapLibreGL.Camera
+                  defaultSettings={{
+                    centerCoordinate: [spot.longitude, spot.latitude],
+                    zoomLevel: 15,
                   }}
+                />
+                <MapLibreGL.MarkerView
+                  id="spot-marker"
+                  coordinate={[spot.longitude, spot.latitude]}
                 >
                   <View style={[styles.mapMarker, { backgroundColor: colors.primary }]}>
                     <Icon name="parking" size={16} color={NEUTRAL_COLORS.white} />
                   </View>
-                </Marker>
-              </MapView>
+                </MapLibreGL.MarkerView>
+              </MapLibreGL.MapView>
               <View style={styles.mapAttribution}>
                 <Text style={styles.mapAttributionText}>&copy; OpenStreetMap contributors</Text>
               </View>

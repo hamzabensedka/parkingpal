@@ -9,12 +9,12 @@ import {
   Platform,
   ActivityIndicator,
 } from 'react-native';
-import MapView, { UrlTile } from 'react-native-maps';
+import MapLibreGL from '@maplibre/maplibre-react-native';
 import * as Location from 'expo-location';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../contexts/ThemeContext';
-import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS, MAP_DEFAULTS, API_BASE_URL } from '../../utils/constants';
+import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS, MAP_DEFAULTS, MAPLIBRE_STYLE, API_BASE_URL } from '../../utils/constants';
 import { SpotMarker } from '../../components/map';
 import { Spot } from '../../types';
 import { calculateDistance } from '../../utils/helpers';
@@ -27,13 +27,10 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 48;
 const CARD_HEIGHT = 140;
 
-// CartoDB Voyager - clean style with green parks and subtle colors
-const OSM_TILE_URL = 'https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png';
-
 const MapScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const { colors } = useTheme();
-  const mapRef = useRef<MapView>(null);
+  const cameraRef = useRef<MapLibreGL.CameraRef>(null);
   const flatListRef = useRef<FlatList>(null);
 
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
@@ -64,7 +61,7 @@ const MapScreen: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       const result = await spotApi.search({
         latitude,
         longitude,
@@ -107,11 +104,11 @@ const MapScreen: React.FC = () => {
 
       // Animate to user location
       if (isMounted) {
-        mapRef.current?.animateToRegion({
-          ...userCoords,
-          latitudeDelta: 0.05,
-          longitudeDelta: 0.05,
-        }, 500);
+        cameraRef.current?.setCamera({
+          centerCoordinate: [userCoords.longitude, userCoords.latitude],
+          zoomLevel: 13,
+          animationDuration: 500,
+        });
       }
     })();
 
@@ -134,12 +131,11 @@ const MapScreen: React.FC = () => {
     }
 
     // Center map on spot
-    mapRef.current?.animateToRegion({
-      latitude: spot.latitude,
-      longitude: spot.longitude,
-      latitudeDelta: 0.01,
-      longitudeDelta: 0.01,
-    }, 300);
+    cameraRef.current?.setCamera({
+      centerCoordinate: [spot.longitude, spot.latitude],
+      zoomLevel: 15,
+      animationDuration: 300,
+    });
   }, [spots]);
 
   const handleSpotCardPress = useCallback((spot: Spot) => {
@@ -156,11 +152,11 @@ const MapScreen: React.FC = () => {
 
   const handleMyLocationPress = () => {
     if (userLocation) {
-      mapRef.current?.animateToRegion({
-        ...userLocation,
-        latitudeDelta: 0.02,
-        longitudeDelta: 0.02,
-      }, 300);
+      cameraRef.current?.setCamera({
+        centerCoordinate: [userLocation.longitude, userLocation.latitude],
+        zoomLevel: 14,
+        animationDuration: 300,
+      });
     }
   };
 
@@ -255,20 +251,22 @@ const MapScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       {/* Map */}
-      <MapView
-        ref={mapRef}
+      <MapLibreGL.MapView
         style={styles.map}
-        initialRegion={MAP_DEFAULTS.initialRegion}
-        showsUserLocation
-        showsMyLocationButton={false}
-        showsCompass={false}
-        mapType="none"
+        mapStyle={MAPLIBRE_STYLE}
+        logoEnabled={false}
+        attributionEnabled={false}
       >
-        <UrlTile
-          urlTemplate={OSM_TILE_URL}
-          maximumZ={19}
-          flipY={false}
+        <MapLibreGL.Camera
+          ref={cameraRef}
+          defaultSettings={{
+            centerCoordinate: MAP_DEFAULTS.center,
+            zoomLevel: MAP_DEFAULTS.zoomLevel,
+          }}
+          minZoomLevel={MAP_DEFAULTS.minZoomLevel}
+          maxZoomLevel={MAP_DEFAULTS.maxZoomLevel}
         />
+        <MapLibreGL.UserLocation visible />
         {sortedSpots.map((spot) => (
           <SpotMarker
             key={spot.id}
@@ -277,7 +275,7 @@ const MapScreen: React.FC = () => {
             onPress={handleMarkerPress}
           />
         ))}
-      </MapView>
+      </MapLibreGL.MapView>
 
       {/* Search Bar */}
       <View style={styles.searchContainer}>

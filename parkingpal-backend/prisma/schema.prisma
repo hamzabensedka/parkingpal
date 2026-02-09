@@ -67,9 +67,11 @@ model User {
   // Host profile relations
   spots             Spot[]
 
+  // Booking relations
+  bookingsAsRenter  Booking[] @relation("RenterBookings")
+  bookingsAsHost    Booking[] @relation("HostBookings")
+
   // Future Relations (uncomment when building other modules)
-  // bookingsAsRenter  Booking[] @relation("RenterBookings")
-  // bookingsAsHost    Booking[] @relation("HostBookings")
   // reviewsGiven      Review[]  @relation("ReviewsGiven")
   // reviewsReceived   Review[]  @relation("ReviewsReceived")
   // messagesSent      Message[] @relation("MessagesSent")
@@ -111,6 +113,7 @@ model Vehicle {
   isDefault    Boolean      @default(false)
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
+  bookings     Booking[]
 
   @@map("vehicles")
   @@index([userId])
@@ -257,6 +260,7 @@ model Spot {
   photos               SpotPhoto[]
   documents            SpotDocument[]
   availability         SpotAvailability[]
+  bookings             Booking[]
 
   @@map("spots")
   @@index([hostId])
@@ -321,4 +325,75 @@ model FavoriteSpot {
   @@map("favorite_spots")
   @@index([userId])
   @@index([spotId])
+}
+
+// ==========================================
+// Booking Models
+// ==========================================
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  ACTIVE
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum PaymentStatus {
+  PENDING
+  AUTHORIZED
+  CAPTURED
+  REFUNDED
+  FAILED
+}
+
+model Booking {
+  id                 String             @id @default(uuid())
+  renterId           String
+  renter             User               @relation("RenterBookings", fields: [renterId], references: [id], onDelete: Cascade)
+  hostId             String
+  host               User               @relation("HostBookings", fields: [hostId], references: [id], onDelete: Cascade)
+  spotId             String
+  spot               Spot               @relation(fields: [spotId], references: [id], onDelete: Cascade)
+  vehicleId          String
+  vehicle            Vehicle            @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  // Booking window
+  startTime          DateTime
+  endTime            DateTime
+
+  // Status
+  status             BookingStatus      @default(PENDING)
+
+  // Pricing snapshot
+  totalPrice         Float
+  hourlyRate         Float
+  duration           Int                // Duration in minutes
+
+  // Payment
+  paymentStatus      PaymentStatus      @default(PENDING)
+
+  // Cancellation policy snapshot from spot at booking time
+  cancellationPolicy CancellationPolicy
+
+  // Cancellation tracking
+  cancelledAt        DateTime?
+  cancelledBy        String?            // userId of who cancelled
+  cancellationReason String?
+
+  // Notes
+  hostNotes          String?
+  renterNotes        String?
+
+  // Timestamps
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  @@map("bookings")
+  @@index([renterId])
+  @@index([hostId])
+  @@index([spotId])
+  @@index([status])
+  @@index([startTime])
 }

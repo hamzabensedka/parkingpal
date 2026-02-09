@@ -5,3 +5,4 @@ export * from './profile';
 export * from './vehicle';
 export * from './payment';
 export * from './spot';
+export * from './booking';

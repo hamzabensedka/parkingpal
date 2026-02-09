@@ -132,15 +132,29 @@ export const ANIMATION = {
 
 // Map Constants (Toulouse)
 export const MAP_DEFAULTS = {
-  initialRegion: {
-    latitude: 43.6047,
-    longitude: 1.4442,
-    latitudeDelta: 0.05,
-    longitudeDelta: 0.05,
-  },
+  center: [1.4442, 43.6047] as [number, number], // [lng, lat] GeoJSON order
+  zoomLevel: 13,
   minZoomLevel: 10,
   maxZoomLevel: 20,
 } as const;
+
+// MapLibre style JSON – CartoDB Voyager raster tiles
+export const MAPLIBRE_STYLE = JSON.stringify({
+  version: 8,
+  sources: {
+    'carto-voyager': {
+      type: 'raster',
+      tiles: [
+        'https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
+        'https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
+        'https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
+      ],
+      tileSize: 256,
+      attribution: '© OpenStreetMap contributors © CARTO',
+    },
+  },
+  layers: [{ id: 'carto-voyager-layer', type: 'raster', source: 'carto-voyager' }],
+});
 
 // Booking Constants
 export const BOOKING = {
