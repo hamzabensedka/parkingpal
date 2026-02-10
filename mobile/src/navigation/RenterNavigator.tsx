@@ -1,6 +1,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useTheme } from '../contexts/ThemeContext';
 import { NEUTRAL_COLORS } from '../utils/constants';
@@ -26,8 +27,6 @@ const ProfileStack = createNativeStackNavigator();
 
 // Map Stack Navigator
 const MapStackNavigator: React.FC = () => {
-  const { theme } = useTheme();
-
   return (
     <MapStack.Navigator
       screenOptions={{
@@ -73,8 +72,6 @@ const MapStackNavigator: React.FC = () => {
 
 // Bookings Stack Navigator
 const BookingsStackNavigator: React.FC = () => {
-  const { theme } = useTheme();
-
   return (
     <BookingsStack.Navigator
       screenOptions={{
@@ -99,8 +96,6 @@ const BookingsStackNavigator: React.FC = () => {
 
 // Profile Stack Navigator
 const ProfileStackNavigator: React.FC = () => {
-  const { theme } = useTheme();
-
   return (
     <ProfileStack.Navigator
       screenOptions={{
@@ -123,78 +118,81 @@ const RenterNavigator: React.FC = () => {
   const { unreadCount } = useNotifications();
 
   return (
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
-        headerShown: false,
-        tabBarActiveTintColor: theme.colors.primary,
-        tabBarInactiveTintColor: NEUTRAL_COLORS.gray,
-        tabBarStyle: {
-          backgroundColor: NEUTRAL_COLORS.white,
-          borderTopWidth: 1,
-          borderTopColor: NEUTRAL_COLORS.lightGray,
-          borderTopStyle: 'solid',
-          paddingBottom: 8,
-          paddingTop: 8,
-          height: 60,
-        },
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: '500',
-        },
-        tabBarIcon: ({ focused, color, size }) => {
-          let iconName: string;
-          // Always outline icons (Airbnb-style)
-          switch (route.name) {
-            case 'Map':
-              iconName = 'map-outline';
-              break;
-            case 'Bookings':
-              iconName = 'calendar-check-outline';
-              break;
-            case 'Messages':
-              iconName = 'message-outline';
-              break;
-            case 'Profile':
-              iconName = 'account-outline';
-              break;
-            default:
-              iconName = 'help-circle-outline';
-          }
-          return <Icon name={iconName} size={size} color={color} />;
-        },
-      })}
+    <SafeAreaView
+      edges={['bottom']}
+      style={{ flex: 1, backgroundColor: NEUTRAL_COLORS.white }}
     >
-      <Tab.Screen
-        name="Map"
-        component={MapStackNavigator}
-        options={{ title: 'Explore' }}
-      />
-      <Tab.Screen
-        name="Bookings"
-        component={BookingsStackNavigator}
-        options={{ title: 'Bookings' }}
-      />
-      <Tab.Screen
-        name="Messages"
-        component={MessagesScreen}
-        options={{
-          title: 'Messages',
-          headerShown: true,
-          headerStyle: { backgroundColor: NEUTRAL_COLORS.white },
-          headerTintColor: NEUTRAL_COLORS.black,
-          tabBarBadge: unreadCount > 0 ? unreadCount : undefined,
-          tabBarBadgeStyle: {
-            backgroundColor: NEUTRAL_COLORS.error,
-            fontSize: 10,
+      <Tab.Navigator
+        screenOptions={({ route }) => ({
+          headerShown: false,
+          tabBarActiveTintColor: theme.colors.primary,
+          tabBarInactiveTintColor: NEUTRAL_COLORS.gray,
+          tabBarStyle: {
+            backgroundColor: NEUTRAL_COLORS.white,
+            borderTopWidth: 1,
+            borderTopColor: NEUTRAL_COLORS.lightGray,
+            paddingTop: 8,
+            paddingBottom: 8,
+            height: 60,
           },
-        }}
-      />
-      <Tab.Screen
-        name="Profile"
-        component={ProfileStackNavigator}
-        options={{ title: 'Profile' }}
-      />
-    </Tab.Navigator>
+          tabBarLabelStyle: {
+            fontSize: 12,
+            fontWeight: '500',
+          },
+          tabBarIcon: ({ color, size }) => {
+            let iconName: string;
+            switch (route.name) {
+              case 'Map':
+                iconName = 'map-outline';
+                break;
+              case 'Bookings':
+                iconName = 'calendar-check-outline';
+                break;
+              case 'Messages':
+                iconName = 'message-outline';
+                break;
+              case 'Profile':
+                iconName = 'account-outline';
+                break;
+              default:
+                iconName = 'help-circle-outline';
+            }
+            return <Icon name={iconName} size={size} color={color} />;
+          },
+        })}
+      >
+        <Tab.Screen
+          name="Map"
+          component={MapStackNavigator}
+          options={{ title: 'Explore' }}
+        />
+        <Tab.Screen
+          name="Bookings"
+          component={BookingsStackNavigator}
+          options={{ title: 'Bookings' }}
+        />
+        <Tab.Screen
+          name="Messages"
+          component={MessagesScreen}
+          options={{
+            title: 'Messages',
+            headerShown: true,
+            headerStyle: { backgroundColor: NEUTRAL_COLORS.white },
+            headerTintColor: NEUTRAL_COLORS.black,
+            tabBarBadge: unreadCount > 0 ? unreadCount : undefined,
+            tabBarBadgeStyle: {
+              backgroundColor: NEUTRAL_COLORS.error,
+              fontSize: 10,
+            },
+          }}
+        />
+        <Tab.Screen
+          name="Profile"
+          component={ProfileStackNavigator}
+          options={{ title: 'Profile' }}
+        />
+      </Tab.Navigator>
+    </SafeAreaView>
   );
 };
 

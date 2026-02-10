@@ -732,6 +732,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: NEUTRAL_COLORS.lightGray,
     paddingHorizontal: SPACING.lg,
+    paddingBottom: SPACING.sm,
     paddingTop: SPACING.md,
     flexDirection: 'row',
     alignItems: 'center',

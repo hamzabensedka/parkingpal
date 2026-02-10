@@ -67,7 +67,8 @@
         {
           "photosPermission": "Allow ParkingPal to access your photos to upload images."
         }
-      ]
+      ],
+      "@maplibre/maplibre-react-native"
     ]
   }
 }

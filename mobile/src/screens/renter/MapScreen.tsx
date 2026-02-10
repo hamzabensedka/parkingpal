@@ -23,6 +23,8 @@ import { Card, Badge } from '../../components/common';
 import { spotApi } from '../../services/api';
 import { mapSpotSummaryToSpot } from '../../utils/spotMappers';
 
+const TAB_BAR_HEIGHT = 60;
+
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 48;
 const CARD_HEIGHT = 140;
@@ -297,7 +299,7 @@ const MapScreen: React.FC = () => {
 
       {/* My Location Button */}
       <TouchableOpacity
-        style={styles.myLocationButton}
+        style={[styles.myLocationButton, { bottom: TAB_BAR_HEIGHT + CARD_HEIGHT + SPACING.lg + SPACING.md }]}
         onPress={handleMyLocationPress}
       >
         <Icon name="crosshairs-gps" size={24} color={colors.primary} />
@@ -305,7 +307,7 @@ const MapScreen: React.FC = () => {
 
       {/* Spots Count */}
       {!loading && (
-        <View style={styles.spotsCountContainer}>
+        <View style={[styles.spotsCountContainer, { bottom: TAB_BAR_HEIGHT + CARD_HEIGHT + SPACING.lg + SPACING.md }]}>
           <Text style={styles.spotsCount}>
             {spots.length} spot{spots.length !== 1 ? 's' : ''} available
           </Text>
@@ -335,13 +337,13 @@ const MapScreen: React.FC = () => {
       )}
 
       {/* OSM Attribution */}
-      <View style={styles.attribution}>
-        <Text style={styles.attributionText}>&copy; OpenStreetMap contributors</Text>
+      <View style={[styles.attribution, { bottom: TAB_BAR_HEIGHT + CARD_HEIGHT + SPACING.lg + 4 }]}>
+        <Text style={styles.attributionText}>&copy; OpenStreetMap contributors &copy; CARTO</Text>
       </View>
 
       {/* Bottom Spot Cards */}
       {!loading && spots.length > 0 && (
-        <View style={styles.bottomContainer}>
+        <View style={[styles.bottomContainer, { bottom: TAB_BAR_HEIGHT }]}>
           <FlatList
             ref={flatListRef}
             data={spotsWithDistance}
@@ -416,7 +418,6 @@ const styles = StyleSheet.create({
   myLocationButton: {
     position: 'absolute',
     right: SPACING.md,
-    bottom: SCREEN_HEIGHT * 0.28,
     width: 48,
     height: 48,
     backgroundColor: NEUTRAL_COLORS.white,
@@ -428,7 +429,6 @@ const styles = StyleSheet.create({
   spotsCountContainer: {
     position: 'absolute',
     left: SPACING.md,
-    bottom: SCREEN_HEIGHT * 0.28,
     backgroundColor: NEUTRAL_COLORS.white,
     borderRadius: RADIUS.full,
     paddingHorizontal: SPACING.md,
@@ -442,20 +442,18 @@ const styles = StyleSheet.create({
   },
   attribution: {
     position: 'absolute',
-    bottom: SCREEN_HEIGHT * 0.25 + 4,
     alignSelf: 'center',
-    backgroundColor: 'rgba(255,255,255,0.7)',
+    backgroundColor: 'rgba(0,0,0,0.5)',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 4,
   },
   attributionText: {
     fontSize: 10,
-    color: NEUTRAL_COLORS.darkGray,
+    color: NEUTRAL_COLORS.white,
   },
   bottomContainer: {
     position: 'absolute',
-    bottom: 0,
     left: 0,
     right: 0,
     paddingBottom: SPACING.lg,

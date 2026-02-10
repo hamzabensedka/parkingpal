@@ -3,6 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -34,8 +35,6 @@ const ProfileStack = createNativeStackNavigator();
 
 // Dashboard Stack Navigator
 const DashboardStackNavigator: React.FC = () => {
-  const { theme } = useTheme();
-
   return (
     <DashboardStack.Navigator
       screenOptions={{
@@ -60,8 +59,6 @@ const DashboardStackNavigator: React.FC = () => {
 
 // Listings Stack Navigator
 const ListingsStackNavigator: React.FC = () => {
-  const { theme } = useTheme();
-
   return (
     <ListingsStack.Navigator
       screenOptions={{
@@ -121,8 +118,6 @@ const ListingsStackNavigator: React.FC = () => {
 
 // Profile Stack Navigator
 const ProfileStackNavigator: React.FC = () => {
-  const { theme } = useTheme();
-
   return (
     <ProfileStack.Navigator
       screenOptions={{
@@ -153,9 +148,8 @@ const defaultTabBarStyle = {
   backgroundColor: NEUTRAL_COLORS.white,
   borderTopWidth: 1,
   borderTopColor: NEUTRAL_COLORS.lightGray,
-  borderTopStyle: 'solid' as const,
-  paddingBottom: 8,
   paddingTop: 8,
+  paddingBottom: 8,
   height: 60,
 };
 
@@ -170,78 +164,80 @@ const HostNavigator: React.FC = () => {
   const { user } = useAuth();
 
   return (
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
-        headerShown: false,
-        tabBarActiveTintColor: theme.colors.primary,
-        tabBarInactiveTintColor: NEUTRAL_COLORS.gray,
-        tabBarStyle: defaultTabBarStyle,
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: '500' as const,
-        },
-        tabBarIcon: ({ focused, color, size }) => {
-          let iconName: string;
-          // Always outline icons (Airbnb-style)
-          switch (route.name) {
-            case 'Dashboard':
-              iconName = 'view-dashboard-outline';
-              break;
-            case 'Listings':
-              iconName = 'home-city-outline';
-              break;
-            case 'Messages':
-              iconName = 'message-outline';
-              break;
-            case 'Profile':
-              iconName = 'account-outline';
-              break;
-            default:
-              iconName = 'help-circle-outline';
-          }
-          return <Icon name={iconName} size={size} color={color} />;
-        },
-      })}
+    <SafeAreaView
+      edges={['bottom']}
+      style={{ flex: 1, backgroundColor: NEUTRAL_COLORS.white }}
     >
-      <Tab.Screen
-        name="Dashboard"
-        component={DashboardStackNavigator}
-        options={{ title: 'Dashboard' }}
-      />
-      <Tab.Screen
-        name="Listings"
-        component={ListingsStackNavigator}
-        options={({ route }) => ({
-          title: 'Listings',
-          // Hide the tab bar on AddListing* routes for renter users
-          // (hosts/both keep the tab bar visible throughout)
-          tabBarStyle:
-            user?.userType === 'renter' && isOnAddListingRoute(route as RouteProp<HostTabParamList, 'Listings'>)
-              ? hiddenTabBarStyle
-              : defaultTabBarStyle,
-        })}
-      />
-      <Tab.Screen
-        name="Messages"
-        component={MessagesScreen}
-        options={{
-          title: 'Messages',
-          headerShown: true,
-          headerStyle: { backgroundColor: NEUTRAL_COLORS.white },
-          headerTintColor: NEUTRAL_COLORS.black,
-          tabBarBadge: unreadCount > 0 ? unreadCount : undefined,
-          tabBarBadgeStyle: {
-            backgroundColor: NEUTRAL_COLORS.error,
-            fontSize: 10,
+      <Tab.Navigator
+        screenOptions={({ route }) => ({
+          headerShown: false,
+          tabBarActiveTintColor: theme.colors.primary,
+          tabBarInactiveTintColor: NEUTRAL_COLORS.gray,
+          tabBarStyle: defaultTabBarStyle,
+          tabBarLabelStyle: {
+            fontSize: 12,
+            fontWeight: '500' as const,
           },
-        }}
-      />
-      <Tab.Screen
-        name="Profile"
-        component={ProfileStackNavigator}
-        options={{ title: 'Profile' }}
-      />
-    </Tab.Navigator>
+          tabBarIcon: ({ color, size }) => {
+            let iconName: string;
+            switch (route.name) {
+              case 'Dashboard':
+                iconName = 'view-dashboard-outline';
+                break;
+              case 'Listings':
+                iconName = 'home-city-outline';
+                break;
+              case 'Messages':
+                iconName = 'message-outline';
+                break;
+              case 'Profile':
+                iconName = 'account-outline';
+                break;
+              default:
+                iconName = 'help-circle-outline';
+            }
+            return <Icon name={iconName} size={size} color={color} />;
+          },
+        })}
+      >
+        <Tab.Screen
+          name="Dashboard"
+          component={DashboardStackNavigator}
+          options={{ title: 'Dashboard' }}
+        />
+        <Tab.Screen
+          name="Listings"
+          component={ListingsStackNavigator}
+          options={({ route }) => ({
+            title: 'Listings',
+            tabBarStyle:
+              user?.userType === 'renter' && isOnAddListingRoute(route as RouteProp<HostTabParamList, 'Listings'>)
+                ? hiddenTabBarStyle
+                : defaultTabBarStyle,
+          })}
+        />
+        <Tab.Screen
+          name="Messages"
+          component={MessagesScreen}
+          options={{
+            title: 'Messages',
+            headerShown: true,
+            headerStyle: { backgroundColor: NEUTRAL_COLORS.white },
+            headerTintColor: NEUTRAL_COLORS.black,
+            tabBarBadge: unreadCount > 0 ? unreadCount : undefined,
+            tabBarBadgeStyle: {
+              backgroundColor: NEUTRAL_COLORS.error,
+              fontSize: 10,
+            },
+          }}
+        />
+        <Tab.Screen
+          name="Profile"
+          component={ProfileStackNavigator}
+          options={{ title: 'Profile' }}
+        />
+      </Tab.Navigator>
+    </SafeAreaView>
   );
 };
 

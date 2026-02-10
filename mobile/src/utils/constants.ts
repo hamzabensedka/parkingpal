@@ -138,11 +138,11 @@ export const MAP_DEFAULTS = {
   maxZoomLevel: 20,
 } as const;
 
-// MapLibre style JSON – CartoDB Voyager raster tiles
+// MapLibre style JSON – CartoDB Dark Matter raster tiles
 export const MAPLIBRE_STYLE = JSON.stringify({
   version: 8,
   sources: {
-    'carto-voyager': {
+    'carto-dark': {
       type: 'raster',
       tiles: [
         'https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
@@ -153,7 +153,7 @@ export const MAPLIBRE_STYLE = JSON.stringify({
       attribution: '© OpenStreetMap contributors © CARTO',
     },
   },
-  layers: [{ id: 'carto-voyager-layer', type: 'raster', source: 'carto-voyager' }],
+  layers: [{ id: 'carto-dark-layer', type: 'raster', source: 'carto-dark' }],
 });
 
 // Booking Constants

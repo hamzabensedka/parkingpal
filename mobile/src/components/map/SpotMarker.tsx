@@ -10,8 +10,8 @@ interface SpotMarkerProps {
   onPress: (spot: Spot) => void;
 }
 
-const MARKER_SIZE = 20;
-const SELECTED_MARKER_SIZE = 24;
+const MARKER_SIZE = 28;
+const SELECTED_MARKER_SIZE = 34;
 
 const SpotMarker: React.FC<SpotMarkerProps> = memo(({ spot, isSelected, onPress }) => {
   const handlePress = useCallback(() => {
@@ -21,9 +21,10 @@ const SpotMarker: React.FC<SpotMarkerProps> = memo(({ spot, isSelected, onPress 
   const size = isSelected ? SELECTED_MARKER_SIZE : MARKER_SIZE;
 
   return (
-    <MapLibreGL.MarkerView
+    <MapLibreGL.PointAnnotation
       id={`marker-${spot.id}`}
       coordinate={[spot.longitude, spot.latitude]}
+      onSelected={handlePress}
     >
       <TouchableOpacity onPress={handlePress} activeOpacity={0.8}>
         <View
@@ -33,14 +34,15 @@ const SpotMarker: React.FC<SpotMarkerProps> = memo(({ spot, isSelected, onPress 
               width: size,
               height: size,
               borderRadius: size / 2,
-              backgroundColor: isSelected ? '#ff0a54' : NEUTRAL_COLORS.black,
+              backgroundColor: isSelected ? '#ff0a54' : NEUTRAL_COLORS.white,
+              borderColor: isSelected ? '#ff0a54' : NEUTRAL_COLORS.darkGray,
             },
           ]}
         >
-          <Text style={styles.markerText}>P</Text>
+          <Text style={[styles.markerText, { color: isSelected ? NEUTRAL_COLORS.white : NEUTRAL_COLORS.black }]}>P</Text>
         </View>
       </TouchableOpacity>
-    </MapLibreGL.MarkerView>
+    </MapLibreGL.PointAnnotation>
   );
 }, (prevProps, nextProps) => {
   return (
@@ -53,13 +55,16 @@ const styles = StyleSheet.create({
   marker: {
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: NEUTRAL_COLORS.white,
+    borderWidth: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   markerText: {
-    color: NEUTRAL_COLORS.white,
-    fontSize: 10,
-    fontWeight: '500',
+    fontSize: 12,
+    fontWeight: '700',
   },
 });
 

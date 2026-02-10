@@ -2,14 +2,11 @@ import React from 'react';
 import { StatusBar } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import MapLibreGL from '@maplibre/maplibre-react-native';
 import { ThemeProvider } from './src/contexts/ThemeContext';
 import { AuthProvider } from './src/contexts/AuthContext';
 import { BookingProvider } from './src/contexts/BookingContext';
 import { NotificationProvider } from './src/contexts/NotificationContext';
 import AppNavigator from './src/navigation/AppNavigator';
-
-MapLibreGL.setAccessToken(null);
 
 const App: React.FC = () => {
   return (
