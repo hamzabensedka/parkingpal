@@ -8,6 +8,8 @@ import { generalLimiter } from './middleware/rateLimiter';
 import authRoutes, { userRouter } from './modules/auth/auth.routes';
 import spotRoutes from './modules/spots/spot.routes';
 import bookingRoutes from './modules/bookings/booking.routes';
+import { createReviewRoutes } from './modules/reviews/review.routes';
+import { reviewController, authenticate } from './container';
 
 // Create Express application
 const app: Application = express();
@@ -102,6 +104,9 @@ app.use('/api/spots', spotRoutes);
 
 // Booking routes
 app.use('/api/bookings', bookingRoutes);
+
+// Review routes
+app.use('/api/reviews', createReviewRoutes(reviewController, authenticate));
 
 // ==========================================
 // Error Handling

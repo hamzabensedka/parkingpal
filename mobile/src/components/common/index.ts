@@ -7,3 +7,4 @@ export { default as Chip } from './Chip';
 export { default as Loading, Skeleton, CardSkeleton, ListSkeleton } from './Loading';
 export { default as EmptyState } from './EmptyState';
 export { default as ErrorState } from './ErrorState';
+export { ReviewList } from './ReviewList';

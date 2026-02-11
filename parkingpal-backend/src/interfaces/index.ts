@@ -4,3 +4,8 @@ export * from './ITokenUtil';
 export * from './IEmailService';
 export * from './IUserRepository';
 export * from './IAuthService';
+export * from './IReviewRepository';
+export * from './IVehicleRepository';
+export * from './IPaymentMethodRepository';
+export * from './ISpotRepository';
+export * from './IBookingRepository';

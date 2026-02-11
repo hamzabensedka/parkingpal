@@ -20,4 +20,7 @@ export const paymentApi = createPaymentApi(apiClient);
 export const spotApi = createSpotApi(apiClient);
 export const favoriteApi = createFavoriteApi(apiClient);
 
+// Export review API functions directly
+export * as reviewApi from './reviewApi';
+
 export { apiClient, createAuthApi, createUserApi, createVehicleApi, createPaymentApi, createSpotApi, createFavoriteApi };

@@ -71,9 +71,11 @@ model User {
   bookingsAsRenter  Booking[] @relation("RenterBookings")
   bookingsAsHost    Booking[] @relation("HostBookings")
 
+  // Review relations
+  reviewsGiven      Review[]  @relation("ReviewsGiven")
+  reviewsReceived   Review[]  @relation("ReviewsReceived")
+
   // Future Relations (uncomment when building other modules)
-  // reviewsGiven      Review[]  @relation("ReviewsGiven")
-  // reviewsReceived   Review[]  @relation("ReviewsReceived")
   // messagesSent      Message[] @relation("MessagesSent")
   // messagesReceived  Message[] @relation("MessagesReceived")
 
@@ -261,6 +263,7 @@ model Spot {
   documents            SpotDocument[]
   availability         SpotAvailability[]
   bookings             Booking[]
+  reviews              Review[]
 
   @@map("spots")
   @@index([hostId])
@@ -390,10 +393,58 @@ model Booking {
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
 
+  // Relations
+  review             Review?
+
   @@map("bookings")
   @@index([renterId])
   @@index([hostId])
   @@index([spotId])
   @@index([status])
   @@index([startTime])
+}
+
+// ==========================================
+// Review Models
+// ==========================================
+
+model Review {
+  id           String   @id @default(uuid())
+  bookingId    String   @unique
+  booking      Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  
+  // Reviewer (person leaving the review)
+  reviewerId   String
+  reviewer     User     @relation("ReviewsGiven", fields: [reviewerId], references: [id], onDelete: Cascade)
+  
+  // Reviewee (person being reviewed)
+  revieweeId   String
+  reviewee     User     @relation("ReviewsReceived", fields: [revieweeId], references: [id], onDelete: Cascade)
+  
+  // Spot being reviewed (optional - only for renter reviews)
+  spotId       String?
+  spot         Spot?    @relation(fields: [spotId], references: [id], onDelete: Cascade)
+  
+  // Review content
+  rating       Int      // 1-5 stars
+  comment      String?  // Optional written review
+  tags         String[] // Quick tags like "clean", "easy_access", etc.
+  
+  // Category ratings (optional detailed ratings)
+  categoryRatings Json? // { "cleanliness": 5, "accuracy": 4, "access": 5, "communication": 5, "value": 4 }
+  
+  // Host response
+  response     String?
+  respondedAt  DateTime?
+  
+  // Timestamps
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("reviews")
+  @@index([bookingId])
+  @@index([reviewerId])
+  @@index([revieweeId])
+  @@index([spotId])
+  @@index([createdAt])
 }

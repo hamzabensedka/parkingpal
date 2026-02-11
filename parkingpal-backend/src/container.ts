@@ -29,6 +29,7 @@ import { PrismaVehicleRepository } from './repositories/prisma-vehicle.repositor
 import { PrismaPaymentMethodRepository } from './repositories/prisma-payment-method.repository';
 import { PrismaSpotRepository } from './repositories/prisma-spot.repository';
 import { PrismaBookingRepository } from './repositories/prisma-booking.repository';
+import { PrismaReviewRepository } from './repositories/prisma-review.repository';
 
 // Services
 import { AuthService } from './modules/auth/auth.service';
@@ -38,6 +39,7 @@ import { PaymentMethodService } from './modules/payment-methods/payment-method.s
 import { SpotService } from './modules/spots/spot.service';
 import { FavoriteService } from './modules/favorites/favorite.service';
 import { BookingService } from './modules/bookings/booking.service';
+import { ReviewService } from './modules/reviews/review.service';
 
 // Controllers
 import { AuthController } from './modules/auth/auth.controller';
@@ -47,6 +49,7 @@ import { PaymentMethodController } from './modules/payment-methods/payment-metho
 import { SpotController } from './modules/spots/spot.controller';
 import { FavoriteController } from './modules/favorites/favorite.controller';
 import { BookingController } from './modules/bookings/booking.controller';
+import { ReviewController } from './modules/reviews/review.controller';
 
 // Middleware factory
 import { createAuthMiddleware } from './middleware/authenticate';
@@ -94,6 +97,9 @@ const spotRepository = new PrismaSpotRepository(prisma);
 /** Booking database access via Prisma */
 const bookingRepository = new PrismaBookingRepository(prisma);
 
+/** Review database access via Prisma */
+const reviewRepository = new PrismaReviewRepository(prisma);
+
 // ==========================================
 // 3. CREATE SERVICES (Business logic)
 //    Dependencies injected via constructor
@@ -130,6 +136,9 @@ const favoriteService = new FavoriteService(prisma, spotRepository);
 /** Booking business logic */
 const bookingService = new BookingService(bookingRepository, spotRepository, vehicleRepository);
 
+/** Review business logic */
+const reviewService = new ReviewService(reviewRepository, userRepository, spotRepository, bookingRepository);
+
 // ==========================================
 // 4. CREATE CONTROLLERS (HTTP handling only)
 //    Services injected via constructor
@@ -155,6 +164,9 @@ const favoriteController = new FavoriteController(favoriteService);
 
 /** Booking HTTP handler */
 const bookingController = new BookingController(bookingService);
+
+/** Review HTTP handler */
+const reviewController = new ReviewController(reviewService);
 
 // ==========================================
 // 5. CREATE MIDDLEWARE (with injected dependencies)
@@ -191,6 +203,7 @@ export {
   spotController,
   favoriteController,
   bookingController,
+  reviewController,
 
   // Middleware
   authenticate,

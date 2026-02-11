@@ -12,6 +12,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useTheme } from '../../contexts/ThemeContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
 import { Button, Input, Card } from '../../components/common';
+import { reviewApi } from '../../services/api';
 
 const REVIEW_CATEGORIES = [
   { id: 'cleanliness', label: 'Cleanliness', icon: 'broom' },
@@ -21,6 +22,17 @@ const REVIEW_CATEGORIES = [
   { id: 'value', label: 'Value', icon: 'cash' },
 ];
 
+const QUICK_TAGS = [
+  'Easy access',
+  'Clean',
+  'Well lit',
+  'Safe area',
+  'Great value',
+  'Good communication',
+  'As described',
+  'Spacious',
+];
+
 const ReviewScreen: React.FC<any> = ({ navigation, route }) => {
   const { bookingId, spotTitle, hostName, renterName } = route.params;
   const { colors } = useTheme();
@@ -28,6 +40,7 @@ const ReviewScreen: React.FC<any> = ({ navigation, route }) => {
   const [overallRating, setOverallRating] = useState(0);
   const [categoryRatings, setCategoryRatings] = useState<Record<string, number>>({});
   const [reviewText, setReviewText] = useState('');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const reviewTarget = renterName || hostName || 'Parking Experience';
@@ -40,6 +53,15 @@ const ReviewScreen: React.FC<any> = ({ navigation, route }) => {
     setCategoryRatings(prev => ({ ...prev, [categoryId]: rating }));
   }, []);
 
+  const handleTagPress = useCallback((tag: string) => {
+    setSelectedTags(prev => {
+      if (prev.includes(tag)) {
+        return prev.filter(t => t !== tag);
+      }
+      return [...prev, tag];
+    });
+  }, []);
+
   const handleSubmit = useCallback(async () => {
     if (overallRating === 0) {
       Alert.alert('Rating Required', 'Please select an overall rating.');
@@ -49,20 +71,26 @@ const ReviewScreen: React.FC<any> = ({ navigation, route }) => {
     setIsLoading(true);
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await reviewApi.createReview({
+        bookingId,
+        rating: overallRating,
+        comment: reviewText || undefined,
+        tags: selectedTags.length > 0 ? selectedTags : undefined,
+        categoryRatings: Object.keys(categoryRatings).length > 0 ? categoryRatings : undefined,
+      });
 
       Alert.alert(
         'Review Submitted',
         'Thank you for your feedback!',
         [{ text: 'OK', onPress: () => navigation.goBack() }]
       );
-    } catch (error) {
-      Alert.alert('Error', 'Failed to submit review. Please try again.');
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || 'Failed to submit review. Please try again.';
+      Alert.alert('Error', errorMessage);
     } finally {
       setIsLoading(false);
     }
-  }, [overallRating, categoryRatings, reviewText, navigation]);
+  }, [bookingId, overallRating, categoryRatings, reviewText, selectedTags, navigation]);
 
   const renderStars = (
     currentRating: number,
@@ -160,8 +188,8 @@ const ReviewScreen: React.FC<any> = ({ navigation, route }) => {
         <Card style={styles.tagsCard}>
           <Text style={styles.tagsTitle}>Quick Tags</Text>
           <View style={styles.tagsGrid}>
-            {['Easy access', 'Clean', 'Well lit', 'Safe area', 'Great value', 'Good communication', 'As described', 'Spacious'].map((tag) => {
-              const isSelected = reviewText.includes(tag);
+            {QUICK_TAGS.map((tag) => {
+              const isSelected = selectedTags.includes(tag);
               return (
                 <TouchableOpacity
                   key={tag}
@@ -169,11 +197,7 @@ const ReviewScreen: React.FC<any> = ({ navigation, route }) => {
                     styles.tag,
                     isSelected && { backgroundColor: colors.lightest, borderColor: colors.primary },
                   ]}
-                  onPress={() => {
-                    if (!reviewText.includes(tag)) {
-                      setReviewText(prev => prev ? `${prev} ${tag}.` : `${tag}.`);
-                    }
-                  }}
+                  onPress={() => handleTagPress(tag)}
                 >
                   <Text style={[
                     styles.tagText,
