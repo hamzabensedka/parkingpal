@@ -168,7 +168,7 @@ const UserTypeScreen: React.FC<UserTypeScreenProps> = ({ navigation }) => {
         <View style={styles.header}>
           <Text style={styles.title}>How will you use ParkingPal?</Text>
           <Text style={styles.subtitle}>
-            You can change this later or use both features
+            Start as a renter and become a host when you list your first spot
           </Text>
         </View>
 
@@ -177,18 +177,13 @@ const UserTypeScreen: React.FC<UserTypeScreenProps> = ({ navigation }) => {
           {userTypeOptions.map(renderOption)}
         </View>
 
-        {/* Both Option */}
-        <TouchableOpacity
-          style={styles.bothOption}
-          onPress={() => handleSelectType('both')}
-        >
-          <Icon
-            name={selectedType === 'both' ? 'checkbox-marked' : 'checkbox-blank-outline'}
-            size={24}
-            color={selectedType === 'both' ? RENTER_COLORS.primary : NEUTRAL_COLORS.gray}
-          />
-          <Text style={styles.bothOptionText}>I want to do both</Text>
-        </TouchableOpacity>
+        {/* Note about becoming a host */}
+        <View style={styles.noteContainer}>
+          <Icon name="information-outline" size={20} color={NEUTRAL_COLORS.gray} />
+          <Text style={styles.noteText}>
+            You can list your parking space anytime to become a host
+          </Text>
+        </View>
 
         {/* Continue Button */}
         <View style={styles.footer}>
@@ -299,17 +294,21 @@ const styles = StyleSheet.create({
     fontSize: TYPOGRAPHY.fontSize.sm,
     color: NEUTRAL_COLORS.darkGray,
   },
-  bothOption: {
+  noteContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.lg,
+    backgroundColor: NEUTRAL_COLORS.lightGray,
+    borderRadius: RADIUS.md,
+    marginTop: SPACING.sm,
   },
-  bothOptionText: {
+  noteText: {
     marginLeft: SPACING.sm,
-    fontSize: TYPOGRAPHY.fontSize.base,
-    color: NEUTRAL_COLORS.black,
-    fontWeight: '500',
+    fontSize: TYPOGRAPHY.fontSize.sm,
+    color: NEUTRAL_COLORS.darkGray,
+    flex: 1,
   },
   footer: {
     marginTop: 'auto',

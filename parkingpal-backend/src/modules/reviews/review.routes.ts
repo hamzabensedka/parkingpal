@@ -43,7 +43,6 @@ export function createReviewRoutes(
   // Get reviews for a user (reviews they received)
   router.get(
     '/user/:userId',
-    validate(getUserReviewsSchema),
     reviewController.getReviewsForUser
   );
 
@@ -51,14 +50,12 @@ export function createReviewRoutes(
   router.get(
     '/my-reviews',
     authenticate,
-    validate(getReviewsQuerySchema),
     reviewController.getReviewsByUser
   );
 
   // Get reviews for a spot
   router.get(
     '/spot/:spotId',
-    validate(getSpotReviewsSchema),
     reviewController.getReviewsForSpot
   );
 

@@ -72,7 +72,7 @@ export class ReviewService {
       rating,
       comment: comment || null,
       tags: tags || [],
-      categoryRatings: categoryRatings || null,
+      categoryRatings: categoryRatings || undefined,
     });
 
     // Update reviewee's rating and review count
@@ -193,7 +193,7 @@ export class ReviewService {
     const averageRating = await this.reviewRepository.getAverageRatingForSpot(spotId);
     const reviewCount = await this.reviewRepository.countReviewsForSpot(spotId);
 
-    await this.spotRepository.update(spotId, {
+    await this.spotRepository.updateById(spotId, {
       rating: averageRating,
       reviewCount,
     });

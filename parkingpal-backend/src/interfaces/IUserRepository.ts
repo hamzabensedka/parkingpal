@@ -96,4 +96,6 @@ export interface UpdateUserData {
   bio?: string | null;
   idDocument?: string;
   userType?: UserType;
+  rating?: number;
+  reviewCount?: number;
 }

@@ -90,7 +90,7 @@ model User {
 enum UserType {
   RENTER    // User who rents parking spots
   HOST      // User who lists parking spots
-  BOTH      // User can do both
+  SUPERHOST // Elevated host with special privileges
 }
 
 // Vehicle size/type for renter vehicles

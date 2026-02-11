@@ -25,7 +25,7 @@ export const mockUsers: User[] = [
     lastName: 'Dubois',
     phone: '+33 6 23 45 67 89',
     profilePhoto: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200',
-    userType: 'both',
+    userType: 'superhost',
     verified: {
       phone: true,
       id: true,
@@ -95,7 +95,7 @@ export const mockUsers: User[] = [
     lastName: 'Petit',
     phone: '+33 6 67 89 01 23',
     profilePhoto: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200',
-    userType: 'both',
+    userType: 'host',
     verified: {
       phone: true,
       id: true,
@@ -149,8 +149,8 @@ export const getUserById = (id: string): User | undefined => {
 };
 
 // Get users by type
-export const getUsersByType = (type: 'renter' | 'host' | 'both'): User[] => {
-  return mockUsers.filter((user) => user.userType === type || user.userType === 'both');
+export const getUsersByType = (type: 'renter' | 'host' | 'superhost'): User[] => {
+  return mockUsers.filter((user) => user.userType === type);
 };
 
 // Get superhosts

@@ -90,10 +90,10 @@ export class SpotService {
       await this.spotRepository.setAvailability(spot.id, body.availability);
     }
 
-    // Upgrade renter → both after successful first listing
+    // Upgrade renter → host after successful first listing
     const user = await this.userRepository.findById(hostId);
     if (user && user.userType === UserType.RENTER) {
-      await this.userRepository.update(hostId, { userType: UserType.BOTH });
+      await this.userRepository.update(hostId, { userType: UserType.HOST });
     }
 
     // Re-fetch to get all relations
@@ -177,6 +177,16 @@ export class SpotService {
   async delete(hostId: string, spotId: string) {
     try {
       await this.spotRepository.delete(spotId, hostId);
+      
+      // Check if host has any remaining listings
+      const remainingCount = await this.spotRepository.countByHostId(hostId);
+      if (remainingCount === 0) {
+        // Revert host → renter when all listings are deleted
+        const user = await this.userRepository.findById(hostId);
+        if (user && user.userType === UserType.HOST && !user.isSuperhost) {
+          await this.userRepository.update(hostId, { userType: UserType.RENTER });
+        }
+      }
     } catch (e) {
       if (e instanceof Error && e.message === 'SPOT_NOT_FOUND') {
         throw ApiError.notFound('Spot not found');

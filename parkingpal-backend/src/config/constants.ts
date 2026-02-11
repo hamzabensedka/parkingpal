@@ -20,7 +20,7 @@ export const AUTH = {
 } as const;
 
 // User Types
-export const USER_TYPES = ['renter', 'host', 'both'] as const;
+export const USER_TYPES = ['renter', 'host', 'superhost'] as const;
 export type UserTypeValue = (typeof USER_TYPES)[number];
 
 // Rate Limiting

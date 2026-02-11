@@ -80,7 +80,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
 
         // Also load userType for the theme.userType field
         const savedType = await AsyncStorage.getItem(STORAGE_KEYS.userType);
-        if (savedType && (savedType === 'renter' || savedType === 'host' || savedType === 'both')) {
+        if (savedType && (savedType === 'renter' || savedType === 'host' || savedType === 'superhost')) {
           setUserTypeState(savedType as UserType);
         }
       } catch (error) {

@@ -70,8 +70,8 @@ const OnboardingCompleteScreen: React.FC<OnboardingCompleteScreenProps> = ({ nav
     // The user is now authenticated, so AppNavigator will show the main app
   };
 
-  const isHost = user?.userType === 'host' || user?.userType === 'both';
-  const isRenter = user?.userType === 'renter' || user?.userType === 'both';
+  const isHost = user?.userType === 'host' || user?.userType === 'superhost';
+  const isRenter = user?.userType === 'renter';
 
   return (
     <SafeAreaView style={styles.container}>
@@ -152,9 +152,9 @@ const OnboardingCompleteScreen: React.FC<OnboardingCompleteScreenProps> = ({ nav
             icon={isRenter ? 'magnify' : 'plus'}
           />
 
-          {user?.userType === 'both' && (
+          {(user?.userType === 'host' || user?.userType === 'superhost') && (
             <Text style={styles.switchNote}>
-              You can switch between Renter and Host modes from your profile
+              You can switch between Renter and Host views from your profile
             </Text>
           )}
         </Animated.View>

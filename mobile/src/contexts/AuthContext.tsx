@@ -93,10 +93,10 @@ interface AuthProviderProps {
 
 /**
  * Clamp the active UI mode based on the user's actual capability.
- * Only users with capability 'host' or 'both' can be in host mode.
+ * Only users with capability 'host' or 'superhost' can be in host mode.
  */
 function clampMode(mode: ActiveMode, userType: UserType | undefined): ActiveMode {
-  if (mode === 'host' && userType !== 'host' && userType !== 'both') {
+  if (mode === 'host' && userType !== 'host' && userType !== 'superhost') {
     return 'renter';
   }
   return mode;

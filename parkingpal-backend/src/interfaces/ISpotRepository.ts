@@ -73,6 +73,8 @@ export interface UpdateSpotData {
   advanceNoticeMinutes?: number;
   bookingWindowDays?: number;
   status?: SpotStatus;
+  rating?: number;
+  reviewCount?: number;
 }
 
 export interface PhotoData {
@@ -112,6 +114,7 @@ export interface ISpotRepository {
   findByHostId(hostId: string): Promise<SpotWithRelations[]>;
   countByHostId(hostId: string): Promise<number>;
   update(id: string, hostId: string, data: UpdateSpotData): Promise<SpotWithRelations>;
+  updateById(id: string, data: UpdateSpotData): Promise<SpotWithRelations>;
   delete(id: string, hostId: string): Promise<void>;
   updateStatus(id: string, status: SpotStatus): Promise<SpotWithRelations>;
 

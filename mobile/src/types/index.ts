@@ -1,6 +1,6 @@
 // ParkingPal Type Definitions
 
-export type UserType = 'renter' | 'host' | 'both';
+export type UserType = 'renter' | 'host' | 'superhost';
 
 export interface User {
   id: string;

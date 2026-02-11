@@ -47,7 +47,7 @@ const phoneSchema = z
 
 const userTypeSchema = z
   .enum(USER_TYPES, {
-    errorMap: () => ({ message: 'User type must be renter, host, or both' }),
+    errorMap: () => ({ message: 'User type must be renter, host, or superhost' }),
   })
   .default('renter');
 

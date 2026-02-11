@@ -87,13 +87,14 @@ const RenterProfileScreen: React.FC = () => {
   }, [navigation]);
 
   const handleSwitchToHost = useCallback(async () => {
-    if (user?.userType === 'both') {
-      // Fast switch – just flip the active UI mode
+    if (user?.userType === 'host' || user?.userType === 'superhost') {
+      // Host already - just switch to host mode
       await switchUserType('host');
       navigation.dispatch(
         CommonActions.reset({ index: 0, routes: [{ name: 'HostTabs' }] })
       );
     } else {
+      // Only show popup for pure renters
       Alert.alert(
         'Become a Host',
         'Would you like to list your parking space and start earning?',
@@ -228,26 +229,45 @@ const RenterProfileScreen: React.FC = () => {
           </Card>
         </View>
 
-        {/* Host Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Become a Host</Text>
-          <Card style={styles.hostCard} onPress={handleSwitchToHost}>
-            <View style={[styles.hostIcon, { backgroundColor: colors.lightest }]}>
-              <Icon name="home-plus" size={32} color={colors.primary} />
-            </View>
-            <View style={styles.hostContent}>
-              <Text style={styles.hostTitle}>
-                {user?.userType === 'both' ? 'Switch to Host Mode' : 'List Your Space'}
-              </Text>
-              <Text style={styles.hostDescription}>
-                {user?.userType === 'both'
-                  ? 'Manage your listings and bookings'
-                  : 'Earn money by renting out your parking space'}
-              </Text>
-            </View>
-            <Icon name="chevron-right" size={24} color={colors.primary} />
-          </Card>
-        </View>
+        {/* Host Section - Only show for renters */}
+        {user?.userType === 'renter' && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Become a Host</Text>
+            <Card style={styles.hostCard} onPress={handleSwitchToHost}>
+              <View style={[styles.hostIcon, { backgroundColor: colors.lightest }]}>
+                <Icon name="home-plus" size={32} color={colors.primary} />
+              </View>
+              <View style={styles.hostContent}>
+                <Text style={styles.hostTitle}>List Your Space</Text>
+                <Text style={styles.hostDescription}>
+                  Earn money by renting out your parking space
+                </Text>
+              </View>
+              <Icon name="chevron-right" size={24} color={colors.primary} />
+            </Card>
+          </View>
+        )}
+
+        {/* Go to Dashboard - Show for hosts and superhosts */}
+        {(user?.userType === 'host' || user?.userType === 'superhost') && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Host Dashboard</Text>
+            <Card style={styles.hostCard} onPress={handleSwitchToHost}>
+              <View style={[styles.hostIcon, { backgroundColor: colors.lightest }]}>
+                <Icon name="view-dashboard" size={32} color={colors.primary} />
+              </View>
+              <View style={styles.hostContent}>
+                <Text style={styles.hostTitle}>
+                  {user?.userType === 'superhost' ? 'Superhost Dashboard' : 'Go to Dashboard'}
+                </Text>
+                <Text style={styles.hostDescription}>
+                  Manage your listings and bookings
+                </Text>
+              </View>
+              <Icon name="chevron-right" size={24} color={colors.primary} />
+            </Card>
+          </View>
+        )}
 
         {/* Support Section */}
         <View style={styles.section}>

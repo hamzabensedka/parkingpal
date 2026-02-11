@@ -78,7 +78,7 @@ const AddListingPreviewScreen = ({ navigation, route }: Props) => {
 
       await spotApi.create(body, photos);
 
-      // Refresh profile so the app sees userType become 'both' (if upgraded)
+      // Refresh profile so the app sees userType become 'host' (if upgraded from renter)
       await refreshProfile();
 
       // Switch to host mode and reset navigation

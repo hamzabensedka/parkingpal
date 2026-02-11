@@ -54,6 +54,8 @@ export class PrismaUserRepository implements IUserRepository {
         ...(data.bio !== undefined && { bio: data.bio }),
         ...(data.idDocument !== undefined && { idDocument: data.idDocument }),
         ...(data.userType !== undefined && { userType: data.userType }),
+        ...(data.rating !== undefined && { rating: data.rating }),
+        ...(data.reviewCount !== undefined && { reviewCount: data.reviewCount }),
       },
     });
   }

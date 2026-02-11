@@ -39,7 +39,7 @@ export interface PaginatedResponse<T> {
 /**
  * User types
  */
-export type UserType = 'renter' | 'host' | 'both';
+export type UserType = 'renter' | 'host' | 'superhost';
 
 /**
  * Verification status

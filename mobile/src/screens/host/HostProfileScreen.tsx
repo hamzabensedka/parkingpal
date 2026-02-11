@@ -60,13 +60,12 @@ const HostProfileScreen: React.FC = () => {
   }, [navigation]);
 
   const handleSwitchToRenter = useCallback(async () => {
-    if (user?.userType === 'both') {
-      await switchUserType('renter');
-      navigation.dispatch(
-        CommonActions.reset({ index: 0, routes: [{ name: 'RenterTabs' }] })
-      );
-    }
-  }, [user, switchUserType, navigation]);
+    // Hosts can always switch to renter view (they may have been renters before)
+    await switchUserType('renter');
+    navigation.dispatch(
+      CommonActions.reset({ index: 0, routes: [{ name: 'RenterTabs' }] })
+    );
+  }, [switchUserType, navigation]);
 
   const handleLogout = useCallback(() => {
     Alert.alert(
@@ -158,6 +157,23 @@ const HostProfileScreen: React.FC = () => {
           </Card>
         </View>
 
+        {/* Switch Mode - All hosts can switch to renter view */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Switch Mode</Text>
+          <Card style={styles.switchCard} onPress={handleSwitchToRenter}>
+            <View style={styles.switchIcon}>
+              <Icon name="swap-horizontal" size={24} color={colors.primary} />
+            </View>
+            <View style={styles.switchContent}>
+              <Text style={styles.switchTitle}>Switch to Renter</Text>
+              <Text style={styles.switchDesc}>
+                Find and book parking spots
+              </Text>
+            </View>
+            <Icon name="chevron-right" size={24} color={colors.primary} />
+          </Card>
+        </View>
+
         {/* Account Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Account</Text>
@@ -179,24 +195,6 @@ const HostProfileScreen: React.FC = () => {
             />
           </Card>
         </View>
-
-        {/* Switch Mode */}
-        {user?.userType === 'both' && (
-          <View style={styles.section}>
-            <Card style={styles.switchCard} onPress={handleSwitchToRenter}>
-              <View style={styles.switchIcon}>
-                <Icon name="swap-horizontal" size={24} color={colors.primary} />
-              </View>
-              <View style={styles.switchContent}>
-                <Text style={styles.switchTitle}>Switch to Renter Mode</Text>
-                <Text style={styles.switchDesc}>
-                  Find and book parking spots
-                </Text>
-              </View>
-              <Icon name="chevron-right" size={24} color={colors.primary} />
-            </Card>
-          </View>
-        )}
 
         {/* Support */}
         <View style={styles.section}>

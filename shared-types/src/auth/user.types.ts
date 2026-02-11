@@ -6,7 +6,7 @@
 /**
  * User types in the system
  */
-export type UserType = 'renter' | 'host' | 'both';
+export type UserType = 'renter' | 'host' | 'superhost';
 
 /**
  * Verification status object

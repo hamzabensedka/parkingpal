@@ -127,6 +127,8 @@ export class PrismaSpotRepository implements ISpotRepository {
         ...(data.advanceNoticeMinutes !== undefined && { advanceNoticeMinutes: data.advanceNoticeMinutes }),
         ...(data.bookingWindowDays !== undefined && { bookingWindowDays: data.bookingWindowDays }),
         ...(data.status !== undefined && { status: data.status }),
+        ...(data.rating !== undefined && { rating: data.rating }),
+        ...(data.reviewCount !== undefined && { reviewCount: data.reviewCount }),
       },
       include: SPOT_INCLUDE,
     });
@@ -150,6 +152,45 @@ export class PrismaSpotRepository implements ISpotRepository {
     return this.prisma.spot.update({
       where: { id },
       data: { status },
+      include: SPOT_INCLUDE,
+    });
+  }
+
+  async updateById(id: string, data: UpdateSpotData): Promise<SpotWithRelations> {
+    return this.prisma.spot.update({
+      where: { id },
+      data: {
+        ...(data.title !== undefined && { title: data.title }),
+        ...(data.description !== undefined && { description: data.description }),
+        ...(data.address !== undefined && { address: data.address }),
+        ...(data.city !== undefined && { city: data.city }),
+        ...(data.postalCode !== undefined && { postalCode: data.postalCode }),
+        ...(data.latitude !== undefined && { latitude: data.latitude }),
+        ...(data.longitude !== undefined && { longitude: data.longitude }),
+        ...(data.spotType !== undefined && { spotType: data.spotType }),
+        ...(data.locationType !== undefined && { locationType: data.locationType }),
+        ...(data.capacity !== undefined && { capacity: data.capacity }),
+        ...(data.vehicleSizes !== undefined && { vehicleSizes: data.vehicleSizes }),
+        ...(data.amenities !== undefined && { amenities: data.amenities }),
+        ...(data.accessType !== undefined && { accessType: data.accessType }),
+        ...(data.accessInstructions !== undefined && { accessInstructions: data.accessInstructions }),
+        ...(data.accessCode !== undefined && { accessCode: data.accessCode }),
+        ...(data.spotLocation !== undefined && { spotLocation: data.spotLocation }),
+        ...(data.hourlyRate !== undefined && { hourlyRate: data.hourlyRate }),
+        ...(data.dailyRate !== undefined && { dailyRate: data.dailyRate }),
+        ...(data.weeklyRate !== undefined && { weeklyRate: data.weeklyRate }),
+        ...(data.monthlyRate !== undefined && { monthlyRate: data.monthlyRate }),
+        ...(data.houseRules !== undefined && { houseRules: data.houseRules }),
+        ...(data.cancellationPolicy !== undefined && { cancellationPolicy: data.cancellationPolicy }),
+        ...(data.instantBook !== undefined && { instantBook: data.instantBook }),
+        ...(data.minBookingMinutes !== undefined && { minBookingMinutes: data.minBookingMinutes }),
+        ...(data.maxBookingMinutes !== undefined && { maxBookingMinutes: data.maxBookingMinutes }),
+        ...(data.advanceNoticeMinutes !== undefined && { advanceNoticeMinutes: data.advanceNoticeMinutes }),
+        ...(data.bookingWindowDays !== undefined && { bookingWindowDays: data.bookingWindowDays }),
+        ...(data.status !== undefined && { status: data.status }),
+        ...(data.rating !== undefined && { rating: data.rating }),
+        ...(data.reviewCount !== undefined && { reviewCount: data.reviewCount }),
+      },
       include: SPOT_INCLUDE,
     });
   }

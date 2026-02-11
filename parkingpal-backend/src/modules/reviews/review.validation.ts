@@ -24,6 +24,7 @@ export const getReviewsQuerySchema = z.object({
     page: z.string().regex(/^\d+$/).transform(Number).optional().default('1'),
     limit: z.string().regex(/^\d+$/).transform(Number).optional().default('10'),
   }),
+  params: z.object({}).optional(),
 });
 
 export const getReviewByIdSchema = z.object({
