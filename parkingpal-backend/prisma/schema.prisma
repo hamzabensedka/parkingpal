@@ -64,6 +64,10 @@ model User {
   stripeConnectAccountId   String?   // For hosts - Stripe Connect account ID
   stripeConnectOnboarded   Boolean   @default(false)
 
+  // Push Notifications
+  expoPushToken            String?   // Expo push token for mobile notifications
+  pushNotificationsEnabled Boolean   @default(true)
+
   // Timestamps
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
@@ -84,9 +88,13 @@ model User {
   reviewsGiven      Review[]  @relation("ReviewsGiven")
   reviewsReceived   Review[]  @relation("ReviewsReceived")
 
-  // Future Relations (uncomment when building other modules)
-  // messagesSent      Message[] @relation("MessagesSent")
-  // messagesReceived  Message[] @relation("MessagesReceived")
+  // Messaging Relations
+  messagesSent       Message[]      @relation("MessagesSent")
+  messagesReceived   Message[]      @relation("MessagesReceived")
+  conversations      Conversation[] @relation("ConversationParticipants")
+
+  // Notification Relations
+  notifications      Notification[]
 
   @@map("users")
   @@index([email])
@@ -423,6 +431,7 @@ model Booking {
 
   // Relations
   review             Review?
+  conversation       Conversation?
 
   @@map("bookings")
   @@index([renterId])
@@ -474,5 +483,91 @@ model Review {
   @@index([reviewerId])
   @@index([revieweeId])
   @@index([spotId])
+  @@index([createdAt])
+}
+
+// ==========================================
+// Messaging Models
+// ==========================================
+
+model Conversation {
+  id              String    @id @default(uuid())
+  bookingId       String    @unique
+  booking         Booking   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  participants    User[]    @relation("ConversationParticipants")
+  messages        Message[]
+
+  // Timestamps
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("conversations")
+  @@index([bookingId])
+}
+
+model Message {
+  id              String       @id @default(uuid())
+  conversationId  String
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  senderId        String
+  sender          User         @relation("MessagesSent", fields: [senderId], references: [id], onDelete: Cascade)
+
+  receiverId      String
+  receiver        User         @relation("MessagesReceived", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  text            String
+  read            Boolean      @default(false)
+  readAt          DateTime?
+
+  // Timestamps
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@map("messages")
+  @@index([conversationId])
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([read])
+  @@index([createdAt])
+}
+
+// ==========================================
+// Notification Models
+// ==========================================
+
+enum NotificationType {
+  BOOKING        // Booking status changes (confirmed, cancelled, etc.)
+  MESSAGE        // New message received
+  PAYMENT        // Payment-related (received, refunded, etc.)
+  REVIEW         // New review received
+  SYSTEM         // System announcements, promotions
+}
+
+model Notification {
+  id          String           @id @default(uuid())
+  userId      String
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type        NotificationType
+  title       String
+  body        String
+  data        Json?            // Additional data (bookingId, conversationId, etc.)
+
+  read        Boolean          @default(false)
+  readAt      DateTime?
+
+  // Push notification tracking
+  pushSent    Boolean          @default(false)
+  pushSentAt  DateTime?
+  pushError   String?
+
+  // Timestamps
+  createdAt   DateTime         @default(now())
+
+  @@map("notifications")
+  @@index([userId])
+  @@index([userId, read])
   @@index([createdAt])
 }

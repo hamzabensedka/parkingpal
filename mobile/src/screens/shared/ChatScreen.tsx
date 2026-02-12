@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,10 +8,11 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useRoute, RouteProp } from '@react-navigation/native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '../../utils/constants';
@@ -19,10 +20,12 @@ import { formatTime, formatSmartDate } from '../../utils/formatting';
 import { Message } from '../../types';
 import { Avatar, EmptyState } from '../../components/common';
 import { parseISO, isSameDay } from 'date-fns';
+import { messageApi } from '../../services/api';
 
 type ChatRouteParams = {
   Chat: {
     conversationId: string;
+    bookingId: string;
     recipientName: string;
   };
 };
@@ -32,77 +35,44 @@ interface ChatMessage extends Message {
   showDate?: boolean;
 }
 
-// Mock messages for display
-const generateMockMessages = (conversationId: string): Message[] => [
-  {
-    id: 'msg_1',
-    bookingId: 'booking_1',
-    senderId: 'other_user',
-    receiverId: 'current_user',
-    text: 'Bonjour ! Welcome to ParkingPal. Your booking has been confirmed.',
-    read: true,
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-  },
-  {
-    id: 'msg_2',
-    bookingId: 'booking_1',
-    senderId: 'current_user',
-    receiverId: 'other_user',
-    text: 'Thank you! What is the gate code?',
-    read: true,
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 23).toISOString(),
-  },
-  {
-    id: 'msg_3',
-    bookingId: 'booking_1',
-    senderId: 'other_user',
-    receiverId: 'current_user',
-    text: 'The gate code is 4521. Please make sure to close the gate behind you when entering and leaving.',
-    read: true,
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 22).toISOString(),
-  },
-  {
-    id: 'msg_4',
-    bookingId: 'booking_1',
-    senderId: 'current_user',
-    receiverId: 'other_user',
-    text: 'Got it, thanks!',
-    read: true,
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 22).toISOString(),
-  },
-  {
-    id: 'msg_5',
-    bookingId: 'booking_1',
-    senderId: 'other_user',
-    receiverId: 'current_user',
-    text: 'The parking spot is the second one on the left as you enter. It has a blue marker on the ground.',
-    read: true,
-    createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-  },
-  {
-    id: 'msg_6',
-    bookingId: 'booking_1',
-    senderId: 'other_user',
-    receiverId: 'current_user',
-    text: 'Let me know if you need anything else!',
-    read: false,
-    createdAt: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
-  },
-];
-
 const ChatScreen: React.FC = () => {
-  const navigation = useNavigation<any>();
   const route = useRoute<RouteProp<ChatRouteParams, 'Chat'>>();
   const { colors, NEUTRAL_COLORS } = useTheme();
   const { user } = useAuth();
 
-  const { conversationId, recipientName } = route.params;
+  const { conversationId, bookingId, recipientName } = route.params;
 
-  const [messages, setMessages] = useState<Message[]>(
-    generateMockMessages(conversationId)
-  );
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const flatListRef = useRef<FlatList>(null);
+
+  // Load messages on mount
+  const fetchMessages = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const conversation = await messageApi.getConversation(conversationId);
+      setMessages(conversation.messages);
+
+      // Mark conversation as read
+      if (conversation.unreadCount > 0) {
+        await messageApi.markConversationRead(conversationId);
+      }
+    } catch (err) {
+      console.error('Failed to fetch messages:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load messages');
+    } finally {
+      setLoading(false);
+    }
+  }, [conversationId]);
+
+  useEffect(() => {
+    fetchMessages();
+  }, [fetchMessages]);
 
   // Process messages for display: add date separators and avatar grouping
   const processedMessages = useCallback((): ChatMessage[] => {
@@ -131,22 +101,42 @@ const ChatScreen: React.FC = () => {
     });
   }, [messages, user?.id]);
 
-  const handleSend = useCallback(() => {
-    if (!inputText.trim()) return;
+  const handleSend = useCallback(async () => {
+    if (!inputText.trim() || sending) return;
 
-    const newMessage: Message = {
-      id: `msg_${Date.now()}`,
-      bookingId: 'booking_1',
-      senderId: user?.id || 'current_user',
-      receiverId: 'other_user',
-      text: inputText.trim(),
+    const messageText = inputText.trim();
+    setInputText('');
+    setSending(true);
+
+    // Optimistically add the message to UI
+    const optimisticMessage: Message = {
+      id: `temp_${Date.now()}`,
+      bookingId,
+      senderId: user?.id || '',
+      receiverId: '',
+      text: messageText,
       read: false,
       createdAt: new Date().toISOString(),
     };
+    setMessages((prev) => [...prev, optimisticMessage]);
 
-    setMessages((prev) => [...prev, newMessage]);
-    setInputText('');
-  }, [inputText, user?.id]);
+    try {
+      const sentMessage = await messageApi.sendMessage(conversationId, messageText, bookingId);
+      // Replace optimistic message with real one
+      setMessages((prev) =>
+        prev.map((m) => (m.id === optimisticMessage.id ? sentMessage : m))
+      );
+    } catch (err) {
+      console.error('Failed to send message:', err);
+      // Remove optimistic message on failure
+      setMessages((prev) => prev.filter((m) => m.id !== optimisticMessage.id));
+      // Restore input text
+      setInputText(messageText);
+      // Could show an error toast here
+    } finally {
+      setSending(false);
+    }
+  }, [inputText, sending, conversationId, bookingId, user?.id]);
 
   const renderDateSeparator = (date: string) => (
     <View style={styles.dateSeparator}>
@@ -159,7 +149,7 @@ const ChatScreen: React.FC = () => {
   );
 
   const renderMessage = ({ item }: { item: ChatMessage }) => {
-    const isSent = item.senderId === user?.id || item.senderId === 'current_user';
+    const isSent = item.senderId === user?.id;
 
     const recipientParts = recipientName.split(' ');
     const firstName = recipientParts[0] || '';
@@ -239,15 +229,40 @@ const ChatScreen: React.FC = () => {
     );
   };
 
-  const renderEmptyState = () => (
-    <View style={styles.emptyContainer}>
-      <EmptyState
-        icon="message-text-outline"
-        title="No messages yet"
-        description="Start a conversation by sending a message."
-      />
-    </View>
-  );
+  const renderEmptyState = () => {
+    if (loading) {
+      return (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={styles.loadingText}>Loading messages...</Text>
+        </View>
+      );
+    }
+
+    if (error) {
+      return (
+        <View style={styles.emptyContainer}>
+          <EmptyState
+            icon="alert-circle-outline"
+            title="Unable to load messages"
+            description={error}
+            actionLabel="Try Again"
+            onAction={fetchMessages}
+          />
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.emptyContainer}>
+        <EmptyState
+          icon="message-text-outline"
+          title="No messages yet"
+          description="Start a conversation by sending a message."
+        />
+      </View>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
@@ -299,6 +314,7 @@ const ChatScreen: React.FC = () => {
               placeholderTextColor={NEUTRAL_COLORS.gray}
               multiline
               maxLength={1000}
+              editable={!sending}
             />
           </View>
 
@@ -306,23 +322,27 @@ const ChatScreen: React.FC = () => {
             style={[
               styles.sendButton,
               {
-                backgroundColor: inputText.trim()
+                backgroundColor: inputText.trim() && !sending
                   ? colors.primary
                   : NEUTRAL_COLORS.lightGray,
               },
             ]}
             onPress={handleSend}
-            disabled={!inputText.trim()}
+            disabled={!inputText.trim() || sending}
           >
-            <Icon
-              name="send"
-              size={20}
-              color={
-                inputText.trim()
-                  ? NEUTRAL_COLORS.white
-                  : NEUTRAL_COLORS.gray
-              }
-            />
+            {sending ? (
+              <ActivityIndicator size="small" color={NEUTRAL_COLORS.white} />
+            ) : (
+              <Icon
+                name="send"
+                size={20}
+                color={
+                  inputText.trim()
+                    ? NEUTRAL_COLORS.white
+                    : NEUTRAL_COLORS.gray
+                }
+              />
+            )}
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -341,6 +361,17 @@ const styles = StyleSheet.create({
   listContent: {
     padding: SPACING.md,
     flexGrow: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    transform: [{ scaleY: -1 }],
+  },
+  loadingText: {
+    marginTop: SPACING.md,
+    fontSize: TYPOGRAPHY.fontSize.base,
+    color: NEUTRAL_COLORS.gray,
   },
   emptyContainer: {
     flex: 1,

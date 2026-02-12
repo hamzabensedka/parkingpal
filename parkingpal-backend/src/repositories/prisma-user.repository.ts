@@ -180,4 +180,14 @@ export class PrismaUserRepository implements IUserRepository {
       },
     });
   }
+
+  async updatePushToken(id: string, token: string | null, enabled: boolean): Promise<void> {
+    await this.prisma.user.update({
+      where: { id },
+      data: {
+        expoPushToken: token,
+        pushNotificationsEnabled: enabled,
+      },
+    });
+  }
 }

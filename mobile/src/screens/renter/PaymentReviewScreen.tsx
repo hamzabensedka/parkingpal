@@ -10,9 +10,11 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useStripe, CardField, CardFieldInput } from '@stripe/stripe-react-native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useBooking } from '../../contexts/BookingContext';
+import { paymentApi } from '../../services/api';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
 import { RenterStackParamList, PaymentMethod } from '../../types';
 import { Button, Card, Input } from '../../components/common';
@@ -37,6 +39,7 @@ const PaymentReviewScreen = ({ navigation, route }: Props) => {
   const { colors } = useTheme();
   const { paymentMethods: authPaymentMethods, vehicles } = useAuth();
   const { createBooking } = useBooking();
+  const { confirmPayment: stripeConfirmPayment } = useStripe();
 
   const vehicle = vehicles?.find((v) => v.id === vehicleId);
 
@@ -46,19 +49,23 @@ const PaymentReviewScreen = ({ navigation, route }: Props) => {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod | null>(
     defaultCard || null
   );
+  const [useNewCard, setUseNewCard] = useState(paymentMethods.length === 0);
+  const [cardDetails, setCardDetails] = useState<CardFieldInput.Details | null>(null);
   const [promoCode, setPromoCode] = useState('');
   const [promoApplied, setPromoApplied] = useState(false);
   const [discount, setDiscount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [paymentStep, setPaymentStep] = useState<'idle' | 'creating_booking' | 'creating_intent' | 'processing_payment' | 'confirming'>('idle');
 
   const serviceFee = total * 0.1; // 10% service fee
   const finalTotal = total + serviceFee - discount;
 
-  // Keep selected payment in sync with auth (e.g. default card loads after login)
+  // Keep selected payment in sync with auth
   useEffect(() => {
     const defaultCard = paymentMethods.find((m) => m.isDefault) || paymentMethods[0];
     if (defaultCard && !selectedPaymentMethod) {
       setSelectedPaymentMethod(defaultCard);
+      setUseNewCard(false);
     }
   }, [paymentMethods]);
 
@@ -93,11 +100,28 @@ const PaymentReviewScreen = ({ navigation, route }: Props) => {
     navigation.navigate('AddPaymentCard' as any);
   };
 
+  const handleSelectSavedCard = (method: PaymentMethod) => {
+    setSelectedPaymentMethod(method);
+    setUseNewCard(false);
+  };
+
+  const handleUseNewCard = () => {
+    setSelectedPaymentMethod(null);
+    setUseNewCard(true);
+  };
+
   const handleConfirmBooking = async () => {
-    if (!selectedPaymentMethod) {
-      Alert.alert('Payment Required', 'Please select a payment method.');
+    // Validate card selection
+    if (!useNewCard && !selectedPaymentMethod) {
+      Alert.alert('Payment Required', 'Please select a payment method or enter new card details.');
       return;
     }
+
+    if (useNewCard && (!cardDetails || !cardDetails.complete)) {
+      Alert.alert('Card Required', 'Please enter valid card details.');
+      return;
+    }
+
     if (!vehicle) {
       Alert.alert('Vehicle required', 'Please go back and select a vehicle.');
       return;
@@ -106,6 +130,8 @@ const PaymentReviewScreen = ({ navigation, route }: Props) => {
     setIsLoading(true);
 
     try {
+      // Step 1: Create booking
+      setPaymentStep('creating_booking');
       const booking = await createBooking({
         spotId,
         startTime,
@@ -115,6 +141,41 @@ const PaymentReviewScreen = ({ navigation, route }: Props) => {
         ...(promoApplied && promoCode ? { specialInstructions: `Promo: ${promoCode}` } : {}),
       });
 
+      // Step 2: Create payment intent
+      setPaymentStep('creating_intent');
+      const { clientSecret } = await paymentApi.createPaymentIntent(booking.id);
+
+      // Step 3: Confirm payment with Stripe
+      setPaymentStep('processing_payment');
+      const { error: stripeError, paymentIntent } = await stripeConfirmPayment(clientSecret, {
+        paymentMethodType: 'Card',
+      });
+
+      if (stripeError) {
+        // Payment failed - show error but booking is created
+        Alert.alert(
+          'Payment Failed',
+          stripeError.message || 'Your payment could not be processed. Please try again.',
+          [
+            {
+              text: 'Retry',
+              onPress: () => {
+                setIsLoading(false);
+                setPaymentStep('idle');
+              },
+            },
+          ]
+        );
+        return;
+      }
+
+      // Step 4: Confirm payment with backend
+      if (paymentIntent) {
+        setPaymentStep('confirming');
+        await paymentApi.confirmPayment(booking.id);
+      }
+
+      // Success! Navigate to confirmation
       navigation.navigate('BookingConfirmation', {
         bookingId: booking.id,
         spotTitle,
@@ -124,9 +185,26 @@ const PaymentReviewScreen = ({ navigation, route }: Props) => {
         vehiclePlate,
       });
     } catch (error) {
-      Alert.alert('Booking Failed', 'Unable to complete your booking. Please try again.');
+      const message = error instanceof Error ? error.message : 'Unable to complete your booking. Please try again.';
+      Alert.alert('Booking Failed', message);
     } finally {
       setIsLoading(false);
+      setPaymentStep('idle');
+    }
+  };
+
+  const getLoadingText = () => {
+    switch (paymentStep) {
+      case 'creating_booking':
+        return 'Creating booking...';
+      case 'creating_intent':
+        return 'Setting up payment...';
+      case 'processing_payment':
+        return 'Processing payment...';
+      case 'confirming':
+        return 'Confirming...';
+      default:
+        return 'Processing...';
     }
   };
 
@@ -181,25 +259,18 @@ const PaymentReviewScreen = ({ navigation, route }: Props) => {
         <Card style={styles.paymentCard}>
           <View style={styles.sectionHeader}>
             <Text style={styles.cardTitle}>Payment Method</Text>
-            <TouchableOpacity onPress={handleAddPaymentMethod}>
-              <Text style={[styles.addLink, { color: colors.primary }]}>+ Add New</Text>
-            </TouchableOpacity>
+            {paymentMethods.length > 0 && (
+              <TouchableOpacity onPress={handleAddPaymentMethod}>
+                <Text style={[styles.addLink, { color: colors.primary }]}>+ Add New</Text>
+              </TouchableOpacity>
+            )}
           </View>
 
-          {paymentMethods.length === 0 ? (
-            <TouchableOpacity
-              style={styles.addPaymentButton}
-              onPress={handleAddPaymentMethod}
-            >
-              <Icon name="credit-card-plus" size={24} color={colors.primary} />
-              <Text style={[styles.addPaymentText, { color: colors.primary }]}>
-                Add Payment Method
-              </Text>
-            </TouchableOpacity>
-          ) : (
+          {/* Saved Payment Methods */}
+          {paymentMethods.length > 0 && (
             <View style={styles.paymentMethods}>
               {paymentMethods.map((method) => {
-                const isSelected = selectedPaymentMethod?.id === method.id;
+                const isSelected = !useNewCard && selectedPaymentMethod?.id === method.id;
 
                 return (
                   <TouchableOpacity
@@ -208,7 +279,7 @@ const PaymentReviewScreen = ({ navigation, route }: Props) => {
                       styles.paymentMethodItem,
                       isSelected && { borderColor: colors.primary, borderWidth: 2 },
                     ]}
-                    onPress={() => setSelectedPaymentMethod(method)}
+                    onPress={() => handleSelectSavedCard(method)}
                   >
                     <Icon
                       name={getCardIcon(method.brand)}
@@ -229,6 +300,54 @@ const PaymentReviewScreen = ({ navigation, route }: Props) => {
                   </TouchableOpacity>
                 );
               })}
+
+              {/* Use New Card Option */}
+              <TouchableOpacity
+                style={[
+                  styles.paymentMethodItem,
+                  useNewCard && { borderColor: colors.primary, borderWidth: 2 },
+                ]}
+                onPress={handleUseNewCard}
+              >
+                <Icon
+                  name="credit-card-plus"
+                  size={24}
+                  color={useNewCard ? colors.primary : NEUTRAL_COLORS.gray}
+                />
+                <View style={styles.paymentMethodInfo}>
+                  <Text style={styles.paymentMethodName}>Use a new card</Text>
+                </View>
+                {useNewCard && (
+                  <Icon name="check-circle" size={20} color={colors.primary} />
+                )}
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* Stripe Card Field (for new card) */}
+          {(useNewCard || paymentMethods.length === 0) && (
+            <View style={styles.cardFieldContainer}>
+              <Text style={styles.cardFieldLabel}>Enter card details</Text>
+              <CardField
+                postalCodeEnabled={false}
+                placeholders={{
+                  number: '4242 4242 4242 4242',
+                }}
+                cardStyle={{
+                  backgroundColor: NEUTRAL_COLORS.background,
+                  textColor: NEUTRAL_COLORS.black,
+                  borderColor: NEUTRAL_COLORS.lightGray,
+                  borderWidth: 1,
+                  borderRadius: RADIUS.md,
+                  fontSize: 16,
+                  placeholderColor: NEUTRAL_COLORS.gray,
+                }}
+                style={styles.cardField}
+                onCardChange={(details) => setCardDetails(details)}
+              />
+              <Text style={styles.cardFieldHint}>
+                Your card details are securely processed by Stripe
+              </Text>
             </View>
           )}
         </Card>
@@ -313,9 +432,9 @@ const PaymentReviewScreen = ({ navigation, route }: Props) => {
           </Text>
         </View>
         <Button
-          title="Confirm & Pay"
+          title={isLoading ? getLoadingText() : 'Confirm & Pay'}
           onPress={handleConfirmBooking}
-          disabled={!selectedPaymentMethod}
+          disabled={(!selectedPaymentMethod && !useNewCard) || (useNewCard && !cardDetails?.complete)}
           loading={isLoading}
           style={styles.confirmButton}
         />
@@ -376,21 +495,6 @@ const styles = StyleSheet.create({
     fontSize: TYPOGRAPHY.fontSize.base,
     fontWeight: '600',
   },
-  addPaymentButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: SPACING.lg,
-    borderWidth: 1,
-    borderStyle: 'dashed',
-    borderColor: NEUTRAL_COLORS.lightGray,
-    borderRadius: RADIUS.md,
-    gap: SPACING.sm,
-  },
-  addPaymentText: {
-    fontSize: TYPOGRAPHY.fontSize.base,
-    fontWeight: '600',
-  },
   paymentMethods: {
     gap: SPACING.sm,
   },
@@ -416,6 +520,25 @@ const styles = StyleSheet.create({
     fontSize: TYPOGRAPHY.fontSize.sm,
     color: NEUTRAL_COLORS.gray,
     marginTop: 2,
+  },
+  cardFieldContainer: {
+    marginTop: SPACING.md,
+  },
+  cardFieldLabel: {
+    fontSize: TYPOGRAPHY.fontSize.sm,
+    color: NEUTRAL_COLORS.darkGray,
+    marginBottom: SPACING.sm,
+    fontWeight: '500',
+  },
+  cardField: {
+    width: '100%',
+    height: 50,
+    marginVertical: SPACING.xs,
+  },
+  cardFieldHint: {
+    fontSize: TYPOGRAPHY.fontSize.xs,
+    color: NEUTRAL_COLORS.gray,
+    marginTop: SPACING.xs,
   },
   promoCard: {
     marginHorizontal: SPACING.md,

@@ -77,6 +77,20 @@ export interface UpdateProfileRequest {
   bio?: string | null;
 }
 
+/**
+ * POST /api/auth/send-phone-code
+ */
+export interface SendPhoneCodeRequest {
+  phone: string;
+}
+
+/**
+ * POST /api/auth/verify-phone
+ */
+export interface VerifyPhoneRequest {
+  code: string;
+}
+
 // ==========================================
 // RESPONSE TYPES
 // ==========================================
@@ -135,3 +149,13 @@ export type UpdateProfileResponse = ApiSuccessResponse<{ user: UserDTO }> | ApiE
  * Response for POST /api/users/verify-id
  */
 export type VerifyIdResponse = ApiSuccessResponse<{ user: UserDTO }> | ApiErrorResponse;
+
+/**
+ * Response for POST /api/auth/send-phone-code
+ */
+export type SendPhoneCodeResponse = ApiSuccessResponse<null> | ApiErrorResponse;
+
+/**
+ * Response for POST /api/auth/verify-phone
+ */
+export type VerifyPhoneResponse = ApiSuccessResponse<null> | ApiErrorResponse;

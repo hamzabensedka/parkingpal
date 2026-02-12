@@ -4,6 +4,10 @@ import type {
   AuthDataDTO,
   TokensDTO,
   UserDTO,
+  ForgotPasswordRequest,
+  ResetPasswordRequest,
+  SendPhoneCodeRequest,
+  VerifyPhoneRequest,
 } from '@parkingpal/shared-types';
 import type { AxiosInstance } from 'axios';
 
@@ -56,6 +60,34 @@ export function createAuthApi(client: AxiosInstance) {
         throw new Error(data.error ?? 'Failed to get user');
       }
       return data.data.user;
+    },
+
+    async forgotPassword(body: ForgotPasswordRequest): Promise<void> {
+      const { data } = await client.post<AuthApiResponse<null>>('/api/auth/forgot-password', body);
+      if (!data.success) {
+        throw new Error(data.error ?? 'Failed to send reset email');
+      }
+    },
+
+    async resetPassword(body: ResetPasswordRequest): Promise<void> {
+      const { data } = await client.post<AuthApiResponse<null>>('/api/auth/reset-password', body);
+      if (!data.success) {
+        throw new Error(data.error ?? 'Failed to reset password');
+      }
+    },
+
+    async sendPhoneCode(body: SendPhoneCodeRequest): Promise<void> {
+      const { data } = await client.post<AuthApiResponse<null>>('/api/auth/send-phone-code', body);
+      if (!data.success) {
+        throw new Error(data.error ?? 'Failed to send verification code');
+      }
+    },
+
+    async verifyPhone(body: VerifyPhoneRequest): Promise<void> {
+      const { data } = await client.post<AuthApiResponse<null>>('/api/auth/verify-phone', body);
+      if (!data.success) {
+        throw new Error(data.error ?? 'Failed to verify phone');
+      }
     },
   };
 }

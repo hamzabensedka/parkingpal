@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,92 +6,61 @@ import {
   ScrollView,
   TouchableOpacity,
   Dimensions,
+  ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
-import { Card, Badge } from '../../components/common';
-import { format, subDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
-
-type PeriodType = 'week' | 'month' | 'year' | 'all';
+import { Card } from '../../components/common';
+import { format } from 'date-fns';
+import { earningsApi } from '../../services/api';
+import type {
+  EarningsDashboardDTO,
+  EarningsTransactionDTO,
+  DailyEarningsDTO,
+  PeriodType,
+} from '@parkingpal/shared-types';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-
-interface EarningTransaction {
-  id: string;
-  type: 'earning' | 'payout' | 'refund';
-  amount: number;
-  date: string;
-  description: string;
-  spotTitle?: string;
-  renterName?: string;
-}
 
 const EarningsScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const { colors } = useTheme();
 
   const [selectedPeriod, setSelectedPeriod] = useState<PeriodType>('month');
+  const [dashboard, setDashboard] = useState<EarningsDashboardDTO | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Mock earnings data
-  const earningsData = {
-    totalEarnings: 4850.00,
-    pendingPayout: 320.50,
-    lastPayout: 1250.00,
-    lastPayoutDate: subDays(new Date(), 7),
-    thisMonth: 1580.00,
-    lastMonth: 1420.00,
-    totalBookings: 145,
-    averagePerBooking: 33.45,
+  const fetchDashboard = useCallback(async (period: PeriodType) => {
+    try {
+      setError(null);
+      const data = await earningsApi.getDashboard(period);
+      setDashboard(data);
+    } catch (err) {
+      console.error('Error fetching earnings:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load earnings');
+    }
+  }, []);
+
+  useEffect(() => {
+    setIsLoading(true);
+    fetchDashboard(selectedPeriod).finally(() => setIsLoading(false));
+  }, [selectedPeriod, fetchDashboard]);
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    await fetchDashboard(selectedPeriod);
+    setIsRefreshing(false);
+  }, [selectedPeriod, fetchDashboard]);
+
+  const handlePeriodChange = (period: PeriodType) => {
+    setSelectedPeriod(period);
   };
-
-  // Mock transactions
-  const transactions: EarningTransaction[] = [
-    {
-      id: '1',
-      type: 'earning',
-      amount: 24.00,
-      date: new Date().toISOString(),
-      description: 'Booking completed',
-      spotTitle: 'City Center Garage',
-      renterName: 'Jean Dupont',
-    },
-    {
-      id: '2',
-      type: 'earning',
-      amount: 18.50,
-      date: subDays(new Date(), 1).toISOString(),
-      description: 'Booking completed',
-      spotTitle: 'Opera Parking',
-      renterName: 'Marie Martin',
-    },
-    {
-      id: '3',
-      type: 'payout',
-      amount: 1250.00,
-      date: subDays(new Date(), 7).toISOString(),
-      description: 'Payout to •••• 4242',
-    },
-    {
-      id: '4',
-      type: 'earning',
-      amount: 35.00,
-      date: subDays(new Date(), 8).toISOString(),
-      description: 'Booking completed',
-      spotTitle: 'City Center Garage',
-      renterName: 'Pierre Bernard',
-    },
-    {
-      id: '5',
-      type: 'refund',
-      amount: -12.00,
-      date: subDays(new Date(), 10).toISOString(),
-      description: 'Cancellation refund',
-      spotTitle: 'Opera Parking',
-    },
-  ];
 
   const periods: { value: PeriodType; label: string }[] = [
     { value: 'week', label: 'Week' },
@@ -126,15 +95,71 @@ const EarningsScreen: React.FC = () => {
     }
   };
 
-  const monthChange = ((earningsData.thisMonth - earningsData.lastMonth) / earningsData.lastMonth) * 100;
+  // Calculate period change percentage
+  const periodChange = dashboard?.summary
+    ? dashboard.summary.previousPeriodEarnings > 0
+      ? ((dashboard.summary.periodEarnings - dashboard.summary.previousPeriodEarnings) /
+          dashboard.summary.previousPeriodEarnings) *
+        100
+      : dashboard.summary.periodEarnings > 0
+      ? 100
+      : 0
+    : 0;
+
+  // Normalize chart data for display
+  const getChartBarHeight = (chartData: DailyEarningsDTO[]): number[] => {
+    if (!chartData || chartData.length === 0) return [];
+    const maxAmount = Math.max(...chartData.map((d) => d.amount), 1);
+    return chartData.map((d) => Math.max(10, (d.amount / maxAmount) * 100));
+  };
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.container} edges={['bottom']}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={styles.loadingText}>Loading earnings...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (error) {
+    return (
+      <SafeAreaView style={styles.container} edges={['bottom']}>
+        <View style={styles.errorContainer}>
+          <Icon name="alert-circle-outline" size={48} color={NEUTRAL_COLORS.gray} />
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity
+            style={[styles.retryButton, { backgroundColor: colors.primary }]}
+            onPress={() => fetchDashboard(selectedPeriod)}
+          >
+            <Text style={styles.retryButtonText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const summary = dashboard?.summary;
+  const transactions = dashboard?.transactions || [];
+  const chartData = dashboard?.chartData || [];
+  const chartHeights = getChartBarHeight(chartData);
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
+        }
+      >
         {/* Balance Card */}
         <View style={[styles.balanceCard, { backgroundColor: colors.primary }]}>
           <Text style={styles.balanceLabel}>Available Balance</Text>
-          <Text style={styles.balanceAmount}>€{earningsData.pendingPayout.toFixed(2)}</Text>
+          <Text style={styles.balanceAmount}>
+            €{(summary?.pendingPayout || 0).toFixed(2)}
+          </Text>
           <TouchableOpacity style={styles.payoutButton}>
             <Icon name="bank-transfer-out" size={18} color={colors.primary} />
             <Text style={[styles.payoutButtonText, { color: colors.primary }]}>
@@ -142,11 +167,14 @@ const EarningsScreen: React.FC = () => {
             </Text>
           </TouchableOpacity>
 
-          <View style={styles.lastPayoutRow}>
-            <Text style={styles.lastPayoutText}>
-              Last payout: €{earningsData.lastPayout.toFixed(2)} on {format(earningsData.lastPayoutDate, 'MMM d')}
-            </Text>
-          </View>
+          {summary?.lastPayout && summary?.lastPayoutDate && (
+            <View style={styles.lastPayoutRow}>
+              <Text style={styles.lastPayoutText}>
+                Last payout: €{summary.lastPayout.toFixed(2)} on{' '}
+                {format(new Date(summary.lastPayoutDate), 'MMM d')}
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Period Selector */}
@@ -158,12 +186,14 @@ const EarningsScreen: React.FC = () => {
                 styles.periodButton,
                 selectedPeriod === period.value && { backgroundColor: colors.primary },
               ]}
-              onPress={() => setSelectedPeriod(period.value)}
+              onPress={() => handlePeriodChange(period.value)}
             >
-              <Text style={[
-                styles.periodButtonText,
-                selectedPeriod === period.value && { color: NEUTRAL_COLORS.white },
-              ]}>
+              <Text
+                style={[
+                  styles.periodButtonText,
+                  selectedPeriod === period.value && { color: NEUTRAL_COLORS.white },
+                ]}
+              >
                 {period.label}
               </Text>
             </TouchableOpacity>
@@ -173,21 +203,24 @@ const EarningsScreen: React.FC = () => {
         {/* Stats Grid */}
         <View style={styles.statsGrid}>
           <Card style={styles.statCard}>
-            <Text style={styles.statLabel}>This Month</Text>
+            <Text style={styles.statLabel}>This Period</Text>
             <Text style={[styles.statValue, { color: colors.primary }]}>
-              €{earningsData.thisMonth.toFixed(0)}
+              €{(summary?.periodEarnings || 0).toFixed(0)}
             </Text>
             <View style={styles.statChange}>
               <Icon
-                name={monthChange >= 0 ? 'trending-up' : 'trending-down'}
+                name={periodChange >= 0 ? 'trending-up' : 'trending-down'}
                 size={14}
-                color={monthChange >= 0 ? '#22c55e' : '#ef4444'}
+                color={periodChange >= 0 ? '#22c55e' : '#ef4444'}
               />
-              <Text style={[
-                styles.statChangeText,
-                { color: monthChange >= 0 ? '#22c55e' : '#ef4444' },
-              ]}>
-                {monthChange >= 0 ? '+' : ''}{monthChange.toFixed(1)}%
+              <Text
+                style={[
+                  styles.statChangeText,
+                  { color: periodChange >= 0 ? '#22c55e' : '#ef4444' },
+                ]}
+              >
+                {periodChange >= 0 ? '+' : ''}
+                {periodChange.toFixed(1)}%
               </Text>
             </View>
           </Card>
@@ -195,7 +228,7 @@ const EarningsScreen: React.FC = () => {
           <Card style={styles.statCard}>
             <Text style={styles.statLabel}>Total Earnings</Text>
             <Text style={[styles.statValue, { color: colors.primary }]}>
-              €{earningsData.totalEarnings.toFixed(0)}
+              €{(summary?.totalEarnings || 0).toFixed(0)}
             </Text>
             <Text style={styles.statSubtext}>All time</Text>
           </Card>
@@ -203,7 +236,7 @@ const EarningsScreen: React.FC = () => {
           <Card style={styles.statCard}>
             <Text style={styles.statLabel}>Total Bookings</Text>
             <Text style={[styles.statValue, { color: colors.primary }]}>
-              {earningsData.totalBookings}
+              {summary?.totalBookings || 0}
             </Text>
             <Text style={styles.statSubtext}>Completed</Text>
           </Card>
@@ -211,34 +244,41 @@ const EarningsScreen: React.FC = () => {
           <Card style={styles.statCard}>
             <Text style={styles.statLabel}>Avg. Booking</Text>
             <Text style={[styles.statValue, { color: colors.primary }]}>
-              €{earningsData.averagePerBooking.toFixed(0)}
+              €{(summary?.averagePerBooking || 0).toFixed(0)}
             </Text>
             <Text style={styles.statSubtext}>Per booking</Text>
           </Card>
         </View>
 
-        {/* Chart Placeholder */}
+        {/* Chart */}
         <Card style={styles.chartCard}>
           <Text style={styles.chartTitle}>Earnings Overview</Text>
           <View style={styles.chartPlaceholder}>
-            <View style={styles.chartBars}>
-              {[40, 65, 45, 80, 55, 70, 90].map((height, index) => (
-                <View key={index} style={styles.barContainer}>
-                  <View
-                    style={[
-                      styles.bar,
-                      {
-                        height: height,
-                        backgroundColor: index === 6 ? colors.primary : colors.light,
-                      },
-                    ]}
-                  />
-                  <Text style={styles.barLabel}>
-                    {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][index]}
-                  </Text>
-                </View>
-              ))}
-            </View>
+            {chartData.length > 0 ? (
+              <View style={styles.chartBars}>
+                {chartData.slice(-7).map((data, index) => (
+                  <View key={data.date} style={styles.barContainer}>
+                    <View
+                      style={[
+                        styles.bar,
+                        {
+                          height: chartHeights[chartHeights.length - 7 + index] || 10,
+                          backgroundColor:
+                            index === chartData.slice(-7).length - 1
+                              ? colors.primary
+                              : colors.light,
+                        },
+                      ]}
+                    />
+                    <Text style={styles.barLabel}>{data.label}</Text>
+                  </View>
+                ))}
+              </View>
+            ) : (
+              <View style={styles.noChartData}>
+                <Text style={styles.noDataText}>No data for this period</Text>
+              </View>
+            )}
           </View>
         </Card>
 
@@ -251,57 +291,75 @@ const EarningsScreen: React.FC = () => {
             </TouchableOpacity>
           </View>
 
-          <Card style={styles.transactionsCard}>
-            {transactions.map((transaction, index) => (
-              <View key={transaction.id}>
-                <TouchableOpacity style={styles.transactionItem}>
-                  <View style={[
-                    styles.transactionIcon,
-                    { backgroundColor: `${getTransactionColor(transaction.type)}20` },
-                  ]}>
-                    <Icon
-                      name={getTransactionIcon(transaction.type)}
-                      size={20}
-                      color={getTransactionColor(transaction.type)}
-                    />
-                  </View>
+          {transactions.length > 0 ? (
+            <Card style={styles.transactionsCard}>
+              {transactions.map((transaction: EarningsTransactionDTO, index: number) => (
+                <View key={transaction.id}>
+                  <TouchableOpacity style={styles.transactionItem}>
+                    <View
+                      style={[
+                        styles.transactionIcon,
+                        { backgroundColor: `${getTransactionColor(transaction.type)}20` },
+                      ]}
+                    >
+                      <Icon
+                        name={getTransactionIcon(transaction.type)}
+                        size={20}
+                        color={getTransactionColor(transaction.type)}
+                      />
+                    </View>
 
-                  <View style={styles.transactionInfo}>
-                    <Text style={styles.transactionDesc}>{transaction.description}</Text>
-                    {transaction.spotTitle && (
-                      <Text style={styles.transactionSpot}>
-                        {transaction.spotTitle}
-                        {transaction.renterName && ` • ${transaction.renterName}`}
+                    <View style={styles.transactionInfo}>
+                      <Text style={styles.transactionDesc}>{transaction.description}</Text>
+                      {transaction.spotTitle && (
+                        <Text style={styles.transactionSpot}>
+                          {transaction.spotTitle}
+                          {transaction.renterName && ` • ${transaction.renterName}`}
+                        </Text>
+                      )}
+                      <Text style={styles.transactionDate}>
+                        {format(new Date(transaction.date), 'MMM d, yyyy')}
                       </Text>
-                    )}
-                    <Text style={styles.transactionDate}>
-                      {format(new Date(transaction.date), 'MMM d, yyyy')}
+                    </View>
+
+                    <Text
+                      style={[
+                        styles.transactionAmount,
+                        { color: getTransactionColor(transaction.type) },
+                      ]}
+                    >
+                      {transaction.amount >= 0 ? '+' : ''}€
+                      {Math.abs(transaction.amount).toFixed(2)}
                     </Text>
-                  </View>
+                  </TouchableOpacity>
 
-                  <Text style={[
-                    styles.transactionAmount,
-                    { color: getTransactionColor(transaction.type) },
-                  ]}>
-                    {transaction.amount >= 0 ? '+' : ''}€{Math.abs(transaction.amount).toFixed(2)}
-                  </Text>
-                </TouchableOpacity>
-
-                {index < transactions.length - 1 && (
-                  <View style={styles.transactionDivider} />
-                )}
-              </View>
-            ))}
-          </Card>
+                  {index < transactions.length - 1 && (
+                    <View style={styles.transactionDivider} />
+                  )}
+                </View>
+              ))}
+            </Card>
+          ) : (
+            <Card style={styles.emptyTransactionsCard}>
+              <Icon name="cash-remove" size={40} color={NEUTRAL_COLORS.gray} />
+              <Text style={styles.emptyText}>No transactions yet</Text>
+              <Text style={styles.emptySubtext}>
+                Complete bookings to start earning
+              </Text>
+            </Card>
+          )}
         </View>
 
         {/* Payout Settings */}
         <View style={styles.section}>
-          <Card style={styles.payoutSettingsCard} onPress={() => navigation.navigate('PayoutSettings')}>
+          <Card
+            style={styles.payoutSettingsCard}
+            onPress={() => navigation.navigate('PayoutSettings')}
+          >
             <Icon name="bank" size={24} color={colors.primary} />
             <View style={styles.payoutSettingsInfo}>
               <Text style={styles.payoutSettingsTitle}>Payout Settings</Text>
-              <Text style={styles.payoutSettingsDesc}>Bank Account •••• 4242</Text>
+              <Text style={styles.payoutSettingsDesc}>Manage your bank account</Text>
             </View>
             <Icon name="chevron-right" size={24} color={NEUTRAL_COLORS.gray} />
           </Card>
@@ -315,6 +373,39 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: NEUTRAL_COLORS.background,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: SPACING.md,
+    fontSize: TYPOGRAPHY.fontSize.base,
+    color: NEUTRAL_COLORS.gray,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: SPACING.xl,
+  },
+  errorText: {
+    marginTop: SPACING.md,
+    fontSize: TYPOGRAPHY.fontSize.base,
+    color: NEUTRAL_COLORS.gray,
+    textAlign: 'center',
+  },
+  retryButton: {
+    marginTop: SPACING.lg,
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.xl,
+    borderRadius: RADIUS.md,
+  },
+  retryButtonText: {
+    fontSize: TYPOGRAPHY.fontSize.base,
+    fontWeight: '600',
+    color: NEUTRAL_COLORS.white,
   },
   balanceCard: {
     margin: SPACING.md,
@@ -438,6 +529,15 @@ const styles = StyleSheet.create({
     fontSize: TYPOGRAPHY.fontSize.xs,
     color: NEUTRAL_COLORS.gray,
   },
+  noChartData: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  noDataText: {
+    fontSize: TYPOGRAPHY.fontSize.sm,
+    color: NEUTRAL_COLORS.gray,
+  },
   section: {
     paddingHorizontal: SPACING.md,
     marginBottom: SPACING.md,
@@ -460,6 +560,21 @@ const styles = StyleSheet.create({
   transactionsCard: {
     padding: 0,
     overflow: 'hidden',
+  },
+  emptyTransactionsCard: {
+    padding: SPACING.xl,
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: TYPOGRAPHY.fontSize.base,
+    fontWeight: '600',
+    color: NEUTRAL_COLORS.darkGray,
+    marginTop: SPACING.md,
+  },
+  emptySubtext: {
+    fontSize: TYPOGRAPHY.fontSize.sm,
+    color: NEUTRAL_COLORS.gray,
+    marginTop: SPACING.xs,
   },
   transactionItem: {
     flexDirection: 'row',

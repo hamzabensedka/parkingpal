@@ -32,6 +32,10 @@ import { PrismaPaymentMethodRepository } from './repositories/prisma-payment-met
 import { PrismaSpotRepository } from './repositories/prisma-spot.repository';
 import { PrismaBookingRepository } from './repositories/prisma-booking.repository';
 import { PrismaReviewRepository } from './repositories/prisma-review.repository';
+import { PrismaConversationRepository } from './repositories/prisma-conversation.repository';
+import { PrismaMessageRepository } from './repositories/prisma-message.repository';
+import { PrismaNotificationRepository } from './repositories/prisma-notification.repository';
+import { ExpoPushService } from './services/expo-push.service';
 
 // Services
 import { AuthService } from './modules/auth/auth.service';
@@ -43,6 +47,9 @@ import { FavoriteService } from './modules/favorites/favorite.service';
 import { BookingService } from './modules/bookings/booking.service';
 import { ReviewService } from './modules/reviews/review.service';
 import { PaymentService } from './modules/payments/payment.service';
+import { MessageService } from './modules/messaging/message.service';
+import { NotificationService } from './modules/notifications/notification.service';
+import { EarningsService } from './modules/earnings/earnings.service';
 
 // Controllers
 import { AuthController } from './modules/auth/auth.controller';
@@ -54,6 +61,9 @@ import { FavoriteController } from './modules/favorites/favorite.controller';
 import { BookingController } from './modules/bookings/booking.controller';
 import { ReviewController } from './modules/reviews/review.controller';
 import { PaymentController } from './modules/payments/payment.controller';
+import { MessageController } from './modules/messaging/message.controller';
+import { NotificationController } from './modules/notifications/notification.controller';
+import { EarningsController } from './modules/earnings/earnings.controller';
 
 // Middleware factory
 import { createAuthMiddleware } from './middleware/authenticate';
@@ -114,6 +124,18 @@ const bookingRepository = new PrismaBookingRepository(prisma);
 /** Review database access via Prisma */
 const reviewRepository = new PrismaReviewRepository(prisma);
 
+/** Conversation database access via Prisma */
+const conversationRepository = new PrismaConversationRepository(prisma);
+
+/** Message database access via Prisma */
+const messageRepository = new PrismaMessageRepository(prisma);
+
+/** Notification database access via Prisma */
+const notificationRepository = new PrismaNotificationRepository(prisma);
+
+/** Push notification service via Expo */
+const pushNotificationService = new ExpoPushService();
+
 // ==========================================
 // 3. CREATE SERVICES (Business logic)
 //    Dependencies injected via constructor
@@ -162,6 +184,23 @@ const stripePaymentBusinessService = new PaymentService(
   env.appUrl
 );
 
+/** Messaging business logic */
+const messageService = new MessageService(
+  conversationRepository,
+  messageRepository,
+  bookingRepository
+);
+
+/** Notification business logic */
+const notificationService = new NotificationService(
+  notificationRepository,
+  userRepository,
+  pushNotificationService
+);
+
+/** Earnings business logic (uses Prisma directly for aggregation queries) */
+const earningsService = new EarningsService(prisma);
+
 // ==========================================
 // 4. CREATE CONTROLLERS (HTTP handling only)
 //    Services injected via constructor
@@ -193,6 +232,15 @@ const reviewController = new ReviewController(reviewService);
 
 /** Payment HTTP handler */
 const paymentController = new PaymentController(stripePaymentBusinessService);
+
+/** Messaging HTTP handler */
+const messageController = new MessageController(messageService);
+
+/** Notification HTTP handler */
+const notificationController = new NotificationController(notificationService);
+
+/** Earnings HTTP handler */
+const earningsController = new EarningsController(earningsService);
 
 // ==========================================
 // 5. CREATE MIDDLEWARE (with injected dependencies)
@@ -233,6 +281,12 @@ export {
   bookingController,
   reviewController,
   paymentController,
+  messageController,
+  notificationController,
+  earningsController,
+
+  // Services for use in other modules
+  notificationService,
 
   // Middleware
   authenticate,

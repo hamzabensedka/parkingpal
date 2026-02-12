@@ -11,6 +11,9 @@ import bookingRoutes from './modules/bookings/booking.routes';
 import { createReviewRoutes } from './modules/reviews/review.routes';
 import paymentRoutes from './modules/payments/payment.routes';
 import legalRoutes from './modules/legal/legal.routes';
+import messageRoutes from './modules/messaging/message.routes';
+import notificationRoutes from './modules/notifications/notification.routes';
+import earningsRoutes from './modules/earnings/earnings.routes';
 import { reviewController, authenticate } from './container';
 
 // Create Express application
@@ -115,6 +118,15 @@ app.use('/api/payments', paymentRoutes);
 
 // Legal documents routes (public, no auth required)
 app.use('/api/legal', legalRoutes);
+
+// Messaging routes
+app.use('/api', messageRoutes);
+
+// Notification routes
+app.use('/api/notifications', notificationRoutes);
+
+// Earnings routes (host earnings dashboard)
+app.use('/api/earnings', earningsRoutes);
 
 // ==========================================
 // Error Handling

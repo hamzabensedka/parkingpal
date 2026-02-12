@@ -123,18 +123,39 @@ const ListingManagementScreen: React.FC = () => {
     }, [fetchListings]),
   );
 
-  const handleToggleActive = useCallback((id: string, active: boolean) => {
+  const handleToggleActive = useCallback(async (id: string, active: boolean) => {
+    // Optimistically update UI
     setListings(prev =>
       prev.map(listing =>
         listing.id === id ? { ...listing, isActive: active } : listing
       )
     );
 
-    const message = active
-      ? 'Your listing is now visible to renters.'
-      : 'Your listing is paused and hidden from renters.';
+    try {
+      if (active) {
+        await spotApi.activate(id);
+      } else {
+        await spotApi.pause(id);
+      }
 
-    Alert.alert(active ? 'Listing Activated' : 'Listing Paused', message);
+      const message = active
+        ? 'Your listing is now visible to renters.'
+        : 'Your listing is paused and hidden from renters.';
+
+      Alert.alert(active ? 'Listing Activated' : 'Listing Paused', message);
+    } catch (error: any) {
+      // Revert optimistic update on error
+      setListings(prev =>
+        prev.map(listing =>
+          listing.id === id ? { ...listing, isActive: !active } : listing
+        )
+      );
+
+      Alert.alert(
+        'Error',
+        error.message || `Failed to ${active ? 'activate' : 'pause'} listing. Please try again.`
+      );
+    }
   }, []);
 
   const handleListingPress = useCallback((listing: ListingItem) => {

@@ -6,3 +6,6 @@ export * from './vehicle';
 export * from './payment';
 export * from './spot';
 export * from './booking';
+export * from './messaging';
+export * from './notification';
+export * from './earnings';

@@ -1,10 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Booking, BookingStatus, Vehicle, Spot, BookingPricing, User } from '../types';
-import { mockBookings } from '../data/mockBookings';
-import { mockSpots } from '../data/mockSpots';
-import { mockUsers } from '../data/mockUsers';
-import { calculateBookingPrice, generateId } from '../utils/helpers';
+import { Booking, Vehicle } from '../types';
+import { bookingApi } from '../services/api';
 import { useAuth } from './AuthContext';
 
 interface CreateBookingData {
@@ -22,18 +18,20 @@ interface BookingContextType {
   pastBookings: Booking[];
   currentActiveBooking: Booking | null;
   isLoading: boolean;
+  error: string | null;
   fetchBookings: () => Promise<void>;
   createBooking: (data: CreateBookingData) => Promise<Booking>;
-  cancelBooking: (bookingId: string) => Promise<void>;
+  cancelBooking: (bookingId: string, reason?: string) => Promise<void>;
   extendBooking: (bookingId: string, newEndTime: string) => Promise<void>;
   endBookingEarly: (bookingId: string) => Promise<void>;
   checkIn: (bookingId: string) => Promise<void>;
   checkOut: (bookingId: string) => Promise<void>;
   getBookingById: (bookingId: string) => Booking | undefined;
+  refreshBooking: (bookingId: string) => Promise<Booking | undefined>;
   // Host functions
   hostBookings: Booking[];
-  approveBooking: (bookingId: string) => Promise<void>;
-  declineBooking: (bookingId: string) => Promise<void>;
+  approveBooking: (bookingId: string, hostNotes?: string) => Promise<void>;
+  declineBooking: (bookingId: string, reason?: string) => Promise<void>;
 }
 
 const BookingContext = createContext<BookingContextType | null>(null);
@@ -54,6 +52,7 @@ export const BookingProvider: React.FC<BookingProviderProps> = ({ children }) =>
   const { user } = useAuth();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Load bookings on mount and when user changes
   useEffect(() => {
@@ -64,147 +63,116 @@ export const BookingProvider: React.FC<BookingProviderProps> = ({ children }) =>
     }
   }, [user?.id]);
 
-  // Fetch bookings
+  // Fetch bookings from API
   const fetchBookings = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
+    if (!user) return;
 
-      // Filter mock bookings for current user
-      const userBookings = mockBookings.filter(
-        (b) => b.renterId === user?.id || b.hostId === user?.id
+    setIsLoading(true);
+    setError(null);
+    try {
+      // Fetch both renter and host bookings
+      const [renterBookings, hostBookings] = await Promise.all([
+        bookingApi.getMyBookings({ role: 'renter' }),
+        bookingApi.getMyBookings({ role: 'host' }),
+      ]);
+
+      // Combine and deduplicate bookings
+      const allBookings = [...renterBookings, ...hostBookings];
+      const uniqueBookings = allBookings.filter(
+        (booking, index, self) => self.findIndex((b) => b.id === booking.id) === index
       );
 
-      // Populate spot and user data
-      const populatedBookings = userBookings.map((booking) => ({
-        ...booking,
-        spot: mockSpots.find((s) => s.id === booking.spotId),
-        renter: mockUsers.find((u) => u.id === booking.renterId),
-        host: mockUsers.find((u) => u.id === booking.hostId),
-      }));
-
-      setBookings(populatedBookings);
-    } catch (error) {
-      console.error('Error fetching bookings:', error);
+      setBookings(uniqueBookings);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to fetch bookings';
+      setError(message);
+      console.error('Error fetching bookings:', err);
     } finally {
       setIsLoading(false);
     }
   }, [user?.id]);
+
+  // Refresh a single booking from API
+  const refreshBooking = useCallback(async (bookingId: string): Promise<Booking | undefined> => {
+    try {
+      const booking = await bookingApi.getById(bookingId);
+      setBookings((prev) =>
+        prev.map((b) => (b.id === bookingId ? booking : b))
+      );
+      return booking;
+    } catch (err) {
+      console.error('Error refreshing booking:', err);
+      return undefined;
+    }
+  }, []);
 
   // Create booking
   const createBooking = useCallback(async (data: CreateBookingData): Promise<Booking> => {
     if (!user) throw new Error('User not authenticated');
 
     setIsLoading(true);
+    setError(null);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      const spot = mockSpots.find((s) => s.id === data.spotId);
-      if (!spot) throw new Error('Spot not found');
-
-      const pricing = calculateBookingPrice(spot, data.startTime, data.endTime, data.hasInsurance);
-
-      const newBooking: Booking = {
-        id: generateId(),
+      const booking = await bookingApi.create({
         spotId: data.spotId,
-        spot,
-        renterId: user.id,
-        renter: { ...user, phone: user.phone ?? '' } as User,
-        hostId: spot.hostId,
-        host: mockUsers.find((u) => u.id === spot.hostId),
+        vehicleId: data.vehicle.id,
         startTime: data.startTime,
         endTime: data.endTime,
-        vehicle: data.vehicle,
-        pricing,
-        status: spot.instantBook ? 'confirmed' : 'pending',
-        paymentStatus: 'paid',
-        accessCode: spot.accessType === 'code' ? '4523' : undefined,
-        createdAt: new Date().toISOString(),
-        specialInstructions: data.specialInstructions,
-        hasInsurance: data.hasInsurance,
-      };
+        renterNotes: data.specialInstructions,
+      });
 
-      setBookings((prev) => [...prev, newBooking]);
-
-      return newBooking;
-    } catch (error) {
-      throw error;
+      // Add the new booking to state
+      setBookings((prev) => [...prev, booking]);
+      return booking;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to create booking';
+      setError(message);
+      throw err;
     } finally {
       setIsLoading(false);
     }
   }, [user]);
 
   // Cancel booking
-  const cancelBooking = useCallback(async (bookingId: string) => {
+  const cancelBooking = useCallback(async (bookingId: string, reason?: string) => {
     setIsLoading(true);
+    setError(null);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      const updatedBooking = await bookingApi.cancel(bookingId, reason);
 
       setBookings((prev) =>
-        prev.map((b) =>
-          b.id === bookingId
-            ? { ...b, status: 'cancelled' as BookingStatus, paymentStatus: 'refunded' }
-            : b
-        )
+        prev.map((b) => (b.id === bookingId ? updatedBooking : b))
       );
-    } catch (error) {
-      throw error;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to cancel booking';
+      setError(message);
+      throw err;
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  // Extend booking
-  const extendBooking = useCallback(async (bookingId: string, newEndTime: string) => {
-    setIsLoading(true);
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      setBookings((prev) =>
-        prev.map((b) => {
-          if (b.id === bookingId && b.spot) {
-            const newPricing = calculateBookingPrice(
-              b.spot,
-              b.startTime,
-              newEndTime,
-              b.hasInsurance
-            );
-            return {
-              ...b,
-              endTime: newEndTime,
-              pricing: newPricing,
-            };
-          }
-          return b;
-        })
-      );
-    } catch (error) {
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
+  // Extend booking (not yet supported by backend - needs endpoint)
+  const extendBooking = useCallback(async (_bookingId: string, _newEndTime: string) => {
+    // TODO: Backend needs an extend booking endpoint
+    // For now, throw an error to indicate this feature is not available
+    throw new Error('Extend booking is not yet available');
   }, []);
 
-  // End booking early
+  // End booking early (uses complete endpoint)
   const endBookingEarly = useCallback(async (bookingId: string) => {
     setIsLoading(true);
+    setError(null);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      const updatedBooking = await bookingApi.complete(bookingId);
 
       setBookings((prev) =>
-        prev.map((b) =>
-          b.id === bookingId
-            ? {
-                ...b,
-                status: 'completed' as BookingStatus,
-                checkOut: new Date().toISOString(),
-                endTime: new Date().toISOString(),
-              }
-            : b
-        )
+        prev.map((b) => (b.id === bookingId ? updatedBooking : b))
       );
-    } catch (error) {
-      throw error;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to end booking';
+      setError(message);
+      throw err;
     } finally {
       setIsLoading(false);
     }
@@ -213,18 +181,17 @@ export const BookingProvider: React.FC<BookingProviderProps> = ({ children }) =>
   // Check in
   const checkIn = useCallback(async (bookingId: string) => {
     setIsLoading(true);
+    setError(null);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      const updatedBooking = await bookingApi.checkIn(bookingId);
 
       setBookings((prev) =>
-        prev.map((b) =>
-          b.id === bookingId
-            ? { ...b, status: 'active' as BookingStatus, checkIn: new Date().toISOString() }
-            : b
-        )
+        prev.map((b) => (b.id === bookingId ? updatedBooking : b))
       );
-    } catch (error) {
-      throw error;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to check in';
+      setError(message);
+      throw err;
     } finally {
       setIsLoading(false);
     }
@@ -233,67 +200,66 @@ export const BookingProvider: React.FC<BookingProviderProps> = ({ children }) =>
   // Check out
   const checkOut = useCallback(async (bookingId: string) => {
     setIsLoading(true);
+    setError(null);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      const updatedBooking = await bookingApi.checkOut(bookingId);
 
       setBookings((prev) =>
-        prev.map((b) =>
-          b.id === bookingId
-            ? { ...b, status: 'completed' as BookingStatus, checkOut: new Date().toISOString() }
-            : b
-        )
+        prev.map((b) => (b.id === bookingId ? updatedBooking : b))
       );
-    } catch (error) {
-      throw error;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to check out';
+      setError(message);
+      throw err;
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  // Get booking by ID
+  // Get booking by ID from local state
   const getBookingById = useCallback((bookingId: string): Booking | undefined => {
     return bookings.find((b) => b.id === bookingId);
   }, [bookings]);
 
-  // Approve booking (host)
-  const approveBooking = useCallback(async (bookingId: string) => {
+  // Approve booking (host) - uses confirm endpoint
+  const approveBooking = useCallback(async (bookingId: string, hostNotes?: string) => {
     setIsLoading(true);
+    setError(null);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      const updatedBooking = await bookingApi.confirm(bookingId, hostNotes);
 
       setBookings((prev) =>
-        prev.map((b) =>
-          b.id === bookingId ? { ...b, status: 'confirmed' as BookingStatus } : b
-        )
+        prev.map((b) => (b.id === bookingId ? updatedBooking : b))
       );
-    } catch (error) {
-      throw error;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to approve booking';
+      setError(message);
+      throw err;
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  // Decline booking (host)
-  const declineBooking = useCallback(async (bookingId: string) => {
+  // Decline booking (host) - uses cancel endpoint with reason
+  const declineBooking = useCallback(async (bookingId: string, reason?: string) => {
     setIsLoading(true);
+    setError(null);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      const updatedBooking = await bookingApi.cancel(bookingId, reason ?? 'Declined by host');
 
       setBookings((prev) =>
-        prev.map((b) =>
-          b.id === bookingId
-            ? { ...b, status: 'cancelled' as BookingStatus, paymentStatus: 'refunded' }
-            : b
-        )
+        prev.map((b) => (b.id === bookingId ? updatedBooking : b))
       );
-    } catch (error) {
-      throw error;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to decline booking';
+      setError(message);
+      throw err;
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  // Filter bookings by type
+  // Filter bookings by type for renters
   const activeBookings = useMemo(
     () => bookings.filter((b) => b.status === 'active' && b.renterId === user?.id),
     [bookings, user?.id]
@@ -325,6 +291,7 @@ export const BookingProvider: React.FC<BookingProviderProps> = ({ children }) =>
     [activeBookings]
   );
 
+  // Filter bookings for hosts
   const hostBookings = useMemo(
     () => bookings.filter((b) => b.hostId === user?.id),
     [bookings, user?.id]
@@ -337,6 +304,7 @@ export const BookingProvider: React.FC<BookingProviderProps> = ({ children }) =>
       pastBookings,
       currentActiveBooking,
       isLoading,
+      error,
       fetchBookings,
       createBooking,
       cancelBooking,
@@ -345,6 +313,7 @@ export const BookingProvider: React.FC<BookingProviderProps> = ({ children }) =>
       checkIn,
       checkOut,
       getBookingById,
+      refreshBooking,
       hostBookings,
       approveBooking,
       declineBooking,
@@ -355,6 +324,7 @@ export const BookingProvider: React.FC<BookingProviderProps> = ({ children }) =>
       pastBookings,
       currentActiveBooking,
       isLoading,
+      error,
       fetchBookings,
       createBooking,
       cancelBooking,
@@ -363,6 +333,7 @@ export const BookingProvider: React.FC<BookingProviderProps> = ({ children }) =>
       checkIn,
       checkOut,
       getBookingById,
+      refreshBooking,
       hostBookings,
       approveBooking,
       declineBooking,

@@ -1,118 +1,68 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
-  TouchableOpacity,
+  ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
 import { formatRelativeTime } from '../../utils/formatting';
 import { Conversation } from '../../types';
-import { Card, Avatar, Badge, EmptyState } from '../../components/common';
-
-// Mock conversations for display
-const mockConversations: Conversation[] = [
-  {
-    id: 'conv_1',
-    bookingId: 'booking_1',
-    participants: [
-      {
-        id: 'user_1',
-        email: 'jean@example.com',
-        firstName: 'Jean',
-        lastName: 'Dupont',
-        phone: '0612345678',
-        userType: 'host',
-        verified: { phone: true, id: true },
-        rating: 4.8,
-        reviewCount: 23,
-        memberSince: '2024-01-15',
-      },
-    ],
-    lastMessage: {
-      id: 'msg_1',
-      bookingId: 'booking_1',
-      senderId: 'user_1',
-      receiverId: 'current_user',
-      text: 'Bonjour ! The parking spot is ready for you. The gate code is 4521.',
-      read: false,
-      createdAt: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
-    },
-    unreadCount: 2,
-    updatedAt: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
-  },
-  {
-    id: 'conv_2',
-    bookingId: 'booking_2',
-    participants: [
-      {
-        id: 'user_2',
-        email: 'marie@example.com',
-        firstName: 'Marie',
-        lastName: 'Laurent',
-        phone: '0698765432',
-        userType: 'renter',
-        verified: { phone: true, id: false },
-        rating: 4.5,
-        reviewCount: 12,
-        memberSince: '2024-03-20',
-      },
-    ],
-    lastMessage: {
-      id: 'msg_2',
-      bookingId: 'booking_2',
-      senderId: 'current_user',
-      receiverId: 'user_2',
-      text: 'Thank you! I just left the spot. Everything was perfect.',
-      read: true,
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString(),
-    },
-    unreadCount: 0,
-    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString(),
-  },
-  {
-    id: 'conv_3',
-    bookingId: 'booking_3',
-    participants: [
-      {
-        id: 'user_3',
-        email: 'pierre@example.com',
-        firstName: 'Pierre',
-        lastName: 'Martin',
-        phone: '0655443322',
-        userType: 'host',
-        verified: { phone: true, id: true },
-        rating: 4.9,
-        reviewCount: 45,
-        memberSince: '2023-11-10',
-      },
-    ],
-    lastMessage: {
-      id: 'msg_3',
-      bookingId: 'booking_3',
-      senderId: 'user_3',
-      receiverId: 'current_user',
-      text: 'Sure, you can extend your booking until 18h. I will update it now.',
-      read: true,
-      createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-    },
-    unreadCount: 0,
-    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-  },
-];
+import { Card, Avatar, EmptyState } from '../../components/common';
+import { messageApi } from '../../services/api';
 
 const MessagesScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const { colors, NEUTRAL_COLORS } = useTheme();
   const { user } = useAuth();
 
-  const [conversations] = useState<Conversation[]>(mockConversations);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchConversations = useCallback(async (showRefreshIndicator = false) => {
+    try {
+      if (showRefreshIndicator) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
+      setError(null);
+
+      const result = await messageApi.listConversations({ limit: 50, offset: 0 });
+      setConversations(result.conversations);
+    } catch (err) {
+      console.error('Failed to fetch conversations:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load messages');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
+
+  // Load on mount
+  useEffect(() => {
+    fetchConversations();
+  }, [fetchConversations]);
+
+  // Refresh on screen focus
+  useFocusEffect(
+    useCallback(() => {
+      fetchConversations(true);
+    }, [fetchConversations])
+  );
+
+  const handleRefresh = useCallback(() => {
+    fetchConversations(true);
+  }, [fetchConversations]);
 
   const handleConversationPress = useCallback(
     (conversation: Conversation) => {
@@ -122,6 +72,7 @@ const MessagesScreen: React.FC = () => {
 
       navigation.navigate('Chat', {
         conversationId: conversation.id,
+        bookingId: conversation.bookingId,
         recipientName: `${otherParticipant.firstName} ${otherParticipant.lastName}`,
       });
     },
@@ -150,7 +101,7 @@ const MessagesScreen: React.FC = () => {
               lastName={otherParticipant.lastName}
               uri={otherParticipant.profilePhoto}
               size="medium"
-              showBadge={otherParticipant.verified.id}
+              showBadge={otherParticipant.verified?.id}
               badgeIcon="check-decagram"
               badgeColor={colors.primary}
             />
@@ -228,13 +179,36 @@ const MessagesScreen: React.FC = () => {
     );
   };
 
-  const renderEmptyState = () => (
-    <EmptyState
-      icon="message-text-outline"
-      title="No messages yet"
-      description="When you book a parking spot or receive a booking, you can chat with the other party here."
-    />
-  );
+  const renderEmptyState = () => {
+    if (loading) {
+      return (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={styles.loadingText}>Loading conversations...</Text>
+        </View>
+      );
+    }
+
+    if (error) {
+      return (
+        <EmptyState
+          icon="alert-circle-outline"
+          title="Unable to load messages"
+          description={error}
+          actionLabel="Try Again"
+          onAction={() => fetchConversations()}
+        />
+      );
+    }
+
+    return (
+      <EmptyState
+        icon="message-text-outline"
+        title="No messages yet"
+        description="When you book a parking spot or receive a booking, you can chat with the other party here."
+      />
+    );
+  };
 
   const totalUnread = conversations.reduce(
     (sum, c) => sum + c.unreadCount,
@@ -264,6 +238,14 @@ const MessagesScreen: React.FC = () => {
         ListEmptyComponent={renderEmptyState}
         showsVerticalScrollIndicator={false}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            colors={[colors.primary]}
+            tintColor={colors.primary}
+          />
+        }
       />
     </SafeAreaView>
   );
@@ -297,6 +279,17 @@ const styles = StyleSheet.create({
   },
   separator: {
     height: SPACING.sm,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 100,
+  },
+  loadingText: {
+    marginTop: SPACING.md,
+    fontSize: TYPOGRAPHY.fontSize.base,
+    color: NEUTRAL_COLORS.gray,
   },
   conversationCard: {
     padding: SPACING.md,

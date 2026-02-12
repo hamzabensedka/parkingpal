@@ -1,19 +1,30 @@
-import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { createContext, useContext, useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import { AppState, AppStateStatus } from 'react-native';
+import type { Subscription, NotificationResponse } from 'expo-notifications';
 import { Notification } from '../types';
 import { useAuth } from './AuthContext';
-import { generateId } from '../utils/helpers';
+import { notificationApi } from '../services/api';
+import {
+  registerForPushNotificationsAsync,
+  setupAndroidNotificationChannel,
+  addNotificationReceivedListener,
+  addNotificationResponseReceivedListener,
+  getLastNotificationResponse,
+  setBadgeCount,
+} from '../services/pushNotifications';
 
 interface NotificationContextType {
   notifications: Notification[];
   unreadCount: number;
   isLoading: boolean;
+  error: string | null;
+  pushEnabled: boolean;
   fetchNotifications: () => Promise<void>;
   markAsRead: (notificationId: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
   deleteNotification: (notificationId: string) => Promise<void>;
-  clearAll: () => Promise<void>;
-  addNotification: (notification: Omit<Notification, 'id' | 'createdAt' | 'read'>) => void;
+  refreshUnreadCount: () => Promise<void>;
+  handleNotificationResponse: (response: NotificationResponse) => void;
 }
 
 const NotificationContext = createContext<NotificationContextType | null>(null);
@@ -28,182 +39,228 @@ export const useNotifications = (): NotificationContextType => {
 
 interface NotificationProviderProps {
   children: React.ReactNode;
+  onNotificationPress?: (data: Record<string, unknown>) => void;
 }
 
-// Mock notifications
-const getMockNotifications = (userId: string): Notification[] => [
-  {
-    id: '1',
-    userId,
-    type: 'booking',
-    title: 'Booking Confirmed!',
-    body: 'Your booking at "Garage near Louvre" has been confirmed. See you at 2:00 PM!',
-    data: { bookingId: 'booking_1' },
-    read: false,
-    createdAt: new Date(Date.now() - 30 * 60 * 1000).toISOString(), // 30 min ago
-  },
-  {
-    id: '2',
-    userId,
-    type: 'message',
-    title: 'New Message',
-    body: 'Marie sent you a message about your upcoming booking.',
-    data: { conversationId: 'conv_1' },
-    read: false,
-    createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
-  },
-  {
-    id: '3',
-    userId,
-    type: 'payment',
-    title: 'Payment Received',
-    body: 'You received €38.40 from your booking. It will be transferred to your bank account.',
-    data: { transactionId: 'txn_1' },
-    read: true,
-    createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
-  },
-  {
-    id: '4',
-    userId,
-    type: 'review',
-    title: 'New Review',
-    body: 'Thomas left you a 5-star review! Check it out.',
-    data: { reviewId: 'review_1' },
-    read: true,
-    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
-  },
-  {
-    id: '5',
-    userId,
-    type: 'system',
-    title: 'Welcome to ParkingPal!',
-    body: 'Start exploring parking spots near you or list your own space to earn.',
-    read: true,
-    createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days ago
-  },
-];
-
-export const NotificationProvider: React.FC<NotificationProviderProps> = ({ children }) => {
-  const { user } = useAuth();
+export const NotificationProvider: React.FC<NotificationProviderProps> = ({
+  children,
+  onNotificationPress,
+}) => {
+  const { user, isAuthenticated } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [pushEnabled, setPushEnabled] = useState(false);
+
+  const notificationReceivedListener = useRef<Subscription | null>(null);
+  const notificationResponseListener = useRef<Subscription | null>(null);
+  const appState = useRef(AppState.currentState);
+
+  // Handle notification response (user taps notification)
+  const handleNotificationResponse = useCallback((response: NotificationResponse) => {
+    const data = response.notification.request.content.data as Record<string, unknown>;
+    console.log('Notification tapped:', data);
+
+    if (onNotificationPress && data) {
+      onNotificationPress(data);
+    }
+  }, [onNotificationPress]);
+
+  // Setup push notifications
+  useEffect(() => {
+    const setupPushNotifications = async () => {
+      if (!isAuthenticated || !user) return;
+
+      try {
+        // Setup Android channels
+        await setupAndroidNotificationChannel();
+
+        // Register for push notifications
+        const token = await registerForPushNotificationsAsync();
+
+        if (token) {
+          // Send token to backend
+          await notificationApi.registerPushToken(token, true);
+          setPushEnabled(true);
+          console.log('Push token registered:', token);
+        }
+      } catch (err) {
+        console.error('Error setting up push notifications:', err);
+        setPushEnabled(false);
+      }
+    };
+
+    setupPushNotifications();
+  }, [isAuthenticated, user?.id]);
+
+  // Setup notification listeners
+  useEffect(() => {
+    // Listener for notifications received while app is foregrounded
+    notificationReceivedListener.current = addNotificationReceivedListener((_notification) => {
+      // Refresh notifications when a push is received
+      fetchNotifications();
+    });
+
+    // Listener for notification responses (user taps notification)
+    notificationResponseListener.current = addNotificationResponseReceivedListener(handleNotificationResponse);
+
+    // Check for notification response that opened the app
+    getLastNotificationResponse().then((response) => {
+      if (response) {
+        handleNotificationResponse(response);
+      }
+    });
+
+    return () => {
+      if (notificationReceivedListener.current) {
+        notificationReceivedListener.current.remove();
+      }
+      if (notificationResponseListener.current) {
+        notificationResponseListener.current.remove();
+      }
+    };
+  }, [handleNotificationResponse]);
+
+  // Refresh notifications when app comes to foreground
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextAppState: AppStateStatus) => {
+      if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
+        // App came to foreground
+        if (isAuthenticated) {
+          refreshUnreadCount();
+        }
+      }
+      appState.current = nextAppState;
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [isAuthenticated]);
 
   // Load notifications on mount and when user changes
   useEffect(() => {
-    if (user) {
+    if (isAuthenticated && user) {
       fetchNotifications();
     } else {
       setNotifications([]);
+      setUnreadCount(0);
     }
-  }, [user?.id]);
+  }, [isAuthenticated, user?.id]);
 
-  // Fetch notifications
+  // Update badge count when unread count changes
+  useEffect(() => {
+    setBadgeCount(unreadCount);
+  }, [unreadCount]);
+
+  // Fetch notifications from API
   const fetchNotifications = useCallback(async () => {
-    if (!user) return;
+    if (!isAuthenticated) return;
 
     setIsLoading(true);
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 300));
+    setError(null);
 
-      // Try to load from storage first
-      const stored = await AsyncStorage.getItem(`notifications_${user.id}`);
-      if (stored) {
-        setNotifications(JSON.parse(stored));
-      } else {
-        // Use mock data if no stored notifications
-        const mockNotifs = getMockNotifications(user.id);
-        setNotifications(mockNotifs);
-        await AsyncStorage.setItem(`notifications_${user.id}`, JSON.stringify(mockNotifs));
-      }
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
+    try {
+      const result = await notificationApi.list({ limit: 50, offset: 0 });
+      setNotifications(result.notifications);
+      setUnreadCount(result.unreadCount);
+    } catch (err) {
+      console.error('Error fetching notifications:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load notifications');
     } finally {
       setIsLoading(false);
     }
-  }, [user?.id]);
+  }, [isAuthenticated]);
 
-  // Save notifications to storage
-  const saveNotifications = useCallback(async (notifs: Notification[]) => {
-    if (user) {
-      await AsyncStorage.setItem(`notifications_${user.id}`, JSON.stringify(notifs));
+  // Refresh just the unread count (lighter operation)
+  const refreshUnreadCount = useCallback(async () => {
+    if (!isAuthenticated) return;
+
+    try {
+      const count = await notificationApi.getUnreadCount();
+      setUnreadCount(count);
+    } catch (err) {
+      console.error('Error refreshing unread count:', err);
     }
-  }, [user?.id]);
+  }, [isAuthenticated]);
 
   // Mark as read
   const markAsRead = useCallback(async (notificationId: string) => {
-    const updated = notifications.map((n) =>
-      n.id === notificationId ? { ...n, read: true } : n
-    );
-    setNotifications(updated);
-    await saveNotifications(updated);
-  }, [notifications, saveNotifications]);
+    try {
+      await notificationApi.markAsRead(notificationId);
+
+      // Update local state
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === notificationId ? { ...n, read: true } : n))
+      );
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+    } catch (err) {
+      console.error('Error marking notification as read:', err);
+      throw err;
+    }
+  }, []);
 
   // Mark all as read
   const markAllAsRead = useCallback(async () => {
-    const updated = notifications.map((n) => ({ ...n, read: true }));
-    setNotifications(updated);
-    await saveNotifications(updated);
-  }, [notifications, saveNotifications]);
+    try {
+      await notificationApi.markAllAsRead();
+
+      // Update local state
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+      setUnreadCount(0);
+    } catch (err) {
+      console.error('Error marking all as read:', err);
+      throw err;
+    }
+  }, []);
 
   // Delete notification
   const deleteNotification = useCallback(async (notificationId: string) => {
-    const updated = notifications.filter((n) => n.id !== notificationId);
-    setNotifications(updated);
-    await saveNotifications(updated);
-  }, [notifications, saveNotifications]);
+    try {
+      const notificationToDelete = notifications.find((n) => n.id === notificationId);
 
-  // Clear all notifications
-  const clearAll = useCallback(async () => {
-    setNotifications([]);
-    if (user) {
-      await AsyncStorage.removeItem(`notifications_${user.id}`);
+      await notificationApi.delete(notificationId);
+
+      // Update local state
+      setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
+
+      // Update unread count if the deleted notification was unread
+      if (notificationToDelete && !notificationToDelete.read) {
+        setUnreadCount((prev) => Math.max(0, prev - 1));
+      }
+    } catch (err) {
+      console.error('Error deleting notification:', err);
+      throw err;
     }
-  }, [user?.id]);
-
-  // Add notification (for local/push notifications)
-  const addNotification = useCallback((notification: Omit<Notification, 'id' | 'createdAt' | 'read'>) => {
-    const newNotification: Notification = {
-      ...notification,
-      id: generateId(),
-      read: false,
-      createdAt: new Date().toISOString(),
-    };
-
-    setNotifications((prev) => {
-      const updated = [newNotification, ...prev];
-      saveNotifications(updated);
-      return updated;
-    });
-  }, [saveNotifications]);
-
-  // Calculate unread count
-  const unreadCount = useMemo(
-    () => notifications.filter((n) => !n.read).length,
-    [notifications]
-  );
+  }, [notifications]);
 
   const contextValue = useMemo<NotificationContextType>(
     () => ({
       notifications,
       unreadCount,
       isLoading,
+      error,
+      pushEnabled,
       fetchNotifications,
       markAsRead,
       markAllAsRead,
       deleteNotification,
-      clearAll,
-      addNotification,
+      refreshUnreadCount,
+      handleNotificationResponse,
     }),
     [
       notifications,
       unreadCount,
       isLoading,
+      error,
+      pushEnabled,
       fetchNotifications,
       markAsRead,
       markAllAsRead,
       deleteNotification,
-      clearAll,
-      addNotification,
+      refreshUnreadCount,
+      handleNotificationResponse,
     ]
   );
 

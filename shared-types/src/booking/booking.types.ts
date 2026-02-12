@@ -91,6 +91,7 @@ export interface CreateBookingRequest {
   startTime: string; // ISO 8601
   endTime: string;   // ISO 8601
   renterNotes?: string;
+  agreedToTerms: true; // Must explicitly agree to terms
 }
 
 export interface CancelBookingRequest {

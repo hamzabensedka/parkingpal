@@ -84,7 +84,12 @@ const CancelBookingScreen = ({ navigation, route }: Props) => {
           onPress: async () => {
             setIsLoading(true);
             try {
-              await cancelBooking(bookingId, selectedReason, additionalNotes);
+              // Combine reason and notes into a single cancellation reason
+              const reasonLabel = CANCELLATION_REASONS.find(r => r.value === selectedReason)?.label ?? selectedReason;
+              const fullReason = additionalNotes
+                ? `${reasonLabel}: ${additionalNotes}`
+                : reasonLabel;
+              await cancelBooking(bookingId, fullReason);
               Alert.alert(
                 'Booking Cancelled',
                 'Your booking has been cancelled. The refund will be processed within 3-5 business days.',

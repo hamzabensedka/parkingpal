@@ -5,3 +5,5 @@ export { default as SignUpScreen } from './SignUpScreen';
 export { default as UserTypeScreen } from './UserTypeScreen';
 export { default as IDVerificationScreen } from './IDVerificationScreen';
 export { default as OnboardingCompleteScreen } from './OnboardingCompleteScreen';
+export { default as ForgotPasswordScreen } from './ForgotPasswordScreen';
+export { default as ResetPasswordScreen } from './ResetPasswordScreen';

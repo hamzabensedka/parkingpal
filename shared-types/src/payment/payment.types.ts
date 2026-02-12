@@ -61,3 +61,55 @@ export type DeletePaymentMethodResponse = ApiSuccessResponse<null> | ApiErrorRes
 export type SetDefaultPaymentMethodResponse =
   | ApiSuccessResponse<{ paymentMethod: PaymentMethodDTO }>
   | ApiErrorResponse;
+
+// ==========================================
+// Payment Intent Types (Stripe Integration)
+// ==========================================
+
+/**
+ * Payment intent data returned from backend
+ */
+export interface PaymentIntentDTO {
+  clientSecret: string;
+  paymentIntentId: string;
+}
+
+/**
+ * Stripe Connect onboarding status
+ */
+export interface ConnectStatusDTO {
+  onboarded: boolean;
+}
+
+/**
+ * Stripe Connect onboarding URL
+ */
+export interface ConnectOnboardingDTO {
+  onboardingUrl: string;
+}
+
+/**
+ * Response for POST /api/payments/bookings/:bookingId/intent
+ */
+export type CreatePaymentIntentResponse =
+  | ApiSuccessResponse<PaymentIntentDTO>
+  | ApiErrorResponse;
+
+/**
+ * Response for POST /api/payments/bookings/:bookingId/confirm
+ */
+export type ConfirmPaymentResponse = ApiSuccessResponse<null> | ApiErrorResponse;
+
+/**
+ * Response for GET /api/payments/connect/status
+ */
+export type ConnectStatusResponse =
+  | ApiSuccessResponse<ConnectStatusDTO>
+  | ApiErrorResponse;
+
+/**
+ * Response for POST /api/payments/connect/onboard
+ */
+export type ConnectOnboardingResponse =
+  | ApiSuccessResponse<ConnectOnboardingDTO>
+  | ApiErrorResponse;

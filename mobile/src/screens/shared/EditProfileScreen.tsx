@@ -14,12 +14,12 @@ import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
-import { Button, Input, Card, Avatar } from '../../components/common';
+import { Button, Input, Card, Avatar, PhoneVerificationModal } from '../../components/common';
 
 const EditProfileScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const { colors } = useTheme();
-  const { user, updateProfile } = useAuth();
+  const { user, updateProfile, sendPhoneCode, verifyPhone } = useAuth();
 
   const [firstName, setFirstName] = useState(user?.firstName || '');
   const [lastName, setLastName] = useState(user?.lastName || '');
@@ -28,6 +28,7 @@ const EditProfileScreen: React.FC = () => {
   const [bio, setBio] = useState(user?.bio ?? '');
   const [avatar, setAvatar] = useState(user?.avatar ?? user?.profilePhoto ?? '');
   const [isLoading, setIsLoading] = useState(false);
+  const [showPhoneVerification, setShowPhoneVerification] = useState(false);
 
   const handlePickAvatar = useCallback(async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -181,7 +182,13 @@ const EditProfileScreen: React.FC = () => {
               {user?.verified?.phone ? (
                 <Icon name="check-circle" size={20} color={NEUTRAL_COLORS.darkGray} />
               ) : (
-                <TouchableOpacity>
+                <TouchableOpacity onPress={() => {
+                  if (!phone.trim()) {
+                    Alert.alert('Phone Required', 'Please enter your phone number first.');
+                    return;
+                  }
+                  setShowPhoneVerification(true);
+                }}>
                   <Text style={[styles.verifyLink, { color: colors.primary }]}>Verify</Text>
                 </TouchableOpacity>
               )}
@@ -222,6 +229,19 @@ const EditProfileScreen: React.FC = () => {
           fullWidth
         />
       </View>
+
+      {/* Phone Verification Modal */}
+      <PhoneVerificationModal
+        visible={showPhoneVerification}
+        phone={phone}
+        onClose={() => setShowPhoneVerification(false)}
+        onSendCode={sendPhoneCode}
+        onVerify={verifyPhone}
+        onSuccess={() => {
+          setShowPhoneVerification(false);
+          Alert.alert('Success', 'Your phone number has been verified.');
+        }}
+      />
     </SafeAreaView>
   );
 };

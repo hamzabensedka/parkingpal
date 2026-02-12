@@ -62,6 +62,7 @@ interface AuthContextType {
   addPaymentMethod: (method: CreatePaymentMethodRequest) => Promise<void>;
   deletePaymentMethod: (id: string) => Promise<void>;
   setDefaultPaymentMethod: (id: string) => Promise<void>;
+  sendPhoneCode: (phone: string) => Promise<void>;
   verifyPhone: (code: string) => Promise<boolean>;
   verifyId: (imageUri: string) => Promise<boolean>;
   refreshProfile: () => Promise<void>;
@@ -336,9 +337,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     );
   }, []);
 
-  const verifyPhone = useCallback(async (_code: string): Promise<boolean> => {
-    // Backend may add phone verification later
-    return false;
+  const sendPhoneCode = useCallback(async (phone: string): Promise<void> => {
+    await authApi.sendPhoneCode({ phone });
+  }, []);
+
+  const verifyPhone = useCallback(async (code: string): Promise<boolean> => {
+    try {
+      await authApi.verifyPhone({ code });
+      // Refresh profile to get updated phone verification status
+      await refreshProfile();
+      return true;
+    } catch (error) {
+      console.error('Phone verification failed:', error);
+      throw error;
+    }
   }, []);
 
   const verifyId = useCallback(async (imageUri: string): Promise<boolean> => {
@@ -379,6 +391,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       addPaymentMethod,
       deletePaymentMethod,
       setDefaultPaymentMethod,
+      sendPhoneCode,
       verifyPhone,
       verifyId,
       refreshProfile,
@@ -406,6 +419,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       addPaymentMethod,
       deletePaymentMethod,
       setDefaultPaymentMethod,
+      sendPhoneCode,
       verifyPhone,
       verifyId,
       refreshProfile,

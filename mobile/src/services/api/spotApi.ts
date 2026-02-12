@@ -152,6 +152,36 @@ export function createSpotApi(client: AxiosInstance) {
       }
       return data.data.spot;
     },
+
+    /**
+     * Pause a listing (hide from renters).
+     * @param id Spot ID
+     */
+    async pause(id: string): Promise<SpotDTO> {
+      const { data } = await client.post<SpotApiResponse<{ spot: SpotDTO }>>(
+        `/api/spots/${id}/pause`,
+      );
+
+      if (!data.success || !data.data?.spot) {
+        throw new Error(data.error ?? 'Failed to pause listing');
+      }
+      return data.data.spot;
+    },
+
+    /**
+     * Activate a listing (make visible to renters).
+     * @param id Spot ID
+     */
+    async activate(id: string): Promise<SpotDTO> {
+      const { data } = await client.post<SpotApiResponse<{ spot: SpotDTO }>>(
+        `/api/spots/${id}/activate`,
+      );
+
+      if (!data.success || !data.data?.spot) {
+        throw new Error(data.error ?? 'Failed to activate listing');
+      }
+      return data.data.spot;
+    },
   };
 }
 

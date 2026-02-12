@@ -311,3 +311,12 @@ export const STORAGE_KEYS = {
   recentSearches: 'recent_searches',
   savedSpots: 'saved_spots',
 } as const;
+
+// Stripe Configuration
+// In production, use environment variable: EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY
+export const STRIPE_PUBLISHABLE_KEY =
+  process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY ??
+  (__DEV__ ? 'pk_test_placeholder' : 'pk_live_placeholder');
+
+// Merchant name shown in Apple Pay / Google Pay sheets
+export const STRIPE_MERCHANT_NAME = 'ParkingPal';

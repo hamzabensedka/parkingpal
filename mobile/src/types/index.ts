@@ -248,6 +248,8 @@ export type AuthStackParamList = {
   Onboarding: undefined;
   Login: undefined;
   SignUp: undefined;
+  ForgotPassword: undefined;
+  ResetPassword: { token: string };
   UserType: undefined;
   IDVerification: undefined;
   OnboardingComplete: undefined;

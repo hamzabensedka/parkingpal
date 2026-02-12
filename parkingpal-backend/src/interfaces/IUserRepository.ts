@@ -100,6 +100,11 @@ export interface IUserRepository {
    * Update Stripe Connect account ID for host
    */
   setStripeConnectAccount(id: string, accountId: string, onboarded: boolean): Promise<void>;
+
+  /**
+   * Update Expo push token for notifications
+   */
+  updatePushToken(id: string, token: string | null, enabled: boolean): Promise<void>;
 }
 
 export interface CreateUserData {

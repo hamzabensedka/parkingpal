@@ -8,3 +8,4 @@ export { default as Loading, Skeleton, CardSkeleton, ListSkeleton } from './Load
 export { default as EmptyState } from './EmptyState';
 export { default as ErrorState } from './ErrorState';
 export { ReviewList } from './ReviewList';
+export { default as PhoneVerificationModal } from './PhoneVerificationModal';

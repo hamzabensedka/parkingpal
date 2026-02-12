@@ -10,6 +10,8 @@ import SignUpScreen from '../screens/auth/SignUpScreen';
 import UserTypeScreen from '../screens/auth/UserTypeScreen';
 import IDVerificationScreen from '../screens/auth/IDVerificationScreen';
 import OnboardingCompleteScreen from '../screens/auth/OnboardingCompleteScreen';
+import ForgotPasswordScreen from '../screens/auth/ForgotPasswordScreen';
+import ResetPasswordScreen from '../screens/auth/ResetPasswordScreen';
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
 
@@ -40,6 +42,16 @@ const AuthNavigator: React.FC = () => {
       <Stack.Screen
         name="SignUp"
         component={SignUpScreen}
+        options={{ animation: 'slide_from_right' }}
+      />
+      <Stack.Screen
+        name="ForgotPassword"
+        component={ForgotPasswordScreen}
+        options={{ animation: 'slide_from_right' }}
+      />
+      <Stack.Screen
+        name="ResetPassword"
+        component={ResetPasswordScreen}
         options={{ animation: 'slide_from_right' }}
       />
       <Stack.Screen
