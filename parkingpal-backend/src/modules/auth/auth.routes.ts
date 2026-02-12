@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import {
   authController,
+  oauthController,
   userProfileController,
   authenticate,
   favoriteController,
@@ -11,6 +12,8 @@ import {
   passwordResetLimiter,
   emailVerificationLimiter,
   tokenRefreshLimiter,
+  smsCodeLimiter,
+  userApiLimiter,
 } from '../../middleware/rateLimiter';
 import { uploadIdDocument, handleMulterError } from '../../middleware/upload';
 import vehicleRoutes from '../vehicles/vehicle.routes';
@@ -100,6 +103,29 @@ router.post(
 );
 
 // ==========================================
+// OAuth Routes
+// ==========================================
+
+/**
+ * GET /api/auth/oauth/availability
+ * Check which OAuth providers are configured and available
+ */
+router.get(
+  '/oauth/availability',
+  oauthController.availability.bind(oauthController)
+);
+
+/**
+ * POST /api/auth/oauth/signin
+ * Sign in or sign up with OAuth provider (Google or Apple)
+ */
+router.post(
+  '/oauth/signin',
+  authLimiter,
+  oauthController.signIn.bind(oauthController)
+);
+
+// ==========================================
 // Protected Authentication Routes
 // ==========================================
 
@@ -128,6 +154,7 @@ router.get(
 router.post(
   '/send-phone-code',
   authenticate,
+  smsCodeLimiter, // Limit SMS code requests per user
   validate(sendPhoneCodeSchema),
   authController.sendPhoneCode.bind(authController)
 );
@@ -148,6 +175,9 @@ router.post(
 // ==========================================
 
 export const userRouter = Router();
+
+// Apply user-specific rate limiting to all user profile routes
+userRouter.use(userApiLimiter);
 
 /**
  * GET /api/users/profile

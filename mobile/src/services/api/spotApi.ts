@@ -1,4 +1,4 @@
-import type { CreateSpotRequest, SpotDTO, SpotSummaryDTO, SearchSpotsRequest } from '@parkingpal/shared-types';
+import type { CreateSpotRequest, UpdateSpotRequest, SpotDTO, SpotSummaryDTO, SearchSpotsRequest } from '@parkingpal/shared-types';
 import type { AxiosInstance } from 'axios';
 
 export interface SpotApiResponse<T> {
@@ -181,6 +181,39 @@ export function createSpotApi(client: AxiosInstance) {
         throw new Error(data.error ?? 'Failed to activate listing');
       }
       return data.data.spot;
+    },
+
+    /**
+     * Update a listing.
+     * @param id Spot ID
+     * @param body UpdateSpotRequest payload with fields to update
+     */
+    async update(id: string, body: UpdateSpotRequest): Promise<SpotDTO> {
+      const { data } = await client.put<SpotApiResponse<{ spot: SpotDTO }>>(
+        `/api/spots/${id}`,
+        body,
+        { timeout: 30000 },
+      );
+
+      if (!data.success || !data.data?.spot) {
+        throw new Error(data.error ?? 'Failed to update listing');
+      }
+      return data.data.spot;
+    },
+
+    /**
+     * Delete a listing (soft delete).
+     * @param id Spot ID
+     */
+    async delete(id: string): Promise<void> {
+      const { data } = await client.delete<SpotApiResponse<null>>(
+        `/api/spots/${id}`,
+        { timeout: 10000 },
+      );
+
+      if (!data.success) {
+        throw new Error(data.error ?? 'Failed to delete listing');
+      }
     },
   };
 }

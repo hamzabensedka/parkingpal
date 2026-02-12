@@ -21,6 +21,7 @@ import AddListingPricingScreen from '../screens/host/AddListingPricingScreen';
 import AddListingAvailabilityScreen from '../screens/host/AddListingAvailabilityScreen';
 import AddListingDescriptionScreen from '../screens/host/AddListingDescriptionScreen';
 import AddListingPreviewScreen from '../screens/host/AddListingPreviewScreen';
+import EditListingScreen from '../screens/host/EditListingScreen';
 import ListingManagementScreen from '../screens/host/ListingManagementScreen';
 import EarningsScreen from '../screens/host/EarningsScreen';
 import HostProfileScreen from '../screens/host/HostProfileScreen';
@@ -111,6 +112,11 @@ const ListingsStackNavigator: React.FC = () => {
         name="AddListingPreview"
         component={AddListingPreviewScreen}
         options={{ title: 'Preview' }}
+      />
+      <ListingsStack.Screen
+        name="EditListing"
+        component={EditListingScreen}
+        options={{ title: 'Edit Listing' }}
       />
     </ListingsStack.Navigator>
   );

@@ -2,15 +2,20 @@ import { Router } from 'express';
 import { bookingController, authenticate } from '../../container';
 import { requireUserType } from '../../middleware/authenticate';
 import { validate, validateQuery } from '../../middleware/validate';
+import { bookingCreateLimiter, userApiLimiter } from '../../middleware/rateLimiter';
 import { createBookingSchema, cancelBookingSchema, listBookingsSchema, checkInSchema } from './booking.validation';
 
 const router = Router();
+
+// Apply user-specific rate limiting to all booking routes
+router.use(userApiLimiter);
 
 // POST /api/bookings - Create a booking (renters only)
 router.post(
   '/',
   authenticate,
   requireUserType('renter'),
+  bookingCreateLimiter, // Additional stricter limit for booking creation
   validate(createBookingSchema),
   bookingController.create.bind(bookingController)
 );

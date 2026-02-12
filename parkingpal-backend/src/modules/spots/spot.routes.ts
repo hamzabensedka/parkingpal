@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { spotController, authenticate, optionalAuthenticate } from '../../container';
 import { requireUserType } from '../../middleware/authenticate';
 import { validate, validateQuery } from '../../middleware/validate';
+import { spotCreateLimiter, searchLimiter, userApiLimiter } from '../../middleware/rateLimiter';
 import { createSpotSchema, updateSpotSchema, searchSpotsSchema } from './spot.validation';
 import { uploadMultiplePhotos, uploadSpotDocument, handleMulterError } from '../../middleware/upload';
 
@@ -13,6 +14,7 @@ router.post(
   '/',
   authenticate,
   requireUserType('renter', 'host'),
+  spotCreateLimiter, // Limit listing creation per user
   uploadMultiplePhotos,
   handleMulterError,
   spotController.create.bind(spotController)
@@ -30,6 +32,7 @@ router.get(
 router.get(
   '/search',
   optionalAuthenticate,
+  searchLimiter, // Prevent scraping
   validateQuery(searchSpotsSchema),
   spotController.search.bind(spotController)
 );

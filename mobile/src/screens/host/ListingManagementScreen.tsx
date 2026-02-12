@@ -25,6 +25,7 @@ interface ListingItemProps {
   onToggleActive: (id: string, active: boolean) => void;
   onPress: () => void;
   onEdit: () => void;
+  onDelete: () => void;
 }
 
 const ListingItemCard: React.FC<ListingItemProps> = ({
@@ -32,6 +33,7 @@ const ListingItemCard: React.FC<ListingItemProps> = ({
   onToggleActive,
   onPress,
   onEdit,
+  onDelete,
 }) => {
   const { colors, NEUTRAL_COLORS } = useTheme();
 
@@ -80,10 +82,16 @@ const ListingItemCard: React.FC<ListingItemProps> = ({
             />
           </View>
 
-          <TouchableOpacity style={styles.editButton} onPress={onEdit}>
-            <Icon name="pencil" size={18} color={colors.primary} />
-            <Text style={[styles.editText, { color: colors.primary }]}>Edit</Text>
-          </TouchableOpacity>
+          <View style={styles.actionButtons}>
+            <TouchableOpacity style={styles.editButton} onPress={onEdit}>
+              <Icon name="pencil" size={18} color={colors.primary} />
+              <Text style={[styles.editText, { color: colors.primary }]}>Edit</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.deleteButton} onPress={onDelete}>
+              <Icon name="delete" size={18} color={NEUTRAL_COLORS.error} />
+              <Text style={[styles.deleteText, { color: NEUTRAL_COLORS.error }]}>Delete</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </Card>
@@ -165,6 +173,36 @@ const ListingManagementScreen: React.FC = () => {
   const handleEditListing = useCallback((listing: ListingItem) => {
     navigation.navigate('EditListing', { listingId: listing.id });
   }, [navigation]);
+
+  const handleDeleteListing = useCallback(async (listing: ListingItem) => {
+    Alert.alert(
+      'Delete Listing',
+      `Are you sure you want to delete "${listing.title}"? This action cannot be undone.`,
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await spotApi.delete(listing.id);
+              // Remove from local state
+              setListings(prev => prev.filter(l => l.id !== listing.id));
+              Alert.alert('Success', 'Listing deleted successfully');
+            } catch (error: any) {
+              Alert.alert(
+                'Error',
+                error.message || 'Failed to delete listing. Please try again.'
+              );
+            }
+          },
+        },
+      ]
+    );
+  }, []);
 
   const handleAddListing = useCallback(() => {
     if (listings.length > 0) {
@@ -254,6 +292,7 @@ const ListingManagementScreen: React.FC = () => {
             onToggleActive={handleToggleActive}
             onPress={() => handleListingPress(item)}
             onEdit={() => handleEditListing(item)}
+            onDelete={() => handleDeleteListing(item)}
           />
         )}
         keyExtractor={(item) => item.id}
@@ -374,6 +413,10 @@ const styles = StyleSheet.create({
     fontSize: TYPOGRAPHY.fontSize.sm,
     color: NEUTRAL_COLORS.gray,
   },
+  actionButtons: {
+    flexDirection: 'row',
+    gap: SPACING.sm,
+  },
   editButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -381,6 +424,16 @@ const styles = StyleSheet.create({
     padding: SPACING.sm,
   },
   editText: {
+    fontSize: TYPOGRAPHY.fontSize.sm,
+    fontWeight: '600',
+  },
+  deleteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    padding: SPACING.sm,
+  },
+  deleteText: {
     fontSize: TYPOGRAPHY.fontSize.sm,
     fontWeight: '600',
   },

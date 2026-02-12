@@ -26,6 +26,7 @@ import { JWTTokenUtil } from './utils/jwt-token.util';
 import { NodemailerEmailService } from './services/nodemailer-email.service';
 import { TwilioSMSService } from './services/twilio-sms.service';
 import { StripePaymentService } from './services/stripe-payment.service';
+import { OAuthService } from './services/oauth.service';
 import { PrismaUserRepository } from './repositories/prisma-user.repository';
 import { PrismaVehicleRepository } from './repositories/prisma-vehicle.repository';
 import { PrismaPaymentMethodRepository } from './repositories/prisma-payment-method.repository';
@@ -53,6 +54,7 @@ import { EarningsService } from './modules/earnings/earnings.service';
 
 // Controllers
 import { AuthController } from './modules/auth/auth.controller';
+import { OAuthController } from './modules/auth/oauth.controller';
 import { UserProfileController } from './modules/auth/user-profile.controller';
 import { VehicleController } from './modules/vehicles/vehicle.controller';
 import { PaymentMethodController } from './modules/payment-methods/payment-method.controller';
@@ -101,6 +103,9 @@ const smsService = new TwilioSMSService(
 
 /** Payment processing via Stripe -- swap with other provider if needed */
 const paymentService = new StripePaymentService(env.stripe.secretKey);
+
+/** OAuth token verification (Google & Apple) */
+const oauthService = new OAuthService();
 
 // ==========================================
 // 2. CREATE REPOSITORIES (Database access only)
@@ -209,6 +214,9 @@ const earningsService = new EarningsService(prisma);
 /** Authentication HTTP handler */
 const authController = new AuthController(authService);
 
+/** OAuth HTTP handler */
+const oauthController = new OAuthController(authService, oauthService, userRepository, tokenUtil);
+
 /** User profile HTTP handler */
 const userProfileController = new UserProfileController(userProfileService);
 
@@ -273,6 +281,7 @@ export {
 
   // Controllers
   authController,
+  oauthController,
   userProfileController,
   vehicleController,
   paymentMethodController,

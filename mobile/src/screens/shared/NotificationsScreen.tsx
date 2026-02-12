@@ -1,94 +1,44 @@
-import React, { useState, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
   TouchableOpacity,
+  RefreshControl,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../contexts/ThemeContext';
-import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
+import { useNotifications } from '../../contexts/NotificationContext';
+import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING } from '../../utils/constants';
 import { Card, EmptyState } from '../../components/common';
-import { format, isToday, isYesterday, subDays, subHours } from 'date-fns';
-
-interface Notification {
-  id: string;
-  type: 'booking' | 'message' | 'system' | 'promo';
-  title: string;
-  body: string;
-  timestamp: string;
-  isRead: boolean;
-  data?: Record<string, any>;
-}
-
-const mockNotifications: Notification[] = [
-  {
-    id: '1',
-    type: 'booking',
-    title: 'Booking Confirmed',
-    body: 'Your booking at City Center Garage has been confirmed for tomorrow at 10:00.',
-    timestamp: new Date().toISOString(),
-    isRead: false,
-    data: { bookingId: 'b1' },
-  },
-  {
-    id: '2',
-    type: 'message',
-    title: 'New Message from Jean',
-    body: 'Hi! The gate code for entrance is 1234. See you tomorrow!',
-    timestamp: subHours(new Date(), 2).toISOString(),
-    isRead: false,
-    data: { conversationId: 'c1' },
-  },
-  {
-    id: '3',
-    type: 'system',
-    title: 'Booking Reminder',
-    body: 'Your parking session starts in 1 hour at Opera Parking.',
-    timestamp: subHours(new Date(), 5).toISOString(),
-    isRead: true,
-  },
-  {
-    id: '4',
-    type: 'promo',
-    title: 'Weekend Special!',
-    body: 'Get 20% off your next booking with code WEEKEND20. Valid this weekend only.',
-    timestamp: subDays(new Date(), 1).toISOString(),
-    isRead: true,
-  },
-  {
-    id: '5',
-    type: 'booking',
-    title: 'Booking Completed',
-    body: 'Your parking session at Marais Parking has ended. Don\'t forget to leave a review!',
-    timestamp: subDays(new Date(), 1).toISOString(),
-    isRead: true,
-    data: { bookingId: 'b2' },
-  },
-  {
-    id: '6',
-    type: 'system',
-    title: 'Account Verified',
-    body: 'Your ID has been verified successfully. You now have full access to all features.',
-    timestamp: subDays(new Date(), 3).toISOString(),
-    isRead: true,
-  },
-];
+import { format, isToday, isYesterday } from 'date-fns';
+import { Notification } from '../../types';
 
 const NotificationsScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const { colors } = useTheme();
-  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
+  const {
+    notifications,
+    unreadCount,
+    isLoading,
+    error,
+    fetchNotifications,
+    markAsRead,
+    markAllAsRead,
+  } = useNotifications();
 
   const getNotificationIcon = (type: Notification['type']) => {
     switch (type) {
       case 'booking': return 'calendar-check';
       case 'message': return 'message-text';
+      case 'payment': return 'credit-card';
+      case 'review': return 'star';
       case 'system': return 'bell';
-      case 'promo': return 'tag';
+      default: return 'bell';
     }
   };
 
@@ -96,8 +46,10 @@ const NotificationsScreen: React.FC = () => {
     switch (type) {
       case 'booking': return colors.primary;
       case 'message': return NEUTRAL_COLORS.darkGray;
+      case 'payment': return colors.primary;
+      case 'review': return NEUTRAL_COLORS.darkGray;
       case 'system': return NEUTRAL_COLORS.gray;
-      case 'promo': return NEUTRAL_COLORS.darkGray;
+      default: return NEUTRAL_COLORS.gray;
     }
   };
 
@@ -108,35 +60,55 @@ const NotificationsScreen: React.FC = () => {
     return format(date, 'MMMM d');
   };
 
-  const handleNotificationPress = useCallback((notification: Notification) => {
+  const handleNotificationPress = useCallback(async (notification: Notification) => {
     // Mark as read
-    setNotifications(prev =>
-      prev.map(n => n.id === notification.id ? { ...n, isRead: true } : n)
-    );
+    if (!notification.read) {
+      await markAsRead(notification.id);
+    }
 
-    // Navigate based on type
+    // Navigate based on type and data
+    const data = notification.data as Record<string, unknown> | undefined;
+
     switch (notification.type) {
       case 'booking':
-        if (notification.data?.bookingId) {
-          navigation.navigate('ActiveBooking', { bookingId: notification.data.bookingId });
+        if (data?.bookingId) {
+          navigation.navigate('ActiveBooking', { bookingId: data.bookingId });
         }
         break;
       case 'message':
-        if (notification.data?.conversationId) {
-          navigation.navigate('Chat', { conversationId: notification.data.conversationId });
+        if (data?.conversationId) {
+          navigation.navigate('Chat', {
+            conversationId: data.conversationId,
+            bookingId: data.bookingId,
+            recipientName: data.recipientName || 'User',
+          });
+        }
+        break;
+      case 'review':
+        if (data?.bookingId) {
+          navigation.navigate('ActiveBooking', { bookingId: data.bookingId });
+        }
+        break;
+      case 'payment':
+        if (data?.bookingId) {
+          navigation.navigate('ActiveBooking', { bookingId: data.bookingId });
         }
         break;
     }
-  }, [navigation]);
+  }, [navigation, markAsRead]);
 
-  const handleMarkAllRead = useCallback(() => {
-    setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
-  }, []);
+  const handleMarkAllRead = useCallback(async () => {
+    await markAllAsRead();
+  }, [markAllAsRead]);
+
+  const handleRefresh = useCallback(() => {
+    fetchNotifications();
+  }, [fetchNotifications]);
 
   // Group notifications by date
   const groupedNotifications = notifications.reduce<Record<string, Notification[]>>(
     (groups, notification) => {
-      const label = getDateLabel(notification.timestamp);
+      const label = getDateLabel(notification.createdAt);
       if (!groups[label]) groups[label] = [];
       groups[label].push(notification);
       return groups;
@@ -145,7 +117,6 @@ const NotificationsScreen: React.FC = () => {
   );
 
   const sections = Object.entries(groupedNotifications);
-  const unreadCount = notifications.filter(n => !n.isRead).length;
 
   const renderNotification = (notification: Notification) => {
     const iconColor = getNotificationColor(notification.type);
@@ -155,7 +126,7 @@ const NotificationsScreen: React.FC = () => {
         key={notification.id}
         style={[
           styles.notificationItem,
-          !notification.isRead && { backgroundColor: colors.lightest },
+          !notification.read && { backgroundColor: colors.lightest },
         ]}
         onPress={() => handleNotificationPress(notification)}
       >
@@ -165,7 +136,7 @@ const NotificationsScreen: React.FC = () => {
         <View style={styles.notificationContent}>
           <Text style={[
             styles.notificationTitle,
-            !notification.isRead && { fontWeight: '700' },
+            !notification.read && { fontWeight: '700' },
           ]}>
             {notification.title}
           </Text>
@@ -173,15 +144,40 @@ const NotificationsScreen: React.FC = () => {
             {notification.body}
           </Text>
           <Text style={styles.notificationTime}>
-            {format(new Date(notification.timestamp), 'HH:mm')}
+            {format(new Date(notification.createdAt), 'HH:mm')}
           </Text>
         </View>
-        {!notification.isRead && (
+        {!notification.read && (
           <View style={[styles.unreadDot, { backgroundColor: colors.primary }]} />
         )}
       </TouchableOpacity>
     );
   };
+
+  // Show loading state
+  if (isLoading && notifications.length === 0) {
+    return (
+      <SafeAreaView style={styles.container} edges={['bottom']}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={styles.loadingText}>Loading notifications...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Show error state
+  if (error && notifications.length === 0) {
+    return (
+      <SafeAreaView style={styles.container} edges={['bottom']}>
+        <EmptyState
+          icon="alert-circle"
+          title="Unable to load notifications"
+          description={error}
+        />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
@@ -220,6 +216,14 @@ const NotificationsScreen: React.FC = () => {
           )}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={isLoading}
+              onRefresh={handleRefresh}
+              tintColor={colors.primary}
+              colors={[colors.primary]}
+            />
+          }
         />
       )}
     </SafeAreaView>
@@ -230,6 +234,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: NEUTRAL_COLORS.background,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: SPACING.md,
+    fontSize: TYPOGRAPHY.fontSize.base,
+    color: NEUTRAL_COLORS.gray,
   },
   headerActions: {
     flexDirection: 'row',

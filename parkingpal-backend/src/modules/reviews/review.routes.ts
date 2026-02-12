@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { ReviewController } from './review.controller';
 import { validate } from '../../middleware/validate';
+import { reviewLimiter } from '../../middleware/rateLimiter';
 import {
   createReviewSchema,
   addResponseSchema,
@@ -22,6 +23,7 @@ export function createReviewRoutes(
   router.post(
     '/',
     authenticate,
+    reviewLimiter, // Limit review submissions per user
     validate(createReviewSchema),
     reviewController.createReview
   );
