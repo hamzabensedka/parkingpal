@@ -56,6 +56,8 @@ export class PrismaSpotRepository implements ISpotRepository {
         advanceNoticeMinutes: data.advanceNoticeMinutes ?? 120,
         bookingWindowDays: data.bookingWindowDays ?? 30,
         status: data.status ?? SpotStatus.DRAFT,
+        agreedToTermsAt: data.agreedToTermsAt,
+        agreedToTermsIp: data.agreedToTermsIp,
       },
       include: SPOT_INCLUDE,
     });

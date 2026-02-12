@@ -51,6 +51,10 @@ export const createSpotSchema = z.object({
   advanceNoticeMinutes: z.number().int().min(0).max(10080).optional(),
   bookingWindowDays: z.number().int().min(1).max(365).optional(),
   availability: z.array(availabilitySlotSchema).min(1, 'At least one availability slot is required'),
+  // Host agreement checkbox - must explicitly agree to terms
+  agreedToTerms: z.literal(true, {
+    errorMap: () => ({ message: 'You must agree to the Terms of Service and Host Agreement to create a listing' }),
+  }),
 });
 
 export const updateSpotSchema = z.object({

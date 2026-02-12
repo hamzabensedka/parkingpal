@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { bookingController, authenticate } from '../../container';
 import { requireUserType } from '../../middleware/authenticate';
 import { validate, validateQuery } from '../../middleware/validate';
-import { createBookingSchema, cancelBookingSchema, listBookingsSchema } from './booking.validation';
+import { createBookingSchema, cancelBookingSchema, listBookingsSchema, checkInSchema } from './booking.validation';
 
 const router = Router();
 
@@ -51,6 +51,21 @@ router.post(
   '/:id/complete',
   authenticate,
   bookingController.complete.bind(bookingController)
+);
+
+// POST /api/bookings/:id/check-in - Renter confirms arrival
+router.post(
+  '/:id/check-in',
+  authenticate,
+  validate(checkInSchema),
+  bookingController.checkIn.bind(bookingController)
+);
+
+// POST /api/bookings/:id/check-out - Renter confirms departure
+router.post(
+  '/:id/check-out',
+  authenticate,
+  bookingController.checkOut.bind(bookingController)
 );
 
 export default router;

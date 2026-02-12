@@ -25,9 +25,19 @@ export class SpotService {
   async create(
     hostId: string,
     body: CreateSpotRequest,
+    clientIp: string,
     photoFiles?: Express.Multer.File[],
     documentFile?: Express.Multer.File
   ) {
+    // Phone verification required for hosts before creating a listing
+    const user = await this.userRepository.findById(hostId);
+    if (!user) {
+      throw ApiError.notFound('User not found');
+    }
+    if (!user.phoneVerified) {
+      throw ApiError.forbidden('Phone verification required before creating a listing. Please verify your phone number first.');
+    }
+
     // One-listing guard: block creation if host already has a non-deleted listing
     const existingCount = await this.spotRepository.countByHostId(hostId);
     if (existingCount > 0) {
@@ -63,6 +73,9 @@ export class SpotService {
       advanceNoticeMinutes: body.advanceNoticeMinutes,
       bookingWindowDays: body.bookingWindowDays,
       status: SpotStatus.PENDING_VERIFICATION,
+      // Host agreement tracking
+      agreedToTermsAt: new Date(),
+      agreedToTermsIp: clientIp,
     };
 
     const spot = await this.spotRepository.create(data);
@@ -91,8 +104,7 @@ export class SpotService {
     }
 
     // Upgrade renter → host after successful first listing
-    const user = await this.userRepository.findById(hostId);
-    if (user && user.userType === UserType.RENTER) {
+    if (user.userType === UserType.RENTER) {
       await this.userRepository.update(hostId, { userType: UserType.HOST });
     }
 

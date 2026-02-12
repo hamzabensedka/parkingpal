@@ -1,14 +1,19 @@
 import { Request, Response, NextFunction } from 'express';
 import { BookingService } from './booking.service';
 import { HTTP_STATUS } from '../../config/constants';
-import type { CreateBookingSchemaType, CancelBookingSchemaType, ListBookingsSchemaType } from './booking.validation';
+import type { CreateBookingSchemaType, CancelBookingSchemaType, ListBookingsSchemaType, CheckInSchemaType } from './booking.validation';
 
 export class BookingController {
   constructor(private readonly bookingService: BookingService) {}
 
   async create(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const booking = await this.bookingService.create(req.user!.id, req.body as CreateBookingSchemaType);
+      // Extract client IP for agreement tracking
+      const clientIp = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim()
+        || req.socket.remoteAddress
+        || 'unknown';
+
+      const booking = await this.bookingService.create(req.user!.id, req.body as CreateBookingSchemaType, clientIp);
       res.status(HTTP_STATUS.CREATED).json({
         success: true,
         message: 'Booking created successfully',
@@ -79,6 +84,33 @@ export class BookingController {
       res.status(HTTP_STATUS.OK).json({
         success: true,
         message: 'Booking completed',
+        data: { booking },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async checkIn(req: Request<{ id: string }>, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const body = req.body as CheckInSchemaType;
+      const booking = await this.bookingService.checkIn(req.params.id, req.user!.id, body.photoUrl);
+      res.status(HTTP_STATUS.OK).json({
+        success: true,
+        message: 'Checked in successfully',
+        data: { booking },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async checkOut(req: Request<{ id: string }>, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const booking = await this.bookingService.checkOut(req.params.id, req.user!.id);
+      res.status(HTTP_STATUS.OK).json({
+        success: true,
+        message: 'Checked out successfully',
         data: { booking },
       });
     } catch (error) {

@@ -53,6 +53,16 @@ export interface IAuthService {
    * Get current user by ID
    */
   getCurrentUser(userId: string): Promise<UserDTO>;
+
+  /**
+   * Send phone verification code via SMS
+   */
+  sendPhoneVerificationCode(userId: string, phone: string): Promise<void>;
+
+  /**
+   * Verify phone with code
+   */
+  verifyPhone(userId: string, code: string): Promise<void>;
 }
 
 /**

@@ -4,6 +4,7 @@ import { IUserRepository } from '../../interfaces/IUserRepository';
 import { IPasswordUtil } from '../../interfaces/IPasswordUtil';
 import { ITokenUtil } from '../../interfaces/ITokenUtil';
 import { IEmailService } from '../../interfaces/IEmailService';
+import { ISMSService } from '../../interfaces/ISMSService';
 import {
   UserDTO,
   TokensDTO,
@@ -13,7 +14,7 @@ import {
 } from '@parkingpal/shared-types';
 import { toUserDTO } from '../../utils/user.mapper';
 import { ApiError } from '../../middleware/errorHandler';
-import { ERROR_MESSAGES } from '../../config/constants';
+import { ERROR_MESSAGES, PHONE_VERIFICATION } from '../../config/constants';
 
 /**
  * Authentication Service
@@ -38,6 +39,7 @@ export class AuthService implements IAuthService {
     private readonly passwordUtil: IPasswordUtil,
     private readonly tokenUtil: ITokenUtil,
     private readonly emailService: IEmailService,
+    private readonly smsService: ISMSService,
     private readonly appUrl: string
   ) {}
 
@@ -289,5 +291,60 @@ export class AuthService implements IAuthService {
     }
 
     return toUserDTO(user);
+  }
+
+  /**
+   * Send phone verification code via SMS
+   */
+  async sendPhoneVerificationCode(userId: string, phone: string): Promise<void> {
+    // Verify user exists
+    const user = await this.userRepository.findById(userId);
+    if (!user) {
+      throw ApiError.notFound('User not found');
+    }
+
+    // Check if phone is already verified for this user
+    if (user.phone === phone && user.phoneVerified) {
+      throw ApiError.badRequest('Phone number is already verified');
+    }
+
+    // Check if phone belongs to another user
+    const phoneExists = await this.userRepository.phoneExists(phone, userId);
+    if (phoneExists) {
+      throw ApiError.conflict(ERROR_MESSAGES.PHONE_EXISTS);
+    }
+
+    // Generate 6-digit code
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const expires = new Date(Date.now() + PHONE_VERIFICATION.CODE_EXPIRY_MS);
+
+    // Update user's phone and save verification code
+    await this.userRepository.update(userId, { phone });
+    await this.userRepository.setPhoneVerificationCode(userId, code, expires);
+
+    // Send SMS (fire and forget)
+    this.smsService
+      .sendVerificationCode(phone, code)
+      .catch((err) => console.error('Failed to send SMS:', err));
+  }
+
+  /**
+   * Verify phone with code
+   */
+  async verifyPhone(userId: string, code: string): Promise<void> {
+    // Find user with matching code
+    const user = await this.userRepository.findByPhoneVerificationCode(userId, code);
+
+    if (!user) {
+      throw ApiError.badRequest('Invalid verification code');
+    }
+
+    // Check if code expired
+    if (this.tokenUtil.isTokenExpired(user.phoneVerificationExpires)) {
+      throw ApiError.badRequest('Verification code has expired. Please request a new one.');
+    }
+
+    // Mark phone as verified
+    await this.userRepository.verifyPhone(userId);
   }
 }

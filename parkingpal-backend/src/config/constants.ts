@@ -23,6 +23,13 @@ export const AUTH = {
 export const USER_TYPES = ['renter', 'host', 'superhost'] as const;
 export type UserTypeValue = (typeof USER_TYPES)[number];
 
+// Phone Verification
+export const PHONE_VERIFICATION = {
+  CODE_LENGTH: 6,
+  CODE_EXPIRY_MS: 10 * 60 * 1000, // 10 minutes
+  MAX_ATTEMPTS: 3,
+} as const;
+
 // Rate Limiting
 export const RATE_LIMITS = {
   AUTH: {
@@ -133,6 +140,8 @@ export const SUCCESS_MESSAGES = {
   PASSWORD_RESET_SUCCESS: 'Password reset successful. Please login with your new password.',
   PROFILE_UPDATED: 'Profile updated successfully',
   TOKEN_REFRESHED: 'Token refreshed successfully',
+  PHONE_CODE_SENT: 'Verification code sent to your phone',
+  PHONE_VERIFIED: 'Phone number verified successfully',
 
   // Spots
   SPOT_CREATED: 'Spot created successfully',

@@ -56,6 +56,9 @@ export class PrismaUserRepository implements IUserRepository {
         ...(data.userType !== undefined && { userType: data.userType }),
         ...(data.rating !== undefined && { rating: data.rating }),
         ...(data.reviewCount !== undefined && { reviewCount: data.reviewCount }),
+        ...(data.stripeCustomerId !== undefined && { stripeCustomerId: data.stripeCustomerId }),
+        ...(data.stripeConnectAccountId !== undefined && { stripeConnectAccountId: data.stripeConnectAccountId }),
+        ...(data.stripeConnectOnboarded !== undefined && { stripeConnectOnboarded: data.stripeConnectOnboarded }),
       },
     });
   }
@@ -128,5 +131,53 @@ export class PrismaUserRepository implements IUserRepository {
       select: { id: true },
     });
     return user !== null;
+  }
+
+  async setPhoneVerificationCode(id: string, code: string, expires: Date): Promise<void> {
+    await this.prisma.user.update({
+      where: { id },
+      data: {
+        phoneVerificationCode: code,
+        phoneVerificationExpires: expires,
+      },
+    });
+  }
+
+  async findByPhoneVerificationCode(userId: string, code: string): Promise<User | null> {
+    return this.prisma.user.findFirst({
+      where: {
+        id: userId,
+        phoneVerificationCode: code,
+      },
+    });
+  }
+
+  async verifyPhone(id: string): Promise<void> {
+    await this.prisma.user.update({
+      where: { id },
+      data: {
+        phoneVerified: true,
+        phoneVerifiedAt: new Date(),
+        phoneVerificationCode: null,
+        phoneVerificationExpires: null,
+      },
+    });
+  }
+
+  async setStripeCustomerId(id: string, stripeCustomerId: string): Promise<void> {
+    await this.prisma.user.update({
+      where: { id },
+      data: { stripeCustomerId },
+    });
+  }
+
+  async setStripeConnectAccount(id: string, accountId: string, onboarded: boolean): Promise<void> {
+    await this.prisma.user.update({
+      where: { id },
+      data: {
+        stripeConnectAccountId: accountId,
+        stripeConnectOnboarded: onboarded,
+      },
+    });
   }
 }

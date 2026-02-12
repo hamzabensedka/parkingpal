@@ -1,8 +1,10 @@
-import { PrismaClient, Booking, BookingStatus } from '@prisma/client';
+import { PrismaClient, Booking, BookingStatus, PaymentStatus } from '@prisma/client';
 import {
   IBookingRepository,
   BookingWithRelations,
   CreateBookingData,
+  UpdatePaymentData,
+  CheckInData,
 } from '../interfaces/IBookingRepository';
 
 const BOOKING_INCLUDE = {
@@ -38,6 +40,8 @@ export class PrismaBookingRepository implements IBookingRepository {
         cancellationPolicy: data.cancellationPolicy,
         status: data.status,
         renterNotes: data.renterNotes,
+        agreedToTermsAt: data.agreedToTermsAt,
+        agreedToTermsIp: data.agreedToTermsIp,
       },
       include: BOOKING_INCLUDE,
     }) as Promise<BookingWithRelations>;
@@ -109,5 +113,57 @@ export class PrismaBookingRepository implements IBookingRepository {
 
     const count = await this.prisma.booking.count({ where });
     return count > 0;
+  }
+
+  async updatePayment(id: string, data: UpdatePaymentData): Promise<BookingWithRelations> {
+    return this.prisma.booking.update({
+      where: { id },
+      data: {
+        ...(data.stripePaymentIntentId !== undefined && { stripePaymentIntentId: data.stripePaymentIntentId }),
+        ...(data.stripeTransferId !== undefined && { stripeTransferId: data.stripeTransferId }),
+        ...(data.platformFee !== undefined && { platformFee: data.platformFee }),
+        ...(data.hostPayout !== undefined && { hostPayout: data.hostPayout }),
+        ...(data.payoutAt !== undefined && { payoutAt: data.payoutAt }),
+        ...(data.disputeWindowEnds !== undefined && { disputeWindowEnds: data.disputeWindowEnds }),
+        ...(data.paymentStatus !== undefined && { paymentStatus: data.paymentStatus }),
+      },
+      include: BOOKING_INCLUDE,
+    }) as Promise<BookingWithRelations>;
+  }
+
+  async findCompletedAwaitingPayout(): Promise<BookingWithRelations[]> {
+    return this.prisma.booking.findMany({
+      where: {
+        status: BookingStatus.COMPLETED,
+        paymentStatus: PaymentStatus.CAPTURED,
+        stripeTransferId: null,
+        disputeWindowEnds: { lte: new Date() },
+      },
+      include: BOOKING_INCLUDE,
+    }) as Promise<BookingWithRelations[]>;
+  }
+
+  async checkIn(id: string, data: CheckInData): Promise<BookingWithRelations> {
+    return this.prisma.booking.update({
+      where: { id },
+      data: {
+        checkInAt: data.checkInAt,
+        checkInPhoto: data.checkInPhoto,
+        status: BookingStatus.ACTIVE,
+      },
+      include: BOOKING_INCLUDE,
+    }) as Promise<BookingWithRelations>;
+  }
+
+  async checkOut(id: string): Promise<BookingWithRelations> {
+    return this.prisma.booking.update({
+      where: { id },
+      data: {
+        checkOutAt: new Date(),
+        status: BookingStatus.COMPLETED,
+        disputeWindowEnds: new Date(Date.now() + 48 * 60 * 60 * 1000), // 48 hours from now
+      },
+      include: BOOKING_INCLUDE,
+    }) as Promise<BookingWithRelations>;
   }
 }

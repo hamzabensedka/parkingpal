@@ -15,10 +15,15 @@
   "prisma": {
     "seed": "ts-node prisma/seed.ts"
   },
-  "keywords": ["parking", "authentication", "api"],
+  "keywords": [
+    "parking",
+    "authentication",
+    "api"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@parkingpal/shared-types": "file:../shared-types",
     "@prisma/client": "^5.8.1",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
@@ -29,8 +34,9 @@
     "jsonwebtoken": "^9.0.2",
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.9.8",
+    "stripe": "^20.3.1",
+    "twilio": "^5.12.1",
     "uuid": "^9.0.1",
-    "@parkingpal/shared-types": "file:../shared-types",
     "zod": "^3.22.4"
   },
   "devDependencies": {

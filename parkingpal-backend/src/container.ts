@@ -24,6 +24,8 @@ import { env } from './config/env';
 import { BcryptPasswordUtil } from './utils/bcrypt-password.util';
 import { JWTTokenUtil } from './utils/jwt-token.util';
 import { NodemailerEmailService } from './services/nodemailer-email.service';
+import { TwilioSMSService } from './services/twilio-sms.service';
+import { StripePaymentService } from './services/stripe-payment.service';
 import { PrismaUserRepository } from './repositories/prisma-user.repository';
 import { PrismaVehicleRepository } from './repositories/prisma-vehicle.repository';
 import { PrismaPaymentMethodRepository } from './repositories/prisma-payment-method.repository';
@@ -40,6 +42,7 @@ import { SpotService } from './modules/spots/spot.service';
 import { FavoriteService } from './modules/favorites/favorite.service';
 import { BookingService } from './modules/bookings/booking.service';
 import { ReviewService } from './modules/reviews/review.service';
+import { PaymentService } from './modules/payments/payment.service';
 
 // Controllers
 import { AuthController } from './modules/auth/auth.controller';
@@ -50,6 +53,7 @@ import { SpotController } from './modules/spots/spot.controller';
 import { FavoriteController } from './modules/favorites/favorite.controller';
 import { BookingController } from './modules/bookings/booking.controller';
 import { ReviewController } from './modules/reviews/review.controller';
+import { PaymentController } from './modules/payments/payment.controller';
 
 // Middleware factory
 import { createAuthMiddleware } from './middleware/authenticate';
@@ -77,6 +81,16 @@ const emailService = new NodemailerEmailService(
   env.email.password,
   env.email.from
 );
+
+/** SMS sending via Twilio -- swap with VonageSMSService if needed */
+const smsService = new TwilioSMSService(
+  env.twilio.accountSid,
+  env.twilio.authToken,
+  env.twilio.phoneNumber
+);
+
+/** Payment processing via Stripe -- swap with other provider if needed */
+const paymentService = new StripePaymentService(env.stripe.secretKey);
 
 // ==========================================
 // 2. CREATE REPOSITORIES (Database access only)
@@ -111,6 +125,7 @@ const authService = new AuthService(
   passwordUtil,
   tokenUtil,
   emailService,
+  smsService,
   env.appUrl
 );
 
@@ -138,6 +153,14 @@ const bookingService = new BookingService(bookingRepository, spotRepository, veh
 
 /** Review business logic */
 const reviewService = new ReviewService(reviewRepository, userRepository, spotRepository, bookingRepository);
+
+/** Stripe payment business logic */
+const stripePaymentBusinessService = new PaymentService(
+  paymentService,
+  userRepository,
+  bookingRepository,
+  env.appUrl
+);
 
 // ==========================================
 // 4. CREATE CONTROLLERS (HTTP handling only)
@@ -168,6 +191,9 @@ const bookingController = new BookingController(bookingService);
 /** Review HTTP handler */
 const reviewController = new ReviewController(reviewService);
 
+/** Payment HTTP handler */
+const paymentController = new PaymentController(stripePaymentBusinessService);
+
 // ==========================================
 // 5. CREATE MIDDLEWARE (with injected dependencies)
 // ==========================================
@@ -187,6 +213,8 @@ export {
   passwordUtil,
   tokenUtil,
   emailService,
+  smsService,
+  paymentService,
 
   // Repository
   userRepository,
@@ -204,6 +232,7 @@ export {
   favoriteController,
   bookingController,
   reviewController,
+  paymentController,
 
   // Middleware
   authenticate,

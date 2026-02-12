@@ -9,6 +9,10 @@ export const createBookingSchema = z.object({
   startTime: z.string().datetime({ message: 'startTime must be a valid ISO 8601 date' }),
   endTime: z.string().datetime({ message: 'endTime must be a valid ISO 8601 date' }),
   renterNotes: z.string().max(500, 'Notes cannot exceed 500 characters').optional(),
+  // Renter agreement checkbox - must explicitly agree to terms
+  agreedToTerms: z.literal(true, {
+    errorMap: () => ({ message: 'You must agree to the Terms of Service and Booking Agreement to proceed' }),
+  }),
 }).refine(
   (data) => new Date(data.endTime) > new Date(data.startTime),
   { message: 'endTime must be after startTime', path: ['endTime'] }
@@ -28,6 +32,11 @@ export const listBookingsSchema = z.object({
   limit: z.coerce.number().int().min(1).max(50).default(20),
 });
 
+export const checkInSchema = z.object({
+  photoUrl: z.string().url('Invalid photo URL').optional(),
+});
+
 export type CreateBookingSchemaType = z.infer<typeof createBookingSchema>;
 export type CancelBookingSchemaType = z.infer<typeof cancelBookingSchema>;
 export type ListBookingsSchemaType = z.infer<typeof listBookingsSchema>;
+export type CheckInSchemaType = z.infer<typeof checkInSchema>;

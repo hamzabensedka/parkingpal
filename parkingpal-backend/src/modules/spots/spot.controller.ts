@@ -13,8 +13,13 @@ export class SpotController {
         ? JSON.parse(req.body.data)
         : req.body;
 
+      // Extract client IP for agreement tracking
+      const clientIp = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim()
+        || req.socket.remoteAddress
+        || 'unknown';
+
       const photoFiles = req.files as Express.Multer.File[] | undefined;
-      const spot = await this.spotService.create(req.user!.id, body, photoFiles);
+      const spot = await this.spotService.create(req.user!.id, body, clientIp, photoFiles);
 
       res.status(HTTP_STATUS.CREATED).json({
         success: true,

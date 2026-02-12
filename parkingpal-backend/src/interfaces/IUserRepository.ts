@@ -75,6 +75,31 @@ export interface IUserRepository {
    * Check if phone exists (excluding a specific user ID)
    */
   phoneExists(phone: string, excludeUserId?: string): Promise<boolean>;
+
+  /**
+   * Set phone verification code
+   */
+  setPhoneVerificationCode(id: string, code: string, expires: Date): Promise<void>;
+
+  /**
+   * Find user by phone verification code
+   */
+  findByPhoneVerificationCode(userId: string, code: string): Promise<User | null>;
+
+  /**
+   * Mark phone as verified
+   */
+  verifyPhone(id: string): Promise<void>;
+
+  /**
+   * Update Stripe customer ID for renter
+   */
+  setStripeCustomerId(id: string, stripeCustomerId: string): Promise<void>;
+
+  /**
+   * Update Stripe Connect account ID for host
+   */
+  setStripeConnectAccount(id: string, accountId: string, onboarded: boolean): Promise<void>;
 }
 
 export interface CreateUserData {
@@ -98,4 +123,9 @@ export interface UpdateUserData {
   userType?: UserType;
   rating?: number;
   reviewCount?: number;
+  flaggedForReview?: boolean;
+  flaggedAt?: Date | null;
+  stripeCustomerId?: string;
+  stripeConnectAccountId?: string;
+  stripeConnectOnboarded?: boolean;
 }

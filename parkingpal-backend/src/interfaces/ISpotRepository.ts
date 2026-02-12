@@ -42,6 +42,9 @@ export interface CreateSpotData {
   advanceNoticeMinutes?: number;
   bookingWindowDays?: number;
   status?: SpotStatus;
+  // Host agreement tracking
+  agreedToTermsAt?: Date;
+  agreedToTermsIp?: string;
 }
 
 export interface UpdateSpotData {

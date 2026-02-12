@@ -8,6 +8,8 @@ import {
   ForgotPasswordSchemaType,
   ResetPasswordSchemaType,
   VerifyEmailSchemaType,
+  SendPhoneCodeSchemaType,
+  VerifyPhoneSchemaType,
 } from './auth.validation';
 
 /**
@@ -179,6 +181,46 @@ export class AuthController {
       res.status(HTTP_STATUS.OK).json({
         success: true,
         data: { user },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * POST /api/auth/send-phone-code
+   */
+  async sendPhoneCode(
+    req: Request<{}, {}, SendPhoneCodeSchemaType>,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      await this.authService.sendPhoneVerificationCode(req.user!.id, req.body.phone);
+
+      res.status(HTTP_STATUS.OK).json({
+        success: true,
+        message: SUCCESS_MESSAGES.PHONE_CODE_SENT,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * POST /api/auth/verify-phone
+   */
+  async verifyPhone(
+    req: Request<{}, {}, VerifyPhoneSchemaType>,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      await this.authService.verifyPhone(req.user!.id, req.body.code);
+
+      res.status(HTTP_STATUS.OK).json({
+        success: true,
+        message: SUCCESS_MESSAGES.PHONE_VERIFIED,
       });
     } catch (error) {
       next(error);

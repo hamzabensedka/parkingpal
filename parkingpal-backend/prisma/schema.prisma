@@ -39,6 +39,8 @@ model User {
   // Tokens
   emailVerificationToken    String?
   emailVerificationExpires  DateTime?
+  phoneVerificationCode     String?
+  phoneVerificationExpires  DateTime?
   passwordResetToken        String?
   passwordResetExpires      DateTime?
   refreshToken              String?   // For JWT refresh
@@ -51,9 +53,16 @@ model User {
   // Ratings (to be used later with reviews)
   rating            Float     @default(0)
   reviewCount       Int       @default(0)
+  flaggedForReview  Boolean   @default(false) // Auto-flagged when rating < 3.0
+  flaggedAt         DateTime?                 // When user was flagged
 
   // Superhost status (for hosts)
   isSuperhost       Boolean   @default(false)
+
+  // Stripe Integration
+  stripeCustomerId         String?   // For renters - Stripe customer ID
+  stripeConnectAccountId   String?   // For hosts - Stripe Connect account ID
+  stripeConnectOnboarded   Boolean   @default(false)
 
   // Timestamps
   createdAt         DateTime  @default(now())
@@ -254,6 +263,10 @@ model Spot {
   rating               Float               @default(0)
   reviewCount          Int                 @default(0)
 
+  // Host Agreement (legal compliance)
+  agreedToTermsAt      DateTime?           // When host agreed to terms during listing creation
+  agreedToTermsIp      String?             // IP address when host agreed to terms
+
   // Timestamps
   createdAt            DateTime            @default(now())
   updatedAt            DateTime            @updatedAt
@@ -376,6 +389,12 @@ model Booking {
 
   // Payment
   paymentStatus      PaymentStatus      @default(PENDING)
+  stripePaymentIntentId  String?        // Stripe payment intent ID
+  stripeTransferId       String?        // Stripe transfer ID (when funds released to host)
+  platformFee            Float?         // 20% commission amount
+  hostPayout             Float?         // Amount paid out to host (80%)
+  payoutAt               DateTime?      // When funds were released to host
+  disputeWindowEnds      DateTime?      // 48h after booking completion
 
   // Cancellation policy snapshot from spot at booking time
   cancellationPolicy CancellationPolicy
@@ -388,6 +407,15 @@ model Booking {
   // Notes
   hostNotes          String?
   renterNotes        String?
+
+  // Check-in tracking (for dispute evidence)
+  checkInAt          DateTime?          // When renter checked in
+  checkInPhoto       String?            // Optional photo URL at check-in
+  checkOutAt         DateTime?          // When renter checked out
+
+  // Renter Agreement (legal compliance)
+  agreedToTermsAt    DateTime?          // When renter agreed to terms during booking
+  agreedToTermsIp    String?            // IP address when renter agreed to terms
 
   // Timestamps
   createdAt          DateTime           @default(now())

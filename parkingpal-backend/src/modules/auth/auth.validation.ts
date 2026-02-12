@@ -1,11 +1,16 @@
 import { z } from 'zod';
-import { AUTH, VALIDATION, USER_TYPES } from '../../config/constants';
+import { AUTH, VALIDATION, USER_TYPES, PHONE_VERIFICATION } from '../../config/constants';
+import { isDisposableEmail } from '../../utils/disposable-emails';
 
 // Common validation schemas
 const emailSchema = z
   .string()
   .email('Invalid email format')
   .max(VALIDATION.EMAIL_MAX_LENGTH, `Email must be less than ${VALIDATION.EMAIL_MAX_LENGTH} characters`)
+  .refine(
+    (email) => !isDisposableEmail(email),
+    'Disposable email addresses are not allowed. Please use a permanent email.'
+  )
   .transform((email) => email.toLowerCase().trim());
 
 const passwordSchema = z
@@ -102,6 +107,37 @@ export const updateProfileSchema = z.object({
   bio: z.string().max(500).optional().nullable(),
 });
 
+// Required phone schema (for phone verification - phone is required here)
+const requiredPhoneSchema = z
+  .string()
+  .min(1, 'Phone number is required')
+  .refine(
+    (phone) => VALIDATION.PHONE_REGEX.test(phone),
+    'Invalid phone number format. Use French format: +33 6 12 34 56 78'
+  )
+  .transform((phone) => {
+    let normalized = phone.replace(/[\s.-]/g, '');
+    if (normalized.startsWith('0')) {
+      normalized = '+33' + normalized.substring(1);
+    } else if (normalized.startsWith('00')) {
+      normalized = '+' + normalized.substring(2);
+    }
+    return normalized;
+  });
+
+// Send phone verification code schema
+export const sendPhoneCodeSchema = z.object({
+  phone: requiredPhoneSchema,
+});
+
+// Verify phone schema
+export const verifyPhoneSchema = z.object({
+  code: z
+    .string()
+    .length(PHONE_VERIFICATION.CODE_LENGTH, `Code must be ${PHONE_VERIFICATION.CODE_LENGTH} digits`)
+    .regex(/^\d+$/, 'Code must contain only numbers'),
+});
+
 // Export types inferred from schemas
 export type RegisterSchemaType = z.infer<typeof registerSchema>;
 export type LoginSchemaType = z.infer<typeof loginSchema>;
@@ -111,3 +147,5 @@ export type ForgotPasswordSchemaType = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordSchemaType = z.infer<typeof resetPasswordSchema>;
 export type VerifyEmailSchemaType = z.infer<typeof verifyEmailSchema>;
 export type UpdateProfileSchemaType = z.infer<typeof updateProfileSchema>;
+export type SendPhoneCodeSchemaType = z.infer<typeof sendPhoneCodeSchema>;
+export type VerifyPhoneSchemaType = z.infer<typeof verifyPhoneSchema>;

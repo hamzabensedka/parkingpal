@@ -9,6 +9,8 @@ import authRoutes, { userRouter } from './modules/auth/auth.routes';
 import spotRoutes from './modules/spots/spot.routes';
 import bookingRoutes from './modules/bookings/booking.routes';
 import { createReviewRoutes } from './modules/reviews/review.routes';
+import paymentRoutes from './modules/payments/payment.routes';
+import legalRoutes from './modules/legal/legal.routes';
 import { reviewController, authenticate } from './container';
 
 // Create Express application
@@ -107,6 +109,12 @@ app.use('/api/bookings', bookingRoutes);
 
 // Review routes
 app.use('/api/reviews', createReviewRoutes(reviewController, authenticate));
+
+// Payment routes
+app.use('/api/payments', paymentRoutes);
+
+// Legal documents routes (public, no auth required)
+app.use('/api/legal', legalRoutes);
 
 // ==========================================
 // Error Handling

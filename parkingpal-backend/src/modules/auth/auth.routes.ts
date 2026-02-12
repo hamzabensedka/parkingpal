@@ -23,6 +23,8 @@ import {
   resetPasswordSchema,
   verifyEmailSchema,
   updateProfileSchema,
+  sendPhoneCodeSchema,
+  verifyPhoneSchema,
 } from './auth.validation';
 
 /**
@@ -117,6 +119,28 @@ router.get(
   '/me',
   authenticate,
   authController.getCurrentUser.bind(authController)
+);
+
+/**
+ * POST /api/auth/send-phone-code
+ * Send SMS verification code to user's phone
+ */
+router.post(
+  '/send-phone-code',
+  authenticate,
+  validate(sendPhoneCodeSchema),
+  authController.sendPhoneCode.bind(authController)
+);
+
+/**
+ * POST /api/auth/verify-phone
+ * Verify phone with the code sent via SMS
+ */
+router.post(
+  '/verify-phone',
+  authenticate,
+  validate(verifyPhoneSchema),
+  authController.verifyPhone.bind(authController)
 );
 
 // ==========================================

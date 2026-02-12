@@ -36,6 +36,15 @@ const envSchema = z.object({
   // Rate Limiting
   RATE_LIMIT_WINDOW_MS: z.string().default('900000'),
   RATE_LIMIT_MAX_REQUESTS: z.string().default('5'),
+
+  // Twilio SMS
+  TWILIO_ACCOUNT_SID: z.string().optional(),
+  TWILIO_AUTH_TOKEN: z.string().optional(),
+  TWILIO_PHONE_NUMBER: z.string().optional(),
+
+  // Stripe
+  STRIPE_SECRET_KEY: z.string().optional(),
+  STRIPE_WEBHOOK_SECRET: z.string().optional(),
 });
 
 // Parse and validate environment variables
@@ -96,6 +105,19 @@ export const env = {
   rateLimit: {
     windowMs: parseInt(envVars.RATE_LIMIT_WINDOW_MS, 10),
     maxRequests: parseInt(envVars.RATE_LIMIT_MAX_REQUESTS, 10),
+  },
+
+  // Twilio SMS
+  twilio: {
+    accountSid: envVars.TWILIO_ACCOUNT_SID,
+    authToken: envVars.TWILIO_AUTH_TOKEN,
+    phoneNumber: envVars.TWILIO_PHONE_NUMBER,
+  },
+
+  // Stripe
+  stripe: {
+    secretKey: envVars.STRIPE_SECRET_KEY,
+    webhookSecret: envVars.STRIPE_WEBHOOK_SECRET,
   },
 } as const;
 

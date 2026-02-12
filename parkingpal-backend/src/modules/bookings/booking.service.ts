@@ -19,7 +19,7 @@ export class BookingService {
     private readonly vehicleRepository: IVehicleRepository,
   ) {}
 
-  async create(renterId: string, body: CreateBookingRequest) {
+  async create(renterId: string, body: CreateBookingRequest, clientIp: string) {
     const { spotId, vehicleId, startTime: startTimeStr, endTime: endTimeStr, renterNotes } = body;
     const startTime = new Date(startTimeStr);
     const endTime = new Date(endTimeStr);
@@ -124,6 +124,9 @@ export class BookingService {
       cancellationPolicy: spot.cancellationPolicy,
       status,
       renterNotes,
+      // Renter agreement tracking
+      agreedToTermsAt: new Date(),
+      agreedToTermsIp: clientIp,
     };
 
     const booking = await this.bookingRepository.create(bookingData);
@@ -225,6 +228,76 @@ export class BookingService {
     }
 
     const updated = await this.bookingRepository.updateStatus(bookingId, BookingStatus.COMPLETED);
+    return toBookingDTO(updated);
+  }
+
+  /**
+   * Check-in: Renter confirms arrival at the parking spot
+   */
+  async checkIn(bookingId: string, renterId: string, photoUrl?: string) {
+    const booking = await this.bookingRepository.findById(bookingId);
+    if (!booking) {
+      throw ApiError.notFound('Booking not found');
+    }
+
+    // Only the renter can check in
+    if (booking.renterId !== renterId) {
+      throw ApiError.forbidden('Only the renter can check in');
+    }
+
+    // Can only check in to confirmed bookings
+    if (booking.status !== BookingStatus.CONFIRMED) {
+      throw ApiError.badRequest('Can only check in to confirmed bookings');
+    }
+
+    // Already checked in?
+    if (booking.checkInAt) {
+      throw ApiError.badRequest('Already checked in');
+    }
+
+    // Check-in should be within reasonable time of start (e.g., 30 min before to booking end)
+    const now = new Date();
+    const earliestCheckIn = new Date(booking.startTime.getTime() - 30 * 60 * 1000); // 30 min before
+    if (now < earliestCheckIn) {
+      throw ApiError.badRequest('Cannot check in more than 30 minutes before the booking starts');
+    }
+    if (now > booking.endTime) {
+      throw ApiError.badRequest('Cannot check in after the booking has ended');
+    }
+
+    const updated = await this.bookingRepository.checkIn(bookingId, {
+      checkInAt: now,
+      checkInPhoto: photoUrl,
+    });
+
+    return toBookingDTO(updated);
+  }
+
+  /**
+   * Check-out: Renter confirms departure from the parking spot
+   */
+  async checkOut(bookingId: string, renterId: string) {
+    const booking = await this.bookingRepository.findById(bookingId);
+    if (!booking) {
+      throw ApiError.notFound('Booking not found');
+    }
+
+    // Only the renter can check out
+    if (booking.renterId !== renterId) {
+      throw ApiError.forbidden('Only the renter can check out');
+    }
+
+    // Can only check out from active bookings
+    if (booking.status !== BookingStatus.ACTIVE) {
+      throw ApiError.badRequest('Can only check out from active bookings');
+    }
+
+    // Must have checked in first
+    if (!booking.checkInAt) {
+      throw ApiError.badRequest('Must check in before checking out');
+    }
+
+    const updated = await this.bookingRepository.checkOut(bookingId);
     return toBookingDTO(updated);
   }
 }

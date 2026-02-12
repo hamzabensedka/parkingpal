@@ -183,9 +183,16 @@ export class ReviewService {
     const averageRating = await this.reviewRepository.getAverageRatingForUser(userId);
     const reviewCount = await this.reviewRepository.countReviewsForUser(userId);
 
+    // Flag users with rating below 3.0 for manual review
+    const shouldFlag = reviewCount >= 3 && averageRating < 3.0;
+    const user = await this.userRepository.findById(userId);
+    const wasAlreadyFlagged = user?.flaggedForReview ?? false;
+
     await this.userRepository.update(userId, {
       rating: averageRating,
       reviewCount,
+      flaggedForReview: shouldFlag,
+      flaggedAt: shouldFlag && !wasAlreadyFlagged ? new Date() : (shouldFlag ? undefined : null),
     });
   }
 
