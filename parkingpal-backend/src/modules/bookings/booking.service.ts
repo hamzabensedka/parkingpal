@@ -1,4 +1,4 @@
-import { BookingStatus, SpotStatus } from '@prisma/client';
+import { BookingStatus, SpotStatus, CancellationPolicy, PaymentStatus } from '@prisma/client';
 import type { CreateBookingRequest } from '@parkingpal/shared-types';
 import { IBookingRepository, CreateBookingData } from '../../interfaces/IBookingRepository';
 import { ISpotRepository } from '../../interfaces/ISpotRepository';
@@ -6,17 +6,19 @@ import { IVehicleRepository } from '../../interfaces/IVehicleRepository';
 import { ApiError } from '../../middleware/errorHandler';
 import { toBookingDTO, toBookingSummaryDTO, dtoBookingStatusToPrisma } from './booking.mappers';
 import type { BookingStatusDTO } from '@parkingpal/shared-types';
+import { PaymentService } from '../payments/payment.service';
 
 /**
  * Booking Service
  * Single Responsibility: Business logic for booking operations
- * Depends on IBookingRepository, ISpotRepository, IVehicleRepository (DIP)
+ * Depends on IBookingRepository, ISpotRepository, IVehicleRepository, PaymentService (DIP)
  */
 export class BookingService {
   constructor(
     private readonly bookingRepository: IBookingRepository,
     private readonly spotRepository: ISpotRepository,
     private readonly vehicleRepository: IVehicleRepository,
+    private readonly paymentService: PaymentService,
   ) {}
 
   async create(renterId: string, body: CreateBookingRequest, clientIp: string) {
@@ -147,18 +149,71 @@ export class BookingService {
     return toBookingDTO(booking);
   }
 
-  async getMyBookings(userId: string, role?: 'renter' | 'host', status?: BookingStatusDTO) {
+  async getMyBookings(
+    userId: string,
+    role?: 'renter' | 'host',
+    status?: BookingStatusDTO,
+    limit?: number,
+    offset?: number
+  ) {
     const prismaStatus = status ? dtoBookingStatusToPrisma(status) : undefined;
+    const pagination = limit !== undefined && offset !== undefined ? { limit, offset } : undefined;
 
-    let bookings;
+    let result;
     if (role === 'host') {
-      bookings = await this.bookingRepository.findByHostId(userId, prismaStatus);
+      result = await this.bookingRepository.findByHostId(userId, prismaStatus, pagination);
     } else {
       // Default to renter view
-      bookings = await this.bookingRepository.findByRenterId(userId, prismaStatus);
+      result = await this.bookingRepository.findByRenterId(userId, prismaStatus, pagination);
     }
 
-    return bookings.map(toBookingSummaryDTO);
+    return {
+      bookings: result.data.map(toBookingSummaryDTO),
+      total: result.total,
+    };
+  }
+
+  /**
+   * Calculate refund percentage based on cancellation policy and time until booking
+   * @returns Percentage of refund (0-100)
+   */
+  private calculateRefundPercentage(
+    cancellationPolicy: CancellationPolicy,
+    startTime: Date,
+    cancelledAt: Date
+  ): number {
+    const hoursUntilStart = (startTime.getTime() - cancelledAt.getTime()) / (1000 * 60 * 60);
+
+    switch (cancellationPolicy) {
+      case CancellationPolicy.FLEXIBLE:
+        // Full refund if >24h before, 50% if <24h, 0% if already started
+        if (hoursUntilStart <= 0) return 0; // Already started
+        if (hoursUntilStart >= 24) return 100; // More than 24h
+        return 50; // Less than 24h
+
+      case CancellationPolicy.MODERATE:
+        // Full refund if >48h before, 50% if 24-48h, 0% if <24h
+        if (hoursUntilStart < 24) return 0; // Less than 24h
+        if (hoursUntilStart >= 48) return 100; // More than 48h
+        return 50; // Between 24-48h
+
+      case CancellationPolicy.STRICT:
+        // Full refund if >7 days before, 50% if 3-7 days, 0% if <3 days
+        const daysUntilStart = hoursUntilStart / 24;
+        if (daysUntilStart < 3) return 0; // Less than 3 days
+        if (daysUntilStart >= 7) return 100; // More than 7 days
+        return 50; // Between 3-7 days
+
+      case CancellationPolicy.NON_REFUNDABLE:
+        // No refund ever
+        return 0;
+
+      default:
+        // Default to moderate policy
+        if (hoursUntilStart < 24) return 0;
+        if (hoursUntilStart >= 48) return 100;
+        return 50;
+    }
   }
 
   async cancel(bookingId: string, userId: string, reason?: string) {
@@ -178,11 +233,51 @@ export class BookingService {
       throw ApiError.badRequest('This booking cannot be cancelled');
     }
 
+    // Cancel the booking
+    const cancelledAt = new Date();
     const updated = await this.bookingRepository.updateStatus(bookingId, BookingStatus.CANCELLED, {
-      cancelledAt: new Date(),
+      cancelledAt,
       cancelledBy: userId,
       cancellationReason: reason,
     });
+
+    // Process refund if payment was captured
+    if (booking.paymentStatus === PaymentStatus.CAPTURED && booking.stripePaymentIntentId) {
+      // Calculate refund percentage based on cancellation policy
+      const refundPercentage = this.calculateRefundPercentage(
+        booking.cancellationPolicy,
+        booking.startTime,
+        cancelledAt
+      );
+
+      if (refundPercentage > 0) {
+        // Calculate refund amount in cents
+        const totalAmountCents = Math.round(booking.totalPrice * 100);
+        const refundAmountCents = Math.round((totalAmountCents * refundPercentage) / 100);
+
+        // Process refund (idempotent)
+        try {
+          await this.paymentService.refundBooking(
+            bookingId,
+            refundAmountCents === totalAmountCents ? undefined : refundAmountCents
+          );
+
+          console.log(
+            `💰 Refund processed for booking ${bookingId}: ${refundPercentage}% (${refundAmountCents / 100}€) ` +
+            `based on ${booking.cancellationPolicy} policy`
+          );
+        } catch (error: any) {
+          // Log error but don't fail the cancellation
+          console.error(`❌ Refund failed for booking ${bookingId}:`, error.message);
+          console.error('   Booking is cancelled but refund must be processed manually');
+        }
+      } else {
+        console.log(
+          `ℹ️  No refund for booking ${bookingId}: ${booking.cancellationPolicy} policy, ` +
+          `cancelled ${Math.round((booking.startTime.getTime() - cancelledAt.getTime()) / (1000 * 60 * 60))}h before start`
+        );
+      }
+    }
 
     return toBookingDTO(updated);
   }

@@ -14,6 +14,7 @@ import legalRoutes from './modules/legal/legal.routes';
 import messageRoutes from './modules/messaging/message.routes';
 import notificationRoutes from './modules/notifications/notification.routes';
 import earningsRoutes from './modules/earnings/earnings.routes';
+import webhookRoutes from './modules/webhooks/webhook.routes';
 import { reviewController, authenticate } from './container';
 
 // Create Express application
@@ -61,6 +62,17 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+
+// ==========================================
+// Webhook Routes (BEFORE body parsing!)
+// ==========================================
+
+/**
+ * CRITICAL: Webhook routes MUST be registered BEFORE express.json()
+ * Stripe signature verification requires raw body (Buffer), not parsed JSON
+ * The webhook route uses express.raw() internally
+ */
+app.use('/api/webhooks', webhookRoutes);
 
 // ==========================================
 // Body Parsing

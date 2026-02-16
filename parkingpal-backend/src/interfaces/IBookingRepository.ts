@@ -44,11 +44,21 @@ export interface CheckInData {
   checkInPhoto?: string;
 }
 
+export interface PaginationOptions {
+  limit: number;
+  offset: number;
+}
+
+export interface PaginatedResult<T> {
+  data: T[];
+  total: number;
+}
+
 export interface IBookingRepository {
   create(data: CreateBookingData): Promise<BookingWithRelations>;
   findById(id: string): Promise<BookingWithRelations | null>;
-  findByRenterId(renterId: string, status?: BookingStatus): Promise<BookingWithRelations[]>;
-  findByHostId(hostId: string, status?: BookingStatus): Promise<BookingWithRelations[]>;
+  findByRenterId(renterId: string, status?: BookingStatus, pagination?: PaginationOptions): Promise<PaginatedResult<BookingWithRelations>>;
+  findByHostId(hostId: string, status?: BookingStatus, pagination?: PaginationOptions): Promise<PaginatedResult<BookingWithRelations>>;
   findBySpotId(spotId: string): Promise<BookingWithRelations[]>;
   updateStatus(id: string, status: BookingStatus, data?: Partial<Pick<Booking, 'cancelledAt' | 'cancelledBy' | 'cancellationReason' | 'hostNotes'>>): Promise<BookingWithRelations>;
   updatePayment(id: string, data: UpdatePaymentData): Promise<BookingWithRelations>;

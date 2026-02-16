@@ -51,6 +51,7 @@ import { PaymentService } from './modules/payments/payment.service';
 import { MessageService } from './modules/messaging/message.service';
 import { NotificationService } from './modules/notifications/notification.service';
 import { EarningsService } from './modules/earnings/earnings.service';
+import { WebhookService } from './modules/webhooks/webhook.service';
 
 // Controllers
 import { AuthController } from './modules/auth/auth.controller';
@@ -66,6 +67,7 @@ import { PaymentController } from './modules/payments/payment.controller';
 import { MessageController } from './modules/messaging/message.controller';
 import { NotificationController } from './modules/notifications/notification.controller';
 import { EarningsController } from './modules/earnings/earnings.controller';
+import { WebhookController } from './modules/webhooks/webhook.controller';
 
 // Middleware factory
 import { createAuthMiddleware } from './middleware/authenticate';
@@ -102,7 +104,7 @@ const smsService = new TwilioSMSService(
 );
 
 /** Payment processing via Stripe -- swap with other provider if needed */
-const paymentService = new StripePaymentService(env.stripe.secretKey);
+const paymentService = new StripePaymentService(env.stripe.secretKey, env.isProduction);
 
 /** OAuth token verification (Google & Apple) */
 const oauthService = new OAuthService();
@@ -175,12 +177,6 @@ const spotService = new SpotService(spotRepository, userRepository);
 /** Favorite business logic */
 const favoriteService = new FavoriteService(prisma, spotRepository);
 
-/** Booking business logic */
-const bookingService = new BookingService(bookingRepository, spotRepository, vehicleRepository);
-
-/** Review business logic */
-const reviewService = new ReviewService(reviewRepository, userRepository, spotRepository, bookingRepository);
-
 /** Stripe payment business logic */
 const stripePaymentBusinessService = new PaymentService(
   paymentService,
@@ -188,6 +184,17 @@ const stripePaymentBusinessService = new PaymentService(
   bookingRepository,
   env.appUrl
 );
+
+/** Booking business logic */
+const bookingService = new BookingService(
+  bookingRepository,
+  spotRepository,
+  vehicleRepository,
+  stripePaymentBusinessService
+);
+
+/** Review business logic */
+const reviewService = new ReviewService(reviewRepository, userRepository, spotRepository, bookingRepository);
 
 /** Messaging business logic */
 const messageService = new MessageService(
@@ -205,6 +212,9 @@ const notificationService = new NotificationService(
 
 /** Earnings business logic (uses Prisma directly for aggregation queries) */
 const earningsService = new EarningsService(prisma);
+
+/** Webhook business logic (Stripe event processing with idempotency) */
+const webhookService = new WebhookService(prisma, bookingRepository);
 
 // ==========================================
 // 4. CREATE CONTROLLERS (HTTP handling only)
@@ -250,6 +260,13 @@ const notificationController = new NotificationController(notificationService);
 /** Earnings HTTP handler */
 const earningsController = new EarningsController(earningsService);
 
+/** Webhook HTTP handler */
+const webhookController = new WebhookController(
+  webhookService,
+  paymentService,
+  env.stripe.webhookSecret || ''
+);
+
 // ==========================================
 // 5. CREATE MIDDLEWARE (with injected dependencies)
 // ==========================================
@@ -293,6 +310,7 @@ export {
   messageController,
   notificationController,
   earningsController,
+  webhookController,
 
   // Services for use in other modules
   notificationService,

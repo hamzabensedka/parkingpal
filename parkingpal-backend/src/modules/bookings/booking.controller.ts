@@ -40,11 +40,31 @@ export class BookingController {
   async getMyBookings(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const query = req.query as unknown as ListBookingsSchemaType;
-      const bookings = await this.bookingService.getMyBookings(req.user!.id, query.role, query.status);
+
+      // Pagination parameters are already coerced to numbers by zod
+      const limit = query.limit || 20;
+      const offset = query.offset || 0;
+
+      const result = await this.bookingService.getMyBookings(
+        req.user!.id,
+        query.role,
+        query.status,
+        limit,
+        offset
+      );
+
       res.status(HTTP_STATUS.OK).json({
         success: true,
         message: 'Bookings retrieved',
-        data: { bookings },
+        data: {
+          bookings: result.bookings,
+          pagination: {
+            total: result.total,
+            limit,
+            offset,
+            hasMore: offset + result.bookings.length < result.total,
+          },
+        },
       });
     } catch (error) {
       next(error);

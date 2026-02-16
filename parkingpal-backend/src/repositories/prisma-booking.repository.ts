@@ -5,6 +5,8 @@ import {
   CreateBookingData,
   UpdatePaymentData,
   CheckInData,
+  PaginationOptions,
+  PaginatedResult,
 } from '../interfaces/IBookingRepository';
 
 const BOOKING_INCLUDE = {
@@ -54,26 +56,54 @@ export class PrismaBookingRepository implements IBookingRepository {
     }) as Promise<BookingWithRelations | null>;
   }
 
-  async findByRenterId(renterId: string, status?: BookingStatus): Promise<BookingWithRelations[]> {
+  async findByRenterId(
+    renterId: string,
+    status?: BookingStatus,
+    pagination?: PaginationOptions
+  ): Promise<PaginatedResult<BookingWithRelations>> {
     const where: any = { renterId };
     if (status) where.status = status;
 
-    return this.prisma.booking.findMany({
+    // Get total count
+    const total = await this.prisma.booking.count({ where });
+
+    // Get paginated data
+    const data = await this.prisma.booking.findMany({
       where,
       include: BOOKING_INCLUDE,
       orderBy: { createdAt: 'desc' },
-    }) as Promise<BookingWithRelations[]>;
+      ...(pagination && {
+        take: pagination.limit,
+        skip: pagination.offset,
+      }),
+    }) as BookingWithRelations[];
+
+    return { data, total };
   }
 
-  async findByHostId(hostId: string, status?: BookingStatus): Promise<BookingWithRelations[]> {
+  async findByHostId(
+    hostId: string,
+    status?: BookingStatus,
+    pagination?: PaginationOptions
+  ): Promise<PaginatedResult<BookingWithRelations>> {
     const where: any = { hostId };
     if (status) where.status = status;
 
-    return this.prisma.booking.findMany({
+    // Get total count
+    const total = await this.prisma.booking.count({ where });
+
+    // Get paginated data
+    const data = await this.prisma.booking.findMany({
       where,
       include: BOOKING_INCLUDE,
       orderBy: { createdAt: 'desc' },
-    }) as Promise<BookingWithRelations[]>;
+      ...(pagination && {
+        take: pagination.limit,
+        skip: pagination.offset,
+      }),
+    }) as BookingWithRelations[];
+
+    return { data, total };
   }
 
   async findBySpotId(spotId: string): Promise<BookingWithRelations[]> {

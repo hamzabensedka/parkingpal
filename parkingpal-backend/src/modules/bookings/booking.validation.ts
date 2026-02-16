@@ -28,8 +28,9 @@ export const cancelBookingSchema = z.object({
 export const listBookingsSchema = z.object({
   status: bookingStatusSchema.optional(),
   role: bookingRoleSchema.optional(),
-  page: z.coerce.number().int().min(1).default(1),
-  limit: z.coerce.number().int().min(1).max(50).default(20),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  offset: z.coerce.number().int().min(0).default(0),
+  cursor: z.string().optional(), // For cursor-based pagination
 });
 
 export const checkInSchema = z.object({

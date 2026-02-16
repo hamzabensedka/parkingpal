@@ -13,10 +13,20 @@ import {
  */
 export class StripePaymentService implements IPaymentService {
   private readonly stripe: Stripe | null;
+  private readonly isProduction: boolean;
 
-  constructor(secretKey: string | undefined) {
+  constructor(secretKey: string | undefined, isProduction = false) {
+    this.isProduction = isProduction;
+
     if (!secretKey) {
-      console.warn('Stripe not configured. Payments will be mocked.');
+      if (isProduction) {
+        throw new Error(
+          'CRITICAL: Stripe is not configured in production. ' +
+          'Set STRIPE_SECRET_KEY environment variable. ' +
+          'Payment operations cannot proceed without Stripe configuration.'
+        );
+      }
+      console.warn('⚠️  Stripe not configured. Payments will be mocked (development only).');
       this.stripe = null;
     } else {
       this.stripe = new Stripe(secretKey);
@@ -24,16 +34,25 @@ export class StripePaymentService implements IPaymentService {
   }
 
   /**
+   * Throws an error if Stripe is not configured in production
+   */
+  private ensureConfigured(operation: string): void {
+    if (!this.stripe) {
+      throw new Error(
+        `Payment service unavailable: ${operation} requires Stripe configuration. ` +
+        'Please contact support or configure payment processing.'
+      );
+    }
+  }
+
+  /**
    * Create or get Stripe customer for a renter
    */
   async createOrGetCustomer(userId: string, email: string, name: string): Promise<string> {
-    if (!this.stripe) {
-      console.log(`[MOCK] Creating Stripe customer for ${email}`);
-      return `cus_mock_${userId.substring(0, 8)}`;
-    }
+    this.ensureConfigured('Create customer');
 
     // Check if customer already exists by metadata
-    const existingCustomers = await this.stripe.customers.list({
+    const existingCustomers = await this.stripe!.customers.list({
       email,
       limit: 1,
     });
@@ -43,7 +62,7 @@ export class StripePaymentService implements IPaymentService {
     }
 
     // Create new customer
-    const customer = await this.stripe.customers.create({
+    const customer = await this.stripe!.customers.create({
       email,
       name,
       metadata: {
@@ -63,16 +82,10 @@ export class StripePaymentService implements IPaymentService {
     returnUrl: string,
     refreshUrl: string
   ): Promise<CreateConnectAccountResult> {
-    if (!this.stripe) {
-      console.log(`[MOCK] Creating Connect account for ${email}`);
-      return {
-        accountId: `acct_mock_${userId.substring(0, 8)}`,
-        onboardingUrl: `${returnUrl}?mock=true`,
-      };
-    }
+    this.ensureConfigured('Create Connect account');
 
     // Create Connect Express account
-    const account = await this.stripe.accounts.create({
+    const account = await this.stripe!.accounts.create({
       type: 'express',
       country: 'FR',
       email,
@@ -86,7 +99,7 @@ export class StripePaymentService implements IPaymentService {
     });
 
     // Create account link for onboarding
-    const accountLink = await this.stripe.accountLinks.create({
+    const accountLink = await this.stripe!.accountLinks.create({
       account: account.id,
       refresh_url: refreshUrl,
       return_url: returnUrl,
@@ -103,11 +116,9 @@ export class StripePaymentService implements IPaymentService {
    * Check if a Connect account is fully onboarded
    */
   async isAccountOnboarded(accountId: string): Promise<boolean> {
-    if (!this.stripe) {
-      return accountId.startsWith('acct_mock_');
-    }
+    this.ensureConfigured('Check account status');
 
-    const account = await this.stripe.accounts.retrieve(accountId);
+    const account = await this.stripe!.accounts.retrieve(accountId);
     return account.charges_enabled && account.payouts_enabled;
   }
 
@@ -120,33 +131,34 @@ export class StripePaymentService implements IPaymentService {
     customerId: string,
     hostConnectAccountId: string,
     bookingId: string,
-    description: string
+    description: string,
+    idempotencyKey?: string
   ): Promise<CreatePaymentIntentResult> {
-    if (!this.stripe) {
-      console.log(`[MOCK] Creating payment intent: ${amount} cents for booking ${bookingId}`);
-      return {
-        paymentIntentId: `pi_mock_${bookingId.substring(0, 8)}`,
-        clientSecret: `pi_mock_${bookingId.substring(0, 8)}_secret_mock`,
-      };
-    }
+    this.ensureConfigured('Create payment intent');
 
     // Calculate platform fee (20%)
     const platformFee = Math.round(amount * PLATFORM_COMMISSION_RATE);
 
     // Create payment intent with automatic capture disabled (manual capture for escrow)
-    const paymentIntent = await this.stripe.paymentIntents.create({
-      amount,
-      currency: 'eur',
-      customer: customerId,
-      description,
-      capture_method: 'manual', // Hold funds, don't capture immediately
-      metadata: {
-        bookingId,
-        hostConnectAccountId,
-        platformFee: platformFee.toString(),
+    const paymentIntent = await this.stripe!.paymentIntents.create(
+      {
+        amount,
+        currency: 'eur',
+        customer: customerId,
+        description,
+        capture_method: 'manual', // Hold funds, don't capture immediately
+        metadata: {
+          bookingId,
+          hostConnectAccountId,
+          platformFee: platformFee.toString(),
+        },
+        // We'll transfer to host separately after 48h dispute window
       },
-      // We'll transfer to host separately after 48h dispute window
-    });
+      {
+        // Idempotency key ensures safe retries
+        ...(idempotencyKey && { idempotencyKey }),
+      }
+    );
 
     return {
       paymentIntentId: paymentIntent.id,
@@ -157,13 +169,17 @@ export class StripePaymentService implements IPaymentService {
   /**
    * Capture a payment intent (finalize the charge)
    */
-  async capturePayment(paymentIntentId: string): Promise<void> {
-    if (!this.stripe) {
-      console.log(`[MOCK] Capturing payment: ${paymentIntentId}`);
-      return;
-    }
+  async capturePayment(paymentIntentId: string, idempotencyKey?: string): Promise<void> {
+    this.ensureConfigured('Capture payment');
 
-    await this.stripe.paymentIntents.capture(paymentIntentId);
+    await this.stripe!.paymentIntents.capture(
+      paymentIntentId,
+      undefined,
+      {
+        // Idempotency key ensures safe retries
+        ...(idempotencyKey && { idempotencyKey }),
+      }
+    );
   }
 
   /**
@@ -172,24 +188,25 @@ export class StripePaymentService implements IPaymentService {
   async transferToHost(
     amount: number,
     hostConnectAccountId: string,
-    bookingId: string
+    bookingId: string,
+    idempotencyKey?: string
   ): Promise<TransferResult> {
-    if (!this.stripe) {
-      console.log(`[MOCK] Transferring ${amount} cents to ${hostConnectAccountId}`);
-      return {
-        transferId: `tr_mock_${bookingId.substring(0, 8)}`,
-        amount,
-      };
-    }
+    this.ensureConfigured('Transfer to host');
 
-    const transfer = await this.stripe.transfers.create({
-      amount,
-      currency: 'eur',
-      destination: hostConnectAccountId,
-      metadata: {
-        bookingId,
+    const transfer = await this.stripe!.transfers.create(
+      {
+        amount,
+        currency: 'eur',
+        destination: hostConnectAccountId,
+        metadata: {
+          bookingId,
+        },
       },
-    });
+      {
+        // Idempotency key ensures safe retries
+        ...(idempotencyKey && { idempotencyKey }),
+      }
+    );
 
     return {
       transferId: transfer.id,
@@ -200,27 +217,50 @@ export class StripePaymentService implements IPaymentService {
   /**
    * Refund a payment
    */
-  async refundPayment(paymentIntentId: string, amount?: number): Promise<void> {
-    if (!this.stripe) {
-      console.log(`[MOCK] Refunding payment: ${paymentIntentId}, amount: ${amount || 'full'}`);
-      return;
-    }
+  async refundPayment(paymentIntentId: string, amount?: number, idempotencyKey?: string): Promise<void> {
+    this.ensureConfigured('Refund payment');
 
-    await this.stripe.refunds.create({
-      payment_intent: paymentIntentId,
-      ...(amount && { amount }),
-    });
+    await this.stripe!.refunds.create(
+      {
+        payment_intent: paymentIntentId,
+        ...(amount && { amount }),
+      },
+      {
+        // Idempotency key ensures safe retries
+        ...(idempotencyKey && { idempotencyKey }),
+      }
+    );
   }
 
   /**
    * Get payment intent status
    */
   async getPaymentIntentStatus(paymentIntentId: string): Promise<string> {
-    if (!this.stripe) {
-      return 'succeeded';
-    }
+    this.ensureConfigured('Get payment status');
 
-    const paymentIntent = await this.stripe.paymentIntents.retrieve(paymentIntentId);
+    const paymentIntent = await this.stripe!.paymentIntents.retrieve(paymentIntentId);
     return paymentIntent.status;
+  }
+
+  /**
+   * Verify and construct webhook event from raw request
+   * CRITICAL: This must be called with the raw body (NOT JSON-parsed)
+   */
+  constructWebhookEvent(rawBody: string | Buffer, signature: string, webhookSecret: string): Stripe.Event {
+    this.ensureConfigured('Verify webhook');
+
+    try {
+      // Stripe's constructEvent validates the signature and returns the event
+      const event = this.stripe!.webhooks.constructEvent(
+        rawBody,
+        signature,
+        webhookSecret
+      );
+
+      return event;
+    } catch (err: any) {
+      // Signature verification failed
+      throw new Error(`Webhook signature verification failed: ${err.message}`);
+    }
   }
 }
