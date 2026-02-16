@@ -252,3 +252,122 @@ export const smsCodeLimiter = rateLimit({
     });
   },
 });
+
+/**
+ * Rate limiter for message sending (global per user)
+ * 60 messages per hour per user to prevent spam
+ */
+export const messageSendLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 60,
+  keyGenerator: getUserOrIpKey,
+  message: {
+    success: false,
+    error: 'Too many messages sent. Please wait before sending more messages.',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => {
+    res.status(HTTP_STATUS.TOO_MANY_REQUESTS).json({
+      success: false,
+      error: 'Too many messages sent. Please wait before sending more messages.',
+    });
+  },
+});
+
+/**
+ * Rate limiter for per-conversation messaging
+ * 20 messages per conversation per 10 minutes to prevent conversation spam
+ * Uses combination of user ID and conversation ID
+ */
+export const conversationMessageLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000, // 10 minutes
+  max: 20,
+  keyGenerator: (req: Request): string => {
+    const userId = req.user?.id || 'unknown';
+    const conversationId = req.body?.conversationId || 'unknown';
+    return `conv:${userId}:${conversationId}`;
+  },
+  message: {
+    success: false,
+    error: 'Too many messages in this conversation. Please wait before sending more.',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => {
+    res.status(HTTP_STATUS.TOO_MANY_REQUESTS).json({
+      success: false,
+      error: 'Too many messages in this conversation. Please wait before sending more.',
+    });
+  },
+});
+
+/**
+ * Rate limiter for conversation creation
+ * 10 conversations per hour per user to prevent spam
+ */
+export const conversationCreateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 10,
+  keyGenerator: getUserOrIpKey,
+  message: {
+    success: false,
+    error: 'Too many conversation creation attempts. Please wait before starting new conversations.',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => {
+    res.status(HTTP_STATUS.TOO_MANY_REQUESTS).json({
+      success: false,
+      error: 'Too many conversation creation attempts. Please wait before starting new conversations.',
+    });
+  },
+});
+
+// ========================================
+// SAFETY & MODERATION RATE LIMITERS
+// ========================================
+
+/**
+ * Rate limiter for user report submissions
+ * 10 reports per 24 hours per user to prevent abuse
+ */
+export const reportLimiter = rateLimit({
+  windowMs: 24 * 60 * 60 * 1000, // 24 hours
+  max: 10,
+  keyGenerator: getUserOrIpKey,
+  message: {
+    success: false,
+    error: 'Too many reports submitted. Please wait before reporting again.',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => {
+    res.status(HTTP_STATUS.TOO_MANY_REQUESTS).json({
+      success: false,
+      error: 'Too many reports submitted. Please wait before reporting again.',
+    });
+  },
+});
+
+/**
+ * Rate limiter for blocking users
+ * 20 blocks per 24 hours per user to prevent mass blocking
+ */
+export const blockLimiter = rateLimit({
+  windowMs: 24 * 60 * 60 * 1000, // 24 hours
+  max: 20,
+  keyGenerator: getUserOrIpKey,
+  message: {
+    success: false,
+    error: 'Too many block actions. Please wait before blocking more users.',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => {
+    res.status(HTTP_STATUS.TOO_MANY_REQUESTS).json({
+      success: false,
+      error: 'Too many block actions. Please wait before blocking more users.',
+    });
+  },
+});

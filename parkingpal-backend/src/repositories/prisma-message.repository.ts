@@ -19,14 +19,21 @@ export class PrismaMessageRepository implements IMessageRepository {
     conversationId: string,
     limit: number,
     offset: number
-  ): Promise<MessageWithSender[]> {
-    return this.prisma.message.findMany({
-      where: { conversationId },
-      include: { sender: true },
-      orderBy: { createdAt: 'desc' },
-      take: limit,
-      skip: offset,
-    });
+  ): Promise<{ messages: MessageWithSender[]; total: number }> {
+    const where = { conversationId };
+
+    const [messages, total] = await Promise.all([
+      this.prisma.message.findMany({
+        where,
+        include: { sender: true },
+        orderBy: { createdAt: 'desc' },
+        take: limit,
+        skip: offset,
+      }),
+      this.prisma.message.count({ where }),
+    ]);
+
+    return { messages, total };
   }
 
   async create(data: CreateMessageData): Promise<MessageWithSender> {
@@ -82,5 +89,36 @@ export class PrismaMessageRepository implements IMessageRepository {
         read: false,
       },
     });
+  }
+
+  async countUnreadForConversations(
+    conversationIds: string[],
+    receiverId: string
+  ): Promise<Map<string, number>> {
+    // Use groupBy to count unread messages for all conversations in one query
+    const results = await this.prisma.message.groupBy({
+      by: ['conversationId'],
+      where: {
+        conversationId: { in: conversationIds },
+        receiverId,
+        read: false,
+      },
+      _count: {
+        id: true,
+      },
+    });
+
+    // Convert to Map for easy lookup
+    const countMap = new Map<string, number>();
+
+    // Initialize all conversation IDs with 0
+    conversationIds.forEach(id => countMap.set(id, 0));
+
+    // Update with actual counts
+    results.forEach(result => {
+      countMap.set(result.conversationId, result._count.id);
+    });
+
+    return countMap;
   }
 }

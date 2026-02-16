@@ -9,3 +9,4 @@ export * from './booking';
 export * from './messaging';
 export * from './notification';
 export * from './earnings';
+export * from './safety';

@@ -20,10 +20,13 @@ export class NotificationController {
       const userId = req.user!.id;
       const query = req.query as unknown as ListNotificationsQueryInput;
 
+      const limit = query.limit ?? 20;
+      const offset = query.offset ?? 0;
+
       const result = await this.notificationService.getNotifications(
         userId,
-        query.limit ?? 20,
-        query.offset ?? 0,
+        limit,
+        offset,
         query.unreadOnly ?? false
       );
 
@@ -33,8 +36,13 @@ export class NotificationController {
         success: true,
         data: {
           notifications: notificationDTOs,
-          total: result.total,
           unreadCount: result.unreadCount,
+          pagination: {
+            total: result.total,
+            limit,
+            offset,
+            hasMore: offset + notificationDTOs.length < result.total,
+          },
         },
       });
     } catch (error) {

@@ -162,68 +162,82 @@ export class PrismaReviewRepository implements IReviewRepository {
   async findByRevieweeId(
     revieweeId: string,
     options?: { skip?: number; take?: number }
-  ): Promise<Review[]> {
-    return this.prisma.review.findMany({
-      where: { revieweeId },
-      skip: options?.skip,
-      take: options?.take,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        reviewer: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            profilePhoto: true,
+  ): Promise<{ reviews: Review[]; total: number }> {
+    const where = { revieweeId };
+
+    const [reviews, total] = await Promise.all([
+      this.prisma.review.findMany({
+        where,
+        skip: options?.skip,
+        take: options?.take,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          reviewer: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              profilePhoto: true,
+            },
+          },
+          spot: {
+            select: {
+              id: true,
+              title: true,
+              address: true,
+            },
+          },
+          booking: {
+            select: {
+              id: true,
+              startTime: true,
+              endTime: true,
+            },
           },
         },
-        spot: {
-          select: {
-            id: true,
-            title: true,
-            address: true,
-          },
-        },
-        booking: {
-          select: {
-            id: true,
-            startTime: true,
-            endTime: true,
-          },
-        },
-      },
-    });
+      }),
+      this.prisma.review.count({ where }),
+    ]);
+
+    return { reviews, total };
   }
 
   async findBySpotId(
     spotId: string,
     options?: { skip?: number; take?: number }
-  ): Promise<Review[]> {
-    return this.prisma.review.findMany({
-      where: { spotId },
-      skip: options?.skip,
-      take: options?.take,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        reviewer: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            profilePhoto: true,
-            rating: true,
-            reviewCount: true,
+  ): Promise<{ reviews: Review[]; total: number }> {
+    const where = { spotId };
+
+    const [reviews, total] = await Promise.all([
+      this.prisma.review.findMany({
+        where,
+        skip: options?.skip,
+        take: options?.take,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          reviewer: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              profilePhoto: true,
+              rating: true,
+              reviewCount: true,
+            },
+          },
+          booking: {
+            select: {
+              id: true,
+              startTime: true,
+              endTime: true,
+            },
           },
         },
-        booking: {
-          select: {
-            id: true,
-            startTime: true,
-            endTime: true,
-          },
-        },
-      },
-    });
+      }),
+      this.prisma.review.count({ where }),
+    ]);
+
+    return { reviews, total };
   }
 
   async update(id: string, data: Prisma.ReviewUpdateInput): Promise<Review> {

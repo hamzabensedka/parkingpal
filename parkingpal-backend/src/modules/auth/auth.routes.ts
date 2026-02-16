@@ -16,6 +16,8 @@ import {
   userApiLimiter,
 } from '../../middleware/rateLimiter';
 import { uploadIdDocument, handleMulterError } from '../../middleware/upload';
+import { cacheMiddleware } from '../../middleware/cacheMiddleware';
+import { oauthCache } from '../../utils/cache';
 import vehicleRoutes from '../vehicles/vehicle.routes';
 import paymentMethodRoutes from '../payment-methods/payment-method.routes';
 import {
@@ -109,9 +111,11 @@ router.post(
 /**
  * GET /api/auth/oauth/availability
  * Check which OAuth providers are configured and available
+ * Cached for 1 hour
  */
 router.get(
   '/oauth/availability',
+  cacheMiddleware(oauthCache, 'oauth:availability'),
   oauthController.availability.bind(oauthController)
 );
 

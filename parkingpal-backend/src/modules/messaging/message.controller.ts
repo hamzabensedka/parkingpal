@@ -29,10 +29,13 @@ export class MessageController {
       const userId = req.user!.id;
       const query = req.query as unknown as ListConversationsQueryInput;
 
+      const limit = query.limit ?? 20;
+      const offset = query.offset ?? 0;
+
       const { conversations, total, unreadCounts } = await this.messageService.getConversations(
         userId,
-        query.limit ?? 20,
-        query.offset ?? 0
+        limit,
+        offset
       );
 
       const conversationDTOs: ConversationSummaryDTO[] = conversations.map(conv =>
@@ -43,7 +46,12 @@ export class MessageController {
         success: true,
         data: {
           conversations: conversationDTOs,
-          total,
+          pagination: {
+            total,
+            limit,
+            offset,
+            hasMore: offset + conversationDTOs.length < total,
+          },
         },
       });
     } catch (error) {
@@ -109,20 +117,29 @@ export class MessageController {
       const { id } = req.params;
       const query = req.query as unknown as GetMessagesQueryInput;
 
-      const messages = await this.messageService.getMessages(
+      const limit = query.limit ?? 50;
+      const offset = query.offset ?? 0;
+
+      const result = await this.messageService.getMessages(
         id,
         userId,
-        query.limit ?? 50,
-        query.offset ?? 0
+        limit,
+        offset
       );
 
       // Messages are returned in DESC order (newest first), reverse for chronological
-      const messageDTOs: MessageDTO[] = messages.map(toMessageDTO).reverse();
+      const messageDTOs: MessageDTO[] = result.messages.map(toMessageDTO).reverse();
 
       res.json({
         success: true,
         data: {
           messages: messageDTOs,
+          pagination: {
+            total: result.total,
+            limit,
+            offset,
+            hasMore: offset + result.messages.length < result.total,
+          },
         },
       });
     } catch (error) {

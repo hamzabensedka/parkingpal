@@ -15,6 +15,7 @@ import messageRoutes from './modules/messaging/message.routes';
 import notificationRoutes from './modules/notifications/notification.routes';
 import earningsRoutes from './modules/earnings/earnings.routes';
 import webhookRoutes from './modules/webhooks/webhook.routes';
+import safetyRoutes from './modules/safety/safety.routes';
 import { reviewController, authenticate } from './container';
 
 // Create Express application
@@ -139,6 +140,9 @@ app.use('/api/notifications', notificationRoutes);
 
 // Earnings routes (host earnings dashboard)
 app.use('/api/earnings', earningsRoutes);
+
+// Safety routes (reporting and blocking)
+app.use('/api/safety', safetyRoutes);
 
 // ==========================================
 // Error Handling

@@ -20,13 +20,13 @@ export interface IReviewRepository {
   findByRevieweeId(revieweeId: string, options?: {
     skip?: number;
     take?: number;
-  }): Promise<Review[]>;
+  }): Promise<{ reviews: Review[]; total: number }>;
 
   // Find reviews for a spot
   findBySpotId(spotId: string, options?: {
     skip?: number;
     take?: number;
-  }): Promise<Review[]>;
+  }): Promise<{ reviews: Review[]; total: number }>;
 
   // Update a review
   update(id: string, data: Prisma.ReviewUpdateInput): Promise<Review>;

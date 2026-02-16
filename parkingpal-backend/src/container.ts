@@ -36,6 +36,8 @@ import { PrismaReviewRepository } from './repositories/prisma-review.repository'
 import { PrismaConversationRepository } from './repositories/prisma-conversation.repository';
 import { PrismaMessageRepository } from './repositories/prisma-message.repository';
 import { PrismaNotificationRepository } from './repositories/prisma-notification.repository';
+import { PrismaUserReportRepository } from './repositories/prisma-user-report.repository';
+import { PrismaUserBlockRepository } from './repositories/prisma-user-block.repository';
 import { ExpoPushService } from './services/expo-push.service';
 
 // Services
@@ -52,6 +54,7 @@ import { MessageService } from './modules/messaging/message.service';
 import { NotificationService } from './modules/notifications/notification.service';
 import { EarningsService } from './modules/earnings/earnings.service';
 import { WebhookService } from './modules/webhooks/webhook.service';
+import { SafetyService } from './modules/safety/safety.service';
 
 // Controllers
 import { AuthController } from './modules/auth/auth.controller';
@@ -68,9 +71,11 @@ import { MessageController } from './modules/messaging/message.controller';
 import { NotificationController } from './modules/notifications/notification.controller';
 import { EarningsController } from './modules/earnings/earnings.controller';
 import { WebhookController } from './modules/webhooks/webhook.controller';
+import { SafetyController } from './modules/safety/safety.controller';
 
 // Middleware factory
 import { createAuthMiddleware } from './middleware/authenticate';
+import { createBlockEnforcementMiddlewareSet } from './middleware/blockEnforcement';
 
 // ==========================================
 // 1. CREATE UTILITIES (Single Responsibility each)
@@ -142,6 +147,12 @@ const notificationRepository = new PrismaNotificationRepository(prisma);
 
 /** Push notification service via Expo */
 const pushNotificationService = new ExpoPushService();
+
+/** User report database access via Prisma */
+const userReportRepository = new PrismaUserReportRepository(prisma);
+
+/** User block database access via Prisma */
+const userBlockRepository = new PrismaUserBlockRepository(prisma);
 
 // ==========================================
 // 3. CREATE SERVICES (Business logic)
@@ -216,6 +227,13 @@ const earningsService = new EarningsService(prisma);
 /** Webhook business logic (Stripe event processing with idempotency) */
 const webhookService = new WebhookService(prisma, bookingRepository);
 
+/** Safety business logic (user reports and blocks) */
+const safetyService = new SafetyService(
+  userReportRepository,
+  userBlockRepository,
+  userRepository
+);
+
 // ==========================================
 // 4. CREATE CONTROLLERS (HTTP handling only)
 //    Services injected via constructor
@@ -267,6 +285,9 @@ const webhookController = new WebhookController(
   env.stripe.webhookSecret || ''
 );
 
+/** Safety HTTP handler */
+const safetyController = new SafetyController(safetyService);
+
 // ==========================================
 // 5. CREATE MIDDLEWARE (with injected dependencies)
 // ==========================================
@@ -276,6 +297,9 @@ const { authenticate, optionalAuthenticate } = createAuthMiddleware(
   tokenUtil,
   userRepository
 );
+
+/** Block enforcement middleware set */
+const blockEnforcementMiddleware = createBlockEnforcementMiddlewareSet(userBlockRepository);
 
 // ==========================================
 // EXPORTS
@@ -311,11 +335,17 @@ export {
   notificationController,
   earningsController,
   webhookController,
+  safetyController,
 
   // Services for use in other modules
   notificationService,
+  safetyService,
+
+  // Repositories for middleware use
+  userBlockRepository,
 
   // Middleware
   authenticate,
   optionalAuthenticate,
+  blockEnforcementMiddleware,
 };

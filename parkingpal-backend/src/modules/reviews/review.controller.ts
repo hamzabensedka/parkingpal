@@ -59,18 +59,28 @@ export class ReviewController {
   getReviewsForUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { userId } = req.params;
-      const { page, limit } = req.query;
+      const { limit, offset } = req.query;
+
+      const parsedLimit = Number(limit) || 20;
+      const parsedOffset = Number(offset) || 0;
 
       const result = await this.reviewService.getReviewsForUser(
         userId,
-        Number(page) || 1,
-        Number(limit) || 10
+        parsedLimit,
+        parsedOffset
       );
 
       res.status(200).json({
         success: true,
-        data: result.reviews,
-        pagination: result.pagination,
+        data: {
+          reviews: result.reviews,
+          pagination: {
+            total: result.total,
+            limit: parsedLimit,
+            offset: parsedOffset,
+            hasMore: parsedOffset + result.reviews.length < result.total,
+          },
+        },
       });
     } catch (error) {
       next(error);
@@ -90,8 +100,9 @@ export class ReviewController {
 
       res.status(200).json({
         success: true,
-        data: result.reviews,
-        pagination: result.pagination,
+        data: {
+          reviews: result.reviews,
+        },
       });
     } catch (error) {
       next(error);
@@ -101,18 +112,28 @@ export class ReviewController {
   getReviewsForSpot = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { spotId } = req.params;
-      const { page, limit } = req.query;
+      const { limit, offset } = req.query;
+
+      const parsedLimit = Number(limit) || 20;
+      const parsedOffset = Number(offset) || 0;
 
       const result = await this.reviewService.getReviewsForSpot(
         spotId,
-        Number(page) || 1,
-        Number(limit) || 10
+        parsedLimit,
+        parsedOffset
       );
 
       res.status(200).json({
         success: true,
-        data: result.reviews,
-        pagination: result.pagination,
+        data: {
+          reviews: result.reviews,
+          pagination: {
+            total: result.total,
+            limit: parsedLimit,
+            offset: parsedOffset,
+            hasMore: parsedOffset + result.reviews.length < result.total,
+          },
+        },
       });
     } catch (error) {
       next(error);

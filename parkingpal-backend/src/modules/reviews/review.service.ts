@@ -98,22 +98,15 @@ export class ReviewService {
     return this.reviewRepository.findByBookingId(bookingId);
   }
 
-  async getReviewsForUser(userId: string, page: number = 1, limit: number = 10) {
-    const skip = (page - 1) * limit;
-    const reviews = await this.reviewRepository.findByRevieweeId(userId, {
-      skip,
+  async getReviewsForUser(userId: string, limit: number = 20, offset: number = 0) {
+    const result = await this.reviewRepository.findByRevieweeId(userId, {
+      skip: offset,
       take: limit,
     });
-    const total = await this.reviewRepository.countReviewsForUser(userId);
 
     return {
-      reviews,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
+      reviews: result.reviews,
+      total: result.total,
     };
   }
 
@@ -134,22 +127,15 @@ export class ReviewService {
     };
   }
 
-  async getReviewsForSpot(spotId: string, page: number = 1, limit: number = 10) {
-    const skip = (page - 1) * limit;
-    const reviews = await this.reviewRepository.findBySpotId(spotId, {
-      skip,
+  async getReviewsForSpot(spotId: string, limit: number = 20, offset: number = 0) {
+    const result = await this.reviewRepository.findBySpotId(spotId, {
+      skip: offset,
       take: limit,
     });
-    const total = await this.reviewRepository.countReviewsForSpot(spotId);
 
     return {
-      reviews,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
+      reviews: result.reviews,
+      total: result.total,
     };
   }
 
@@ -180,12 +166,15 @@ export class ReviewService {
   }
 
   private async updateUserRating(userId: string) {
-    const averageRating = await this.reviewRepository.getAverageRatingForUser(userId);
-    const reviewCount = await this.reviewRepository.countReviewsForUser(userId);
+    // Run all queries in parallel to prevent N+1
+    const [averageRating, reviewCount, user] = await Promise.all([
+      this.reviewRepository.getAverageRatingForUser(userId),
+      this.reviewRepository.countReviewsForUser(userId),
+      this.userRepository.findById(userId),
+    ]);
 
     // Flag users with rating below 3.0 for manual review
     const shouldFlag = reviewCount >= 3 && averageRating < 3.0;
-    const user = await this.userRepository.findById(userId);
     const wasAlreadyFlagged = user?.flaggedForReview ?? false;
 
     await this.userRepository.update(userId, {
@@ -197,8 +186,11 @@ export class ReviewService {
   }
 
   private async updateSpotRating(spotId: string) {
-    const averageRating = await this.reviewRepository.getAverageRatingForSpot(spotId);
-    const reviewCount = await this.reviewRepository.countReviewsForSpot(spotId);
+    // Run both queries in parallel to prevent N+1
+    const [averageRating, reviewCount] = await Promise.all([
+      this.reviewRepository.getAverageRatingForSpot(spotId),
+      this.reviewRepository.countReviewsForSpot(spotId),
+    ]);
 
     await this.spotRepository.updateById(spotId, {
       rating: averageRating,

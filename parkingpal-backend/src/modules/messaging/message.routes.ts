@@ -2,6 +2,11 @@ import { Router } from 'express';
 import { messageController, authenticate } from '../../container';
 import { validate, validateQuery } from '../../middleware/validate';
 import {
+  messageSendLimiter,
+  conversationMessageLimiter,
+  conversationCreateLimiter,
+} from '../../middleware/rateLimiter';
+import {
   createConversationSchema,
   sendMessageSchema,
   listConversationsQuerySchema,
@@ -26,6 +31,7 @@ router.get(
 router.post(
   '/conversations',
   authenticate,
+  conversationCreateLimiter,
   validate(createConversationSchema),
   messageController.createConversation.bind(messageController)
 );
@@ -57,9 +63,12 @@ router.post(
 // ==========================================
 
 // POST /api/messages - Send a message
+// Apply both global and per-conversation rate limiting
 router.post(
   '/messages',
   authenticate,
+  messageSendLimiter,
+  conversationMessageLimiter,
   validate(sendMessageSchema),
   messageController.sendMessage.bind(messageController)
 );

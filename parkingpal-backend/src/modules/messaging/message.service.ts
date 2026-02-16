@@ -20,12 +20,11 @@ export class MessageService {
   ): Promise<{ conversations: ConversationSummary[]; total: number; unreadCounts: Map<string, number> }> {
     const result = await this.conversationRepository.findByUserId(userId, limit, offset);
 
-    // Get unread counts for each conversation
-    const unreadCounts = new Map<string, number>();
-    for (const conversation of result.conversations) {
-      const count = await this.messageRepository.countUnread(conversation.id, userId);
-      unreadCounts.set(conversation.id, count);
-    }
+    // Get unread counts for all conversations in a single query (prevents N+1)
+    const conversationIds = result.conversations.map(c => c.id);
+    const unreadCounts = conversationIds.length > 0
+      ? await this.messageRepository.countUnreadForConversations(conversationIds, userId)
+      : new Map<string, number>();
 
     return {
       conversations: result.conversations,
@@ -101,7 +100,7 @@ export class MessageService {
     userId: string,
     limit: number,
     offset: number
-  ): Promise<MessageWithSender[]> {
+  ): Promise<{ messages: MessageWithSender[]; total: number }> {
     // Verify user is a participant
     const isParticipant = await this.conversationRepository.isParticipant(conversationId, userId);
     if (!isParticipant) {

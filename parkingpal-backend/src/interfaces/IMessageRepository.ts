@@ -24,7 +24,7 @@ export interface IMessageRepository {
     conversationId: string,
     limit: number,
     offset: number
-  ): Promise<MessageWithSender[]>;
+  ): Promise<{ messages: MessageWithSender[]; total: number }>;
 
   /**
    * Create a new message
@@ -45,4 +45,13 @@ export interface IMessageRepository {
    * Count unread messages for a user in a conversation
    */
   countUnread(conversationId: string, receiverId: string): Promise<number>;
+
+  /**
+   * Count unread messages for multiple conversations in a single query
+   * Returns a map of conversationId -> unread count
+   */
+  countUnreadForConversations(
+    conversationIds: string[],
+    receiverId: string
+  ): Promise<Map<string, number>>;
 }

@@ -96,6 +96,12 @@ model User {
   // Notification Relations
   notifications      Notification[]
 
+  // Safety & Moderation Relations
+  reportsSubmitted   UserReport[] @relation("UserReporter")
+  reportsReceived    UserReport[] @relation("UserReported")
+  blockedUsers       UserBlock[]  @relation("UserBlocker")
+  blockedByUsers     UserBlock[]  @relation("UserBlocked")
+
   @@map("users")
   @@index([email])
   @@index([phone])
@@ -602,4 +608,87 @@ model WebhookEvent {
   @@index([stripeEventId])
   @@index([processed])
   @@index([createdAt])
+}
+
+// ==========================================
+// User Report & Block Models (Safety & Moderation)
+// ==========================================
+
+model UserReport {
+  id          String       @id @default(uuid())
+
+  // Who is reporting
+  reporterId  String
+  reporter    User         @relation("UserReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+
+  // Who is being reported
+  reportedId  String
+  reported    User         @relation("UserReported", fields: [reportedId], references: [id], onDelete: Cascade)
+
+  // Report details
+  reason      ReportReason
+  description String?      // Optional detailed explanation
+  relatedId   String?      // ID of related entity (bookingId, messageId, spotId, etc.)
+  relatedType String?      // Type of related entity ("booking", "message", "spot", "review")
+
+  // Moderation status
+  status      ReportStatus @default(PENDING)
+  reviewedBy  String?      // Admin user ID who reviewed
+  reviewedAt  DateTime?
+  resolution  String?      // Admin's resolution notes
+  actionTaken String?      // What action was taken (warning, suspension, etc.)
+
+  // Timestamps
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@map("user_reports")
+  @@index([reporterId])
+  @@index([reportedId])
+  @@index([status])
+  @@index([createdAt])
+  @@unique([reporterId, reportedId, relatedId]) // Prevent duplicate reports
+}
+
+model UserBlock {
+  id          String   @id @default(uuid())
+
+  // Who is blocking
+  blockerId   String
+  blocker     User     @relation("UserBlocker", fields: [blockerId], references: [id], onDelete: Cascade)
+
+  // Who is being blocked
+  blockedId   String
+  blocked     User     @relation("UserBlocked", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  // Timestamps
+  createdAt   DateTime @default(now())
+
+  @@map("user_blocks")
+  @@index([blockerId])
+  @@index([blockedId])
+  @@unique([blockerId, blockedId]) // One block per pair
+}
+
+// ==========================================
+// Enums for Report & Block
+// ==========================================
+
+enum ReportReason {
+  HARASSMENT
+  SPAM
+  INAPPROPRIATE_CONTENT
+  FRAUDULENT_LISTING
+  NO_SHOW
+  PROPERTY_DAMAGE
+  SAFETY_CONCERN
+  PAYMENT_ISSUE
+  OTHER
+}
+
+enum ReportStatus {
+  PENDING
+  UNDER_REVIEW
+  RESOLVED
+  DISMISSED
 }
