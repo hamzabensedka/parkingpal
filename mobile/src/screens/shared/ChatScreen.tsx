@@ -9,16 +9,19 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Alert,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useRoute, RouteProp } from '@react-navigation/native';
+import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '../../utils/constants';
 import { formatTime, formatSmartDate } from '../../utils/formatting';
 import { Message } from '../../types';
-import { Avatar, EmptyState } from '../../components/common';
+import { Avatar, EmptyState, ReportUserModal } from '../../components/common';
+import { safetyApi } from '../../services/api';
 import { parseISO, isSameDay } from 'date-fns';
 import { messageApi } from '../../services/api';
 
@@ -27,6 +30,7 @@ type ChatRouteParams = {
     conversationId: string;
     bookingId: string;
     recipientName: string;
+    recipientId: string;
   };
 };
 
@@ -37,17 +41,63 @@ interface ChatMessage extends Message {
 
 const ChatScreen: React.FC = () => {
   const route = useRoute<RouteProp<ChatRouteParams, 'Chat'>>();
+  const navigation = useNavigation<any>();
   const { colors, NEUTRAL_COLORS } = useTheme();
   const { user } = useAuth();
 
-  const { conversationId, bookingId, recipientName } = route.params;
+  const { conversationId, bookingId, recipientName, recipientId } = route.params;
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
   const flatListRef = useRef<FlatList>(null);
+
+  // Set up header with options menu
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity
+          style={{ padding: SPACING.sm, marginRight: SPACING.xs }}
+          onPress={() => setShowMenu(true)}
+        >
+          <Icon name="dots-vertical" size={24} color={NEUTRAL_COLORS.black} />
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation]);
+
+  const handleBlockUser = useCallback(() => {
+    setShowMenu(false);
+    Alert.alert(
+      'Block User',
+      `Are you sure you want to block ${recipientName}? They won't be able to contact you or see your listings.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Block',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await safetyApi.blockUser(recipientId);
+              Alert.alert('User Blocked', `${recipientName} has been blocked.`);
+              navigation.goBack();
+            } catch (err: any) {
+              Alert.alert('Error', err.message || 'Failed to block user');
+            }
+          },
+        },
+      ]
+    );
+  }, [recipientName, recipientId, navigation]);
+
+  const handleReportUser = useCallback(() => {
+    setShowMenu(false);
+    setShowReportModal(true);
+  }, []);
 
   // Load messages on mount
   const fetchMessages = useCallback(async () => {
@@ -346,6 +396,48 @@ const ChatScreen: React.FC = () => {
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
+
+      {/* Options Menu Modal */}
+      <Modal
+        visible={showMenu}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowMenu(false)}
+      >
+        <TouchableOpacity
+          style={styles.menuOverlay}
+          activeOpacity={1}
+          onPress={() => setShowMenu(false)}
+        >
+          <View style={styles.menuContainer}>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={handleReportUser}
+            >
+              <Icon name="flag-outline" size={20} color={NEUTRAL_COLORS.black} />
+              <Text style={styles.menuItemText}>Report User</Text>
+            </TouchableOpacity>
+            <View style={styles.menuDivider} />
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={handleBlockUser}
+            >
+              <Icon name="account-cancel" size={20} color="#ef4444" />
+              <Text style={[styles.menuItemText, { color: '#ef4444' }]}>Block User</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Report User Modal */}
+      <ReportUserModal
+        visible={showReportModal}
+        userId={recipientId}
+        userName={recipientName}
+        relatedId={bookingId}
+        relatedType="message"
+        onClose={() => setShowReportModal(false)}
+      />
     </SafeAreaView>
   );
 };
@@ -486,6 +578,37 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginLeft: SPACING.sm,
     marginBottom: 2,
+  },
+
+  // Options Menu
+  menuOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-end',
+  },
+  menuContainer: {
+    backgroundColor: NEUTRAL_COLORS.white,
+    borderRadius: RADIUS.md,
+    marginTop: 60,
+    marginRight: SPACING.md,
+    minWidth: 180,
+    ...SHADOWS.medium,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: SPACING.md,
+    gap: SPACING.sm,
+  },
+  menuItemText: {
+    fontSize: TYPOGRAPHY.fontSize.base,
+    color: NEUTRAL_COLORS.black,
+    fontWeight: '500',
+  },
+  menuDivider: {
+    height: 1,
+    backgroundColor: NEUTRAL_COLORS.lightGray,
   },
 });
 

@@ -380,7 +380,7 @@ export type HostStackParamList = {
 
 export type SharedStackParamList = {
   MessagesMain: undefined;
-  Chat: { conversationId: string };
+  Chat: { conversationId: string; bookingId?: string; recipientName?: string; recipientId?: string };
   Notifications: undefined;
   Settings: undefined;
   PaymentMethods: undefined;
@@ -392,4 +392,5 @@ export type SharedStackParamList = {
   Help: undefined;
   EditProfile: undefined;
   Legal: { initialSection?: 'terms' | 'privacy' } | undefined;
+  BlockedUsers: undefined;
 };

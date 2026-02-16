@@ -11,6 +11,7 @@ import { createBookingApi } from './bookingApi';
 import { createMessageApi } from './messageApi';
 import { createNotificationApi } from './notificationApi';
 import { createEarningsApi } from './earningsApi';
+import { createSafetyApi } from './safetyApi';
 
 const apiClient = createApiClient({
   baseURL: API_BASE_URL,
@@ -27,8 +28,9 @@ export const bookingApi = createBookingApi(apiClient);
 export const messageApi = createMessageApi(apiClient);
 export const notificationApi = createNotificationApi(apiClient);
 export const earningsApi = createEarningsApi(apiClient);
+export const safetyApi = createSafetyApi(apiClient);
 
 // Export review API functions directly
 export * as reviewApi from './reviewApi';
 
-export { apiClient, createAuthApi, createUserApi, createVehicleApi, createPaymentApi, createSpotApi, createFavoriteApi, createBookingApi, createMessageApi, createNotificationApi, createEarningsApi };
+export { apiClient, createAuthApi, createUserApi, createVehicleApi, createPaymentApi, createSpotApi, createFavoriteApi, createBookingApi, createMessageApi, createNotificationApi, createEarningsApi, createSafetyApi };

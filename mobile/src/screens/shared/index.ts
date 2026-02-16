@@ -10,3 +10,4 @@ export { default as ReviewScreen } from './ReviewScreen';
 export { default as ReportIssueScreen } from './ReportIssueScreen';
 export { default as HelpScreen } from './HelpScreen';
 export { default as EditProfileScreen } from './EditProfileScreen';
+export { default as BlockedUsersScreen } from './BlockedUsersScreen';

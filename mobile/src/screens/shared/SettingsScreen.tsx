@@ -179,6 +179,13 @@ const SettingsScreen: React.FC = () => {
               'Disabled',
               () => navigation.navigate('TwoFactor')
             )}
+            <View style={styles.divider} />
+            {renderNavItem(
+              'account-cancel',
+              'Blocked Users',
+              undefined,
+              () => navigation.navigate('BlockedUsers')
+            )}
           </Card>
         </View>
 

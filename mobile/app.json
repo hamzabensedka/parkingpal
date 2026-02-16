@@ -9,7 +9,7 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#40916c"
+      "backgroundColor": "#FF5A5F"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -35,7 +35,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#40916c"
+        "backgroundColor": "#FF5A5F"
       },
       "package": "com.parkingpal.app",
       "permissions": [

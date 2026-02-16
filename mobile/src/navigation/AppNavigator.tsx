@@ -21,6 +21,7 @@ import ReportIssueScreen from '../screens/shared/ReportIssueScreen';
 import HelpScreen from '../screens/shared/HelpScreen';
 import EditProfileScreen from '../screens/shared/EditProfileScreen';
 import LegalScreen from '../screens/shared/LegalScreen';
+import BlockedUsersScreen from '../screens/shared/BlockedUsersScreen';
 
 // Renter screens that need to be accessible from anywhere
 import SpotDetailScreen from '../screens/renter/SpotDetailScreen';
@@ -199,6 +200,16 @@ const AppNavigator: React.FC = () => {
               options={{
                 headerShown: true,
                 title: 'Terms & Privacy',
+                headerStyle: { backgroundColor: NEUTRAL_COLORS.white },
+                headerTintColor: NEUTRAL_COLORS.black,
+              }}
+            />
+            <Stack.Screen
+              name="BlockedUsers"
+              component={BlockedUsersScreen}
+              options={{
+                headerShown: true,
+                title: 'Blocked Users',
                 headerStyle: { backgroundColor: NEUTRAL_COLORS.white },
                 headerTintColor: NEUTRAL_COLORS.black,
               }}

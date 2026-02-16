@@ -74,6 +74,7 @@ const MessagesScreen: React.FC = () => {
         conversationId: conversation.id,
         bookingId: conversation.bookingId,
         recipientName: `${otherParticipant.firstName} ${otherParticipant.lastName}`,
+        recipientId: otherParticipant.id,
       });
     },
     [navigation, user]

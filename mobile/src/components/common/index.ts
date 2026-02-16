@@ -9,3 +9,4 @@ export { default as EmptyState } from './EmptyState';
 export { default as ErrorState } from './ErrorState';
 export { ReviewList } from './ReviewList';
 export { default as PhoneVerificationModal } from './PhoneVerificationModal';
+export { default as ReportUserModal } from './ReportUserModal';
