@@ -38,6 +38,7 @@
         "backgroundColor": "#FF5A5F"
       },
       "package": "com.parkingpal.app",
+      "googleServicesFile": "./google-services.json",
       "permissions": [
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION",
@@ -68,7 +69,25 @@
           "photosPermission": "Allow ParkingPal to access your photos to upload images."
         }
       ],
-      "@maplibre/maplibre-react-native"
+      "@maplibre/maplibre-react-native",
+      [
+        "@stripe/stripe-react-native",
+        {
+          "merchantIdentifier": "merchant.com.parkingpal.app",
+          "enableGooglePay": true
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#FF5A5F",
+          "sounds": [],
+          "androidMode": "default",
+          "androidCollapsedTitle": "ParkingPal",
+          "iosDisplayInForeground": true
+        }
+      ]
     ]
   }
 }

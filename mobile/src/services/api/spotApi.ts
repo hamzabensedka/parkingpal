@@ -1,5 +1,7 @@
 import type { CreateSpotRequest, UpdateSpotRequest, SpotDTO, SpotSummaryDTO, SearchSpotsRequest } from '@parkingpal/shared-types';
 import type { AxiosInstance } from 'axios';
+import { secureTokenStorage } from '../http/secureTokenStorage';
+import { API_BASE_URL } from '../../utils/constants';
 
 export interface SpotApiResponse<T> {
   success: boolean;
@@ -57,6 +59,12 @@ export function createSpotApi(client: AxiosInstance) {
      * @param photoUris  local file:// URIs for photos
      */
     async create(body: CreateSpotRequest, photoUris: string[] = []): Promise<SpotDTO> {
+      // Get auth token directly for FormData upload (more reliable in RN)
+      const token = await secureTokenStorage.getAccessToken();
+      if (!token) {
+        throw new Error('Not authenticated. Please log in again.');
+      }
+
       const formData = new FormData();
       formData.append('data', JSON.stringify(body));
 
@@ -71,17 +79,20 @@ export function createSpotApi(client: AxiosInstance) {
         } as any);
       });
 
-      const { data } = await client.post<SpotApiResponse<{ spot: SpotDTO }>>(
-        '/api/spots',
-        formData,
-        {
-          headers: { 'Content-Type': 'multipart/form-data' },
-          timeout: 60000, // longer timeout for file uploads
+      // Use fetch directly for FormData uploads (more reliable in React Native)
+      const response = await fetch(`${API_BASE_URL}/api/spots`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          // Don't set Content-Type - let fetch set it with boundary for FormData
         },
-      );
+        body: formData,
+      });
 
-      if (!data.success || !data.data?.spot) {
-        throw new Error(data.error ?? 'Failed to create spot');
+      const data: SpotApiResponse<{ spot: SpotDTO }> = await response.json();
+
+      if (!response.ok || !data.success || !data.data?.spot) {
+        throw new Error(data.error ?? `Failed to create spot (${response.status})`);
       }
       return data.data.spot;
     },

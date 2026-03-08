@@ -36,9 +36,16 @@ export function createApiClient(config: ApiClientConfig): AxiosInstance {
 
   client.interceptors.request.use(
     async (req: InternalAxiosRequestConfig) => {
-      const token = await tokenStorage.getAccessToken();
-      if (token) {
-        req.headers.Authorization = `Bearer ${token}`;
+      try {
+        const token = await tokenStorage.getAccessToken();
+        if (token) {
+          req.headers.Authorization = `Bearer ${token}`;
+        } else {
+          // Log warning if no token available
+          console.warn('[apiClient] No auth token for request:', req.method, req.url);
+        }
+      } catch (error) {
+        console.error('[apiClient] Error getting auth token:', error);
       }
       return req;
     },
@@ -52,6 +59,7 @@ export function createApiClient(config: ApiClientConfig): AxiosInstance {
 
       if (err.response?.status === 401 && !originalRequest._retry) {
         if (isRefreshing) {
+          // Wait for the ongoing refresh to complete
           return new Promise<undefined>((resolve) => {
             subscribeTokenRefresh((token: string) => {
               originalRequest.headers.Authorization = `Bearer ${token}`;
@@ -65,7 +73,9 @@ export function createApiClient(config: ApiClientConfig): AxiosInstance {
 
         const refreshToken = await tokenStorage.getRefreshToken();
         if (!refreshToken) {
+          console.warn('[apiClient] No refresh token available, user needs to re-login');
           isRefreshing = false;
+          refreshSubscribers = []; // Clear any waiting subscribers
           onUnauthorized?.();
           return Promise.reject(err);
         }
@@ -85,10 +95,12 @@ export function createApiClient(config: ApiClientConfig): AxiosInstance {
           originalRequest.headers.Authorization = `Bearer ${accessToken}`;
           return client(originalRequest);
         } catch (refreshErr) {
-          isRefreshing = false;
+          console.error('[apiClient] Token refresh failed:', refreshErr);
           await tokenStorage.clearTokens();
           onUnauthorized?.();
           return Promise.reject(refreshErr);
+        } finally {
+          isRefreshing = false;
         }
       }
 
