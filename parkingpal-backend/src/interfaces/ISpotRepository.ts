@@ -92,6 +92,13 @@ export interface DocumentData {
   url: string;
 }
 
+export interface UpdateDocumentStatusData {
+  status: DocumentStatus;
+  rejectionReason?: string;
+  reviewedBy?: string;
+  reviewedAt?: Date;
+}
+
 export interface AvailabilityData {
   dayOfWeek: number;
   startTime: string;
@@ -128,6 +135,9 @@ export interface ISpotRepository {
 
   // Documents
   addDocument(spotId: string, doc: DocumentData): Promise<SpotDocument>;
+  findDocumentById(id: string): Promise<SpotDocument | null>;
+  updateDocumentStatus(id: string, data: UpdateDocumentStatusData): Promise<SpotDocument>;
+  findPendingDocuments(limit: number, offset: number): Promise<{ documents: SpotDocument[]; total: number }>;
 
   // Availability
   setAvailability(spotId: string, slots: AvailabilityData[]): Promise<void>;

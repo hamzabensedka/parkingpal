@@ -16,6 +16,7 @@ const PRISMA_TO_DTO_SPOT_TYPE: Record<SpotType, SpotTypeDTO> = {
   COVERED: 'covered',
   LOT: 'lot',
   UNDERGROUND: 'underground',
+  STREET: 'street',
 };
 
 const DTO_TO_PRISMA_SPOT_TYPE: Record<SpotTypeDTO, SpotType> = {
@@ -24,6 +25,7 @@ const DTO_TO_PRISMA_SPOT_TYPE: Record<SpotTypeDTO, SpotType> = {
   covered: 'COVERED',
   lot: 'LOT',
   underground: 'UNDERGROUND',
+  street: 'STREET',
 };
 
 const PRISMA_TO_DTO_SPOT_STATUS: Record<SpotStatus, SpotStatusDTO> = {
@@ -130,8 +132,12 @@ export function dtoSpotTypeToPrisma(type: SpotTypeDTO): SpotType {
   return DTO_TO_PRISMA_SPOT_TYPE[type];
 }
 
-export function dtoAccessTypeToPrisma(type: AccessTypeDTO): AccessType {
-  return DTO_TO_PRISMA_ACCESS_TYPE[type];
+export function dtoAccessTypeToPrisma(type: AccessTypeDTO | string): AccessType {
+  // Handle mobile app's "trust" type which maps to "open"
+  if (type === 'trust') {
+    return 'OPEN';
+  }
+  return DTO_TO_PRISMA_ACCESS_TYPE[type as AccessTypeDTO] ?? 'OPEN';
 }
 
 export function dtoCancellationToPrisma(policy: CancellationPolicyDTO): CancellationPolicy {
@@ -158,7 +164,30 @@ export function prismaVehicleSizeToDTO(size: VehicleSize): string {
 // Model → DTO mappers
 // ==========================================
 
-export function toSpotDTO(spot: SpotWithRelations): SpotDTO {
+interface SpotMapperOptions {
+  viewerId?: string;  // The user viewing the spot (for calculating canBook)
+}
+
+export function toSpotDTO(spot: SpotWithRelations, options?: SpotMapperOptions): SpotDTO {
+  const viewerId = options?.viewerId;
+  const isOwnSpot = viewerId ? spot.hostId === viewerId : undefined;
+
+  // Calculate canBook and reason
+  let canBook: boolean | undefined;
+  let canBookReason: string | undefined;
+
+  if (viewerId) {
+    if (isOwnSpot) {
+      canBook = false;
+      canBookReason = 'You cannot book your own spot';
+    } else if (spot.status !== 'ACTIVE') {
+      canBook = false;
+      canBookReason = 'This spot is not currently available';
+    } else {
+      canBook = true;
+    }
+  }
+
   return {
     id: spot.id,
     hostId: spot.hostId,
@@ -196,6 +225,10 @@ export function toSpotDTO(spot: SpotWithRelations): SpotDTO {
     availability: spot.availability.map(toSpotAvailabilityDTO),
     createdAt: spot.createdAt.toISOString(),
     updatedAt: spot.updatedAt.toISOString(),
+    // User context flags
+    isOwnSpot,
+    canBook,
+    canBookReason,
   };
 }
 

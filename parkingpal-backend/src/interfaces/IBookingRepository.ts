@@ -54,6 +54,11 @@ export interface PaginatedResult<T> {
   total: number;
 }
 
+export interface BookedSlot {
+  startTime: Date;
+  endTime: Date;
+}
+
 export interface IBookingRepository {
   create(data: CreateBookingData): Promise<BookingWithRelations>;
   findById(id: string): Promise<BookingWithRelations | null>;
@@ -66,4 +71,6 @@ export interface IBookingRepository {
   checkOut(id: string): Promise<BookingWithRelations>;
   hasOverlap(spotId: string, startTime: Date, endTime: Date, excludeId?: string): Promise<boolean>;
   findCompletedAwaitingPayout(): Promise<BookingWithRelations[]>;
+  // Get booked time slots for a spot within a date range (for availability calendar)
+  getBookedSlots(spotId: string, startDate: Date, endDate: Date): Promise<BookedSlot[]>;
 }

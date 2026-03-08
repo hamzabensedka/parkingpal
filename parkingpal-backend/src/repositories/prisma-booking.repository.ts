@@ -196,4 +196,26 @@ export class PrismaBookingRepository implements IBookingRepository {
       include: BOOKING_INCLUDE,
     }) as Promise<BookingWithRelations>;
   }
+
+  async getBookedSlots(spotId: string, startDate: Date, endDate: Date): Promise<{ startTime: Date; endTime: Date }[]> {
+    // Get all non-cancelled bookings that overlap with the date range
+    const bookings = await this.prisma.booking.findMany({
+      where: {
+        spotId,
+        status: {
+          in: [BookingStatus.PENDING, BookingStatus.CONFIRMED, BookingStatus.ACTIVE],
+        },
+        // Booking overlaps with the date range
+        startTime: { lt: endDate },
+        endTime: { gt: startDate },
+      },
+      select: {
+        startTime: true,
+        endTime: true,
+      },
+      orderBy: { startTime: 'asc' },
+    });
+
+    return bookings;
+  }
 }

@@ -1,4 +1,4 @@
-import { PrismaClient, SpotStatus } from '@prisma/client';
+import { PrismaClient, SpotStatus, SpotDocument, DocumentStatus } from '@prisma/client';
 import {
   ISpotRepository,
   SpotWithRelations,
@@ -8,7 +8,9 @@ import {
   DocumentData,
   AvailabilityData,
   SearchParams,
+  UpdateDocumentStatusData,
 } from '../interfaces/ISpotRepository';
+import { getAcceptableSpotsForVehicle } from '../utils/vehicleSize';
 
 const SPOT_INCLUDE = {
   photos: { orderBy: { sortOrder: 'asc' as const } },
@@ -241,6 +243,58 @@ export class PrismaSpotRepository implements ISpotRepository {
     });
   }
 
+  async findDocumentById(id: string): Promise<SpotDocument | null> {
+    return this.prisma.spotDocument.findUnique({
+      where: { id },
+    });
+  }
+
+  async updateDocumentStatus(id: string, data: UpdateDocumentStatusData): Promise<SpotDocument> {
+    return this.prisma.spotDocument.update({
+      where: { id },
+      data: {
+        status: data.status,
+        ...(data.rejectionReason !== undefined && { rejectionReason: data.rejectionReason }),
+        ...(data.reviewedBy !== undefined && { reviewedBy: data.reviewedBy }),
+        ...(data.reviewedAt !== undefined && { reviewedAt: data.reviewedAt }),
+      },
+    });
+  }
+
+  async findPendingDocuments(limit: number, offset: number): Promise<{ documents: SpotDocument[]; total: number }> {
+    const where = { status: DocumentStatus.PENDING };
+
+    const [documents, total] = await Promise.all([
+      this.prisma.spotDocument.findMany({
+        where,
+        orderBy: { createdAt: 'asc' },
+        take: limit,
+        skip: offset,
+        include: {
+          spot: {
+            select: {
+              id: true,
+              title: true,
+              address: true,
+              hostId: true,
+              host: {
+                select: {
+                  id: true,
+                  email: true,
+                  firstName: true,
+                  lastName: true,
+                },
+              },
+            },
+          },
+        },
+      }),
+      this.prisma.spotDocument.count({ where }),
+    ]);
+
+    return { documents, total };
+  }
+
   // Availability
   async setAvailability(spotId: string, slots: AvailabilityData[]): Promise<void> {
     await this.prisma.$transaction([
@@ -275,6 +329,11 @@ export class PrismaSpotRepository implements ISpotRepository {
         gte: longitude - lngDelta,
         lte: longitude + lngDelta,
       },
+      // Only show spots where host has completed payment setup
+      host: {
+        stripeConnectAccountId: { not: null },
+        stripeConnectOnboarded: true,
+      },
     };
 
     if (params.spotType) {
@@ -282,7 +341,10 @@ export class PrismaSpotRepository implements ISpotRepository {
     }
 
     if (params.vehicleSize) {
-      where.vehicleSizes = { has: params.vehicleSize };
+      // Get all spot sizes that can accommodate the user's vehicle
+      // (same size or larger - a compact car can fit in an SUV spot)
+      const acceptableSizes = getAcceptableSpotsForVehicle(params.vehicleSize);
+      where.vehicleSizes = { hasSome: acceptableSizes };
     }
 
     if (params.minPrice !== undefined || params.maxPrice !== undefined) {

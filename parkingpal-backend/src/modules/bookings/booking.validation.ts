@@ -21,6 +21,7 @@ export const createBookingSchema = z.object({
   { message: 'startTime must be in the future', path: ['startTime'] }
 );
 
+
 export const cancelBookingSchema = z.object({
   reason: z.string().max(500, 'Reason cannot exceed 500 characters').optional(),
 });

@@ -7,6 +7,7 @@ import { ApiError } from '../../middleware/errorHandler';
 import { toBookingDTO, toBookingSummaryDTO, dtoBookingStatusToPrisma } from './booking.mappers';
 import type { BookingStatusDTO } from '@parkingpal/shared-types';
 import { PaymentService } from '../payments/payment.service';
+import { canVehicleFitInSpot } from '../../utils/vehicleSize';
 
 /**
  * Booking Service
@@ -43,9 +44,9 @@ export class BookingService {
       throw ApiError.notFound('Vehicle not found');
     }
 
-    // 4. Check vehicle size fits the spot
-    if (!spot.vehicleSizes.includes(vehicle.type)) {
-      throw ApiError.badRequest('Your vehicle size is not accepted at this spot');
+    // 4. Check vehicle size fits the spot (smaller vehicles can fit in larger spots)
+    if (!canVehicleFitInSpot(vehicle.type, spot.vehicleSizes)) {
+      throw ApiError.badRequest('Your vehicle is too large for this parking spot');
     }
 
     // 5. Calculate duration in minutes
@@ -132,7 +133,7 @@ export class BookingService {
     };
 
     const booking = await this.bookingRepository.create(bookingData);
-    return toBookingDTO(booking);
+    return toBookingDTO(booking, { viewerId: renterId });
   }
 
   async getById(bookingId: string, userId: string) {
@@ -146,7 +147,7 @@ export class BookingService {
       throw ApiError.notFound('Booking not found');
     }
 
-    return toBookingDTO(booking);
+    return toBookingDTO(booking, { viewerId: userId });
   }
 
   async getMyBookings(
@@ -279,7 +280,7 @@ export class BookingService {
       }
     }
 
-    return toBookingDTO(updated);
+    return toBookingDTO(updated, { viewerId: userId });
   }
 
   async confirm(bookingId: string, hostId: string) {
@@ -297,7 +298,7 @@ export class BookingService {
     }
 
     const updated = await this.bookingRepository.updateStatus(bookingId, BookingStatus.CONFIRMED);
-    return toBookingDTO(updated);
+    return toBookingDTO(updated, { viewerId: hostId });
   }
 
   async complete(bookingId: string, userId: string) {
@@ -323,7 +324,7 @@ export class BookingService {
     }
 
     const updated = await this.bookingRepository.updateStatus(bookingId, BookingStatus.COMPLETED);
-    return toBookingDTO(updated);
+    return toBookingDTO(updated, { viewerId: userId });
   }
 
   /**
@@ -365,7 +366,7 @@ export class BookingService {
       checkInPhoto: photoUrl,
     });
 
-    return toBookingDTO(updated);
+    return toBookingDTO(updated, { viewerId: renterId });
   }
 
   /**
@@ -393,6 +394,6 @@ export class BookingService {
     }
 
     const updated = await this.bookingRepository.checkOut(bookingId);
-    return toBookingDTO(updated);
+    return toBookingDTO(updated, { viewerId: renterId });
   }
 }

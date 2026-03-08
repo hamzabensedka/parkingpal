@@ -1,7 +1,8 @@
 import { SpotStatus, UserType } from '@prisma/client';
-import type { CreateSpotRequest, UpdateSpotRequest, SearchSpotsRequest } from '@parkingpal/shared-types';
+import type { CreateSpotRequest, UpdateSpotRequest, SearchSpotsRequest, BookedSlotDTO, SpotAvailabilityDTO } from '@parkingpal/shared-types';
 import { ISpotRepository, CreateSpotData, UpdateSpotData } from '../../interfaces/ISpotRepository';
 import { IUserRepository } from '../../interfaces/IUserRepository';
+import { IBookingRepository } from '../../interfaces/IBookingRepository';
 import { ApiError } from '../../middleware/errorHandler';
 import { getFileUrl } from '../../middleware/upload';
 import {
@@ -14,12 +15,13 @@ import type { DocumentTypeDTO } from '@parkingpal/shared-types';
 /**
  * Spot Service
  * Single Responsibility: Business logic for parking spot operations
- * Depends on ISpotRepository + IUserRepository (DIP)
+ * Depends on ISpotRepository + IUserRepository + IBookingRepository (DIP)
  */
 export class SpotService {
   constructor(
     private readonly spotRepository: ISpotRepository,
     private readonly userRepository: IUserRepository,
+    private readonly bookingRepository?: IBookingRepository,
   ) {}
 
   async create(
@@ -36,12 +38,6 @@ export class SpotService {
     }
     if (!user.phoneVerified) {
       throw ApiError.forbidden('Phone verification required before creating a listing. Please verify your phone number first.');
-    }
-
-    // One-listing guard: block creation if host already has a non-deleted listing
-    const existingCount = await this.spotRepository.countByHostId(hostId);
-    if (existingCount > 0) {
-      throw ApiError.badRequest('Only one listing is allowed');
     }
 
     const data: CreateSpotData = {
@@ -124,7 +120,7 @@ export class SpotService {
       throw ApiError.notFound('Spot not found');
     }
 
-    return toSpotDTO(spot);
+    return toSpotDTO(spot, { viewerId: requesterId });
   }
 
   async getMyListings(hostId: string) {
@@ -234,6 +230,15 @@ export class SpotService {
       return toSpotDTO(spot);
     }
 
+    // Check host has completed payment setup before allowing activation
+    const host = await this.userRepository.findById(hostId);
+    if (!host?.stripeConnectAccountId || !host?.stripeConnectOnboarded) {
+      throw ApiError.badRequest(
+        'Please complete your payment setup before activating your listing. ' +
+        'Go to Settings > Payment Setup to connect your bank account.'
+      );
+    }
+
     const updated = await this.spotRepository.updateStatus(spotId, SpotStatus.ACTIVE);
     return toSpotDTO(updated);
   }
@@ -312,6 +317,61 @@ export class SpotService {
     return {
       spots: result.spots.map(toSpotSummaryDTO),
       total: result.total,
+    };
+  }
+
+  /**
+   * Get spot availability for booking calendar
+   * Returns booked time slots and the spot's weekly schedule
+   */
+  async getAvailability(spotId: string, startDate: string, endDate: string) {
+    if (!this.bookingRepository) {
+      throw ApiError.internal('Booking repository not configured');
+    }
+
+    const spot = await this.spotRepository.findById(spotId);
+    if (!spot || spot.status === SpotStatus.DELETED) {
+      throw ApiError.notFound('Spot not found');
+    }
+
+    // Parse dates
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    // Validate date range (max 60 days)
+    const maxDays = 60;
+    const daysDiff = (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
+    if (daysDiff > maxDays) {
+      throw ApiError.badRequest(`Date range cannot exceed ${maxDays} days`);
+    }
+
+    // Get booked slots
+    const bookedSlots = await this.bookingRepository.getBookedSlots(spotId, start, end);
+
+    // Map to DTOs
+    const bookedSlotDTOs: BookedSlotDTO[] = bookedSlots.map(slot => ({
+      startTime: slot.startTime.toISOString(),
+      endTime: slot.endTime.toISOString(),
+    }));
+
+    // Map availability schedule
+    const schedule: SpotAvailabilityDTO[] = spot.availability.map(slot => ({
+      id: slot.id,
+      dayOfWeek: slot.dayOfWeek,
+      startTime: slot.startTime,
+      endTime: slot.endTime,
+      isAllDay: slot.isAllDay,
+    }));
+
+    return {
+      bookedSlots: bookedSlotDTOs,
+      schedule,
+      constraints: {
+        minBookingMinutes: spot.minBookingMinutes,
+        maxBookingMinutes: spot.maxBookingMinutes ?? undefined,
+        advanceNoticeMinutes: spot.advanceNoticeMinutes,
+        bookingWindowDays: spot.bookingWindowDays,
+      },
     };
   }
 }

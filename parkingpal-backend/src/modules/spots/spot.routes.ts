@@ -44,6 +44,13 @@ router.get(
   spotController.getById.bind(spotController)
 );
 
+// GET /api/spots/:id/availability - Get booked slots and schedule for booking calendar
+router.get(
+  '/:id/availability',
+  optionalAuthenticate,
+  spotController.getAvailability.bind(spotController)
+);
+
 // PUT /api/spots/:id - Update listing
 router.put(
   '/:id',

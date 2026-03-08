@@ -195,4 +195,35 @@ export class SpotController {
       next(error);
     }
   }
+
+  /**
+   * GET /api/spots/:id/availability
+   * Get booked time slots and schedule for booking calendar
+   */
+  async getAvailability(
+    req: Request<{ id: string }, {}, {}, { startDate: string; endDate: string }>,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { startDate, endDate } = req.query;
+
+      if (!startDate || !endDate) {
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
+          success: false,
+          error: 'startDate and endDate are required',
+        });
+        return;
+      }
+
+      const result = await this.spotService.getAvailability(req.params.id, startDate, endDate);
+      res.status(HTTP_STATUS.OK).json({
+        success: true,
+        message: 'Availability retrieved',
+        data: result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

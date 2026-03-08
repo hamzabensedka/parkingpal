@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-const spotTypeSchema = z.enum(['driveway', 'garage', 'covered', 'lot', 'underground']);
+const spotTypeSchema = z.enum(['driveway', 'garage', 'covered', 'lot', 'underground', 'street']);
 const locationTypeSchema = z.enum(['residential', 'commercial', 'public']);
 const accessTypeSchema = z.enum(['code', 'key', 'smart_lock', 'remote', 'badge', 'open']);
 const cancellationPolicySchema = z.enum(['flexible', 'moderate', 'strict', 'non_refundable']);
