@@ -1,7 +1,19 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
+import { randomUUID } from 'crypto';
 
 const prisma = new PrismaClient();
+
+// Stable UUIDs for seed data (allows re-running seed without duplicates)
+const SPOT_ID = '550e8400-e29b-41d4-a716-446655440001';
+const VEHICLE_ID = '550e8400-e29b-41d4-a716-446655440002';
+
+// Generate UUIDs for availability slots
+function getAvailabilityId(dayOfWeek: number): string {
+  // Use deterministic UUIDs for each day
+  const base = '550e8400-e29b-41d4-a716-44665544100';
+  return `${base}${dayOfWeek}`;
+}
 
 async function main() {
   console.log('Seeding database...');
@@ -31,10 +43,10 @@ async function main() {
 
   // Create a default spot in Toulouse (Place du Capitole area)
   const spot = await prisma.spot.upsert({
-    where: { id: 'toulouse-spot-001' },
+    where: { id: SPOT_ID },
     update: {},
     create: {
-      id: 'toulouse-spot-001',
+      id: SPOT_ID,
       hostId: host.id,
       title: 'Parking Sécurisé Centre Toulouse',
       description: 'Place de parking privée située à deux pas de la Place du Capitole. Idéal pour visiter le centre-ville de Toulouse. Accès facile et sécurisé 24h/24.',
@@ -76,13 +88,12 @@ async function main() {
   const daysOfWeek = [0, 1, 2, 3, 4, 5, 6]; // Sunday to Saturday
 
   for (const dayOfWeek of daysOfWeek) {
+    const availabilityId = getAvailabilityId(dayOfWeek);
     await prisma.spotAvailability.upsert({
-      where: {
-        id: `toulouse-spot-001-day-${dayOfWeek}`,
-      },
+      where: { id: availabilityId },
       update: {},
       create: {
-        id: `toulouse-spot-001-day-${dayOfWeek}`,
+        id: availabilityId,
         spotId: spot.id,
         dayOfWeek,
         startTime: '00:00',
@@ -118,10 +129,10 @@ async function main() {
 
   // Add a vehicle for the renter
   await prisma.vehicle.upsert({
-    where: { id: 'renter-vehicle-001' },
+    where: { id: VEHICLE_ID },
     update: {},
     create: {
-      id: 'renter-vehicle-001',
+      id: VEHICLE_ID,
       userId: renter.id,
       make: 'Peugeot',
       model: '308',
@@ -139,6 +150,9 @@ async function main() {
   console.log('\nTest accounts:');
   console.log('  Host: host@parkingpal.com / Host123!');
   console.log('  Renter: renter@parkingpal.com / Renter123!');
+  console.log('\nTest IDs:');
+  console.log(`  Spot ID: ${SPOT_ID}`);
+  console.log(`  Vehicle ID: ${VEHICLE_ID}`);
 }
 
 main()

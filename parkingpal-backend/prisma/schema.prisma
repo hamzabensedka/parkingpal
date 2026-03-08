@@ -102,6 +102,13 @@ model User {
   blockedUsers       UserBlock[]  @relation("UserBlocker")
   blockedByUsers     UserBlock[]  @relation("UserBlocked")
 
+  // Admin Dashboard Access
+  isAdmin            Boolean      @default(false)
+  adminRole          AdminRole?
+
+  // Admin audit log relations
+  adminActions       AdminAuditLog[]
+
   @@map("users")
   @@index([email])
   @@index([phone])
@@ -114,6 +121,13 @@ enum UserType {
   RENTER    // User who rents parking spots
   HOST      // User who lists parking spots
   SUPERHOST // Elevated host with special privileges
+}
+
+// Admin role levels for admin dashboard access
+enum AdminRole {
+  SUPER_ADMIN  // Full access, can create other admins
+  MODERATOR    // Document verification, reports, user suspension
+  SUPPORT      // View-only access, basic user assistance
 }
 
 // Vehicle size/type for renter vehicles
@@ -177,6 +191,7 @@ enum SpotType {
   COVERED
   LOT
   UNDERGROUND
+  STREET
 }
 
 enum SpotStatus {
@@ -321,6 +336,7 @@ model SpotDocument {
   url             String
   status          DocumentStatus @default(PENDING)
   rejectionReason String?
+  reviewedBy      String?        // Admin user ID who reviewed
   createdAt       DateTime       @default(now())
   reviewedAt      DateTime?
 
@@ -691,4 +707,37 @@ enum ReportStatus {
   UNDER_REVIEW
   RESOLVED
   DISMISSED
+}
+
+// ==========================================
+// Admin Audit Log (for tracking admin actions)
+// ==========================================
+
+model AdminAuditLog {
+  id          String   @id @default(uuid())
+
+  // Admin who performed the action
+  adminId     String
+  admin       User     @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  // Action details
+  action      String   // e.g., APPROVE_DOCUMENT, SUSPEND_USER, UPDATE_SPOT
+  entityType  String   // e.g., User, Spot, SpotDocument, UserReport
+  entityId    String   // ID of the affected entity
+
+  // State tracking
+  oldValue    Json?    // Previous state (for updates)
+  newValue    Json?    // New state
+
+  // Context
+  metadata    Json?    // IP address, user agent, etc.
+
+  // Timestamp
+  createdAt   DateTime @default(now())
+
+  @@map("admin_audit_logs")
+  @@index([adminId])
+  @@index([entityType, entityId])
+  @@index([action])
+  @@index([createdAt])
 }
