@@ -9,7 +9,7 @@ import { ApiSuccessResponse, ApiErrorResponse } from '../common/api.types';
 // Enum Types (lowercase union types for API)
 // ==========================================
 
-export type SpotTypeDTO = 'driveway' | 'garage' | 'covered' | 'lot' | 'underground';
+export type SpotTypeDTO = 'driveway' | 'garage' | 'covered' | 'lot' | 'underground' | 'street';
 export type SpotStatusDTO = 'draft' | 'pending_verification' | 'under_review' | 'active' | 'paused' | 'rejected' | 'deleted';
 export type AccessTypeDTO = 'code' | 'key' | 'smart_lock' | 'remote' | 'badge' | 'open';
 export type CancellationPolicyDTO = 'flexible' | 'moderate' | 'strict' | 'non_refundable';
@@ -100,6 +100,11 @@ export interface SpotDTO {
   // Timestamps
   createdAt: string;
   updatedAt: string;
+
+  // User context flags (set when user is authenticated)
+  isOwnSpot?: boolean;        // True if the current user is the host
+  canBook?: boolean;          // False if own spot or not bookable for other reasons
+  canBookReason?: string;     // Reason why canBook is false (for UI messaging)
 }
 
 export interface SpotSummaryDTO {
@@ -211,3 +216,34 @@ export type UpdateSpotResponse = ApiSuccessResponse<{ spot: SpotDTO }> | ApiErro
 export type ListSpotsResponse = ApiSuccessResponse<{ spots: SpotSummaryDTO[] }> | ApiErrorResponse;
 export type DeleteSpotResponse = ApiSuccessResponse<null> | ApiErrorResponse;
 export type SpotSearchResponse = ApiSuccessResponse<{ spots: SpotSummaryDTO[]; total: number }> | ApiErrorResponse;
+
+// ==========================================
+// Spot Availability (Booked Slots)
+// ==========================================
+
+/**
+ * Represents a time slot that is already booked
+ * Used by mobile to show unavailable times in the booking calendar
+ */
+export interface BookedSlotDTO {
+  startTime: string;  // ISO 8601
+  endTime: string;    // ISO 8601
+}
+
+export interface GetSpotAvailabilityRequest {
+  startDate: string;  // ISO 8601 date (e.g., "2026-02-20")
+  endDate: string;    // ISO 8601 date (e.g., "2026-02-27")
+}
+
+export type GetSpotAvailabilityResponse = ApiSuccessResponse<{
+  bookedSlots: BookedSlotDTO[];
+  // Spot's weekly availability schedule (when the spot is open)
+  schedule: SpotAvailabilityDTO[];
+  // Booking constraints for UI validation
+  constraints: {
+    minBookingMinutes: number;
+    maxBookingMinutes?: number;
+    advanceNoticeMinutes: number;
+    bookingWindowDays: number;
+  };
+}> | ApiErrorResponse;

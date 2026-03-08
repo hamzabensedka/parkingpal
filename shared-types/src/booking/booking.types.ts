@@ -41,6 +41,22 @@ export interface BookingVehicleSummary {
   type: string;
 }
 
+/**
+ * Available actions for a booking based on its current state
+ * Mobile app should use these flags to show/hide action buttons
+ */
+export interface BookingActionsDTO {
+  canCancel: boolean;
+  canConfirm: boolean;       // Host only - for pending bookings
+  canCheckIn: boolean;       // Renter only
+  canCheckOut: boolean;      // Renter only
+  canComplete: boolean;      // After end time
+  canReview: boolean;        // After completion
+  // Timing info for check-in button
+  checkInAvailableAt?: string;  // ISO timestamp when check-in becomes available (30 min before start)
+  checkInExpiresAt?: string;    // ISO timestamp when check-in expires (at end time)
+}
+
 // ==========================================
 // DTOs
 // ==========================================
@@ -64,8 +80,12 @@ export interface BookingDTO {
   cancellationReason?: string;
   hostNotes?: string;
   renterNotes?: string;
+  checkInAt?: string;
+  checkOutAt?: string;
   createdAt: string;
   updatedAt: string;
+  // Available actions based on booking state and user role
+  actions?: BookingActionsDTO;
 }
 
 export interface BookingSummaryDTO {
