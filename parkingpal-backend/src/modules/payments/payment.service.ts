@@ -3,6 +3,7 @@ import { IUserRepository } from '../../interfaces/IUserRepository';
 import { IBookingRepository } from '../../interfaces/IBookingRepository';
 import { ApiError } from '../../middleware/errorHandler';
 import { BookingStatus, PaymentStatus } from '@prisma/client';
+import { appLogger } from '../../logger';
 
 /**
  * Payment Service
@@ -182,32 +183,88 @@ export class PaymentService {
    * HANDLES 3DS/SCA: Returns clear messages for authentication requirements
    */
   async confirmPayment(renterId: string, bookingId: string): Promise<void> {
+    appLogger.payment('Start confirmation', {
+      action: 'confirm_start',
+      renterId,
+      bookingId,
+    });
+
     const booking = await this.bookingRepository.findById(bookingId);
     if (!booking) {
+      appLogger.payment('Booking not found', {
+        action: 'confirm_failed',
+        renterId,
+        bookingId,
+        reason: 'booking_not_found',
+      });
       throw ApiError.notFound('Booking not found');
     }
 
     if (booking.renterId !== renterId) {
+      appLogger.payment('Authorization failed', {
+        action: 'confirm_failed',
+        renterId,
+        bookingId,
+        actualRenterId: booking.renterId,
+        reason: 'not_authorized',
+      });
       throw ApiError.forbidden('Not authorized');
     }
 
     if (!booking.stripePaymentIntentId) {
+      appLogger.payment('No payment intent', {
+        action: 'confirm_failed',
+        renterId,
+        bookingId,
+        reason: 'no_payment_intent',
+        paymentStatus: booking.paymentStatus,
+      });
       throw ApiError.badRequest('No payment intent found');
     }
 
     // IDEMPOTENCY: If already captured, return success (no-op)
     if (booking.paymentStatus === PaymentStatus.CAPTURED) {
+      appLogger.payment('Already captured (idempotent)', {
+        action: 'confirm_idempotent',
+        renterId,
+        bookingId,
+        paymentIntentId: booking.stripePaymentIntentId,
+      });
       return; // Already captured, idempotent response
     }
 
+    appLogger.payment('Calling payment gateway', {
+      action: 'confirm_gateway_call',
+      renterId,
+      bookingId,
+      paymentIntentId: booking.stripePaymentIntentId,
+      provider: 'stripe',
+    });
+
     // Verify payment status with Stripe
     const status = await this.stripeService.getPaymentIntentStatus(booking.stripePaymentIntentId);
+
+    appLogger.payment('Gateway response', {
+      action: 'confirm_gateway_response',
+      renterId,
+      bookingId,
+      paymentIntentId: booking.stripePaymentIntentId,
+      stripeStatus: status,
+    });
 
     // Handle different payment intent statuses
     switch (status) {
       case 'requires_capture':
         // Generate idempotency key for capture
         const idempotencyKey = `capture-${booking.stripePaymentIntentId}`;
+
+        appLogger.payment('Capturing payment', {
+          action: 'confirm_capturing',
+          renterId,
+          bookingId,
+          paymentIntentId: booking.stripePaymentIntentId,
+          idempotencyKey,
+        });
 
         // Capture the payment
         await this.stripeService.capturePayment(booking.stripePaymentIntentId, idempotencyKey);
@@ -216,6 +273,14 @@ export class PaymentService {
         });
         // Also confirm the booking
         await this.bookingRepository.updateStatus(bookingId, BookingStatus.CONFIRMED);
+
+        appLogger.payment('Confirmation complete', {
+          action: 'confirm_complete',
+          renterId,
+          bookingId,
+          paymentIntentId: booking.stripePaymentIntentId,
+          finalStatus: 'captured',
+        });
         break;
 
       case 'succeeded':
@@ -223,11 +288,27 @@ export class PaymentService {
         await this.bookingRepository.updatePayment(bookingId, {
           paymentStatus: PaymentStatus.CAPTURED,
         });
+
+        appLogger.payment('Confirmation complete (auto-captured)', {
+          action: 'confirm_complete',
+          renterId,
+          bookingId,
+          paymentIntentId: booking.stripePaymentIntentId,
+          finalStatus: 'auto_captured',
+        });
         break;
 
       case 'requires_action':
       case 'requires_source_action':
         // 3DS authentication required - client needs to complete authentication
+        appLogger.payment('3DS required', {
+          action: 'confirm_failed',
+          renterId,
+          bookingId,
+          paymentIntentId: booking.stripePaymentIntentId,
+          stripeStatus: status,
+          reason: '3ds_required',
+        });
         throw ApiError.badRequest(
           'Payment requires additional authentication (3D Secure). ' +
           'Please complete the authentication in your payment app and try again.'
@@ -235,18 +316,42 @@ export class PaymentService {
 
       case 'requires_payment_method':
         // Payment method failed, needs a new one
+        appLogger.payment('Payment method failed', {
+          action: 'confirm_failed',
+          renterId,
+          bookingId,
+          paymentIntentId: booking.stripePaymentIntentId,
+          stripeStatus: status,
+          reason: 'payment_method_failed',
+        });
         throw ApiError.badRequest(
           'Payment method failed. Please try a different card or payment method.'
         );
 
       case 'requires_confirmation':
         // Payment intent needs to be confirmed on client side
+        appLogger.payment('Needs client confirmation', {
+          action: 'confirm_failed',
+          renterId,
+          bookingId,
+          paymentIntentId: booking.stripePaymentIntentId,
+          stripeStatus: status,
+          reason: 'requires_confirmation',
+        });
         throw ApiError.badRequest(
           'Payment needs to be confirmed. Please complete the payment in your app.'
         );
 
       case 'processing':
         // Payment is being processed (common for bank transfers, some cards)
+        appLogger.payment('Still processing', {
+          action: 'confirm_failed',
+          renterId,
+          bookingId,
+          paymentIntentId: booking.stripePaymentIntentId,
+          stripeStatus: status,
+          reason: 'processing',
+        });
         throw ApiError.badRequest(
           'Payment is still processing. Please wait a moment and try again, ' +
           'or check your booking status later.'
@@ -254,12 +359,28 @@ export class PaymentService {
 
       case 'canceled':
         // Payment was canceled
+        appLogger.payment('Payment canceled', {
+          action: 'confirm_failed',
+          renterId,
+          bookingId,
+          paymentIntentId: booking.stripePaymentIntentId,
+          stripeStatus: status,
+          reason: 'canceled',
+        });
         throw ApiError.badRequest(
           'This payment was canceled. Please create a new payment to complete your booking.'
         );
 
       default:
         // Any other status (failed, etc.)
+        appLogger.payment('Unexpected status', {
+          action: 'confirm_failed',
+          renterId,
+          bookingId,
+          paymentIntentId: booking.stripePaymentIntentId,
+          stripeStatus: status,
+          reason: 'unexpected_status',
+        });
         throw ApiError.badRequest(
           `Payment not successful. Status: ${status}. ` +
           'Please try again or contact support if the issue persists.'
