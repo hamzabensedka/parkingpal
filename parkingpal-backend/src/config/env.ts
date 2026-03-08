@@ -45,6 +45,9 @@ const envSchema = z.object({
   // Stripe (required in production)
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
+
+  // Logging
+  LOG_LEVEL: z.enum(['error', 'warn', 'info', 'http', 'debug']).optional(),
 }).superRefine((data, ctx) => {
   // In production, Stripe keys are REQUIRED
   if (data.NODE_ENV === 'production') {
@@ -136,6 +139,11 @@ export const env = {
   stripe: {
     secretKey: envVars.STRIPE_SECRET_KEY,
     webhookSecret: envVars.STRIPE_WEBHOOK_SECRET,
+  },
+
+  // Logging
+  logging: {
+    level: envVars.LOG_LEVEL,
   },
 } as const;
 

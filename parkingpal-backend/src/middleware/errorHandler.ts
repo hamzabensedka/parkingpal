@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
 import { env } from '../config/env';
 import { HTTP_STATUS, ERROR_MESSAGES } from '../config/constants';
+import { appLogger, getTraceId, redact } from '../logger';
 
 // Custom error class for API errors
 export class ApiError extends Error {
@@ -55,18 +56,45 @@ export class ApiError extends Error {
 }
 
 /**
+ * Build error context for logging
+ * Includes request details with redacted sensitive data
+ */
+function buildErrorContext(req: Request): Record<string, unknown> {
+  const context: Record<string, unknown> = {
+    method: req.method,
+    url: req.originalUrl,
+    params: req.params,
+    query: req.query,
+    userId: req.user?.id,
+    ip: req.ip,
+    userAgent: req.headers['user-agent'],
+  };
+
+  // Add redacted body for non-GET requests
+  if (req.method !== 'GET' && req.body && Object.keys(req.body).length > 0) {
+    context.body = redact(req.body);
+  }
+
+  return context;
+}
+
+/**
  * Global error handler middleware
+ *
+ * Features:
+ * - Structured logging with traceId for all errors
+ * - Different log levels based on error severity (warn for 4xx, error for 5xx)
+ * - traceId included in all error responses for client correlation
+ * - Sensitive data automatically redacted from logs
  */
 export const errorHandler = (
   err: Error,
   req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction
 ): Response => {
-  // Log error in development
-  if (env.isDevelopment) {
-    console.error('Error:', err);
-  }
+  const traceId = getTraceId();
+  const errorContext = buildErrorContext(req);
 
   // Handle Zod validation errors
   if (err instanceof ZodError) {
@@ -76,23 +104,43 @@ export const errorHandler = (
       details[path] = error.message;
     });
 
+    appLogger.warn('Validation error', {
+      ...errorContext,
+      errorType: 'ZodError',
+      validationErrors: details,
+    });
+
     return res.status(HTTP_STATUS.BAD_REQUEST).json({
       success: false,
       error: ERROR_MESSAGES.VALIDATION_ERROR,
       details,
+      traceId,
     });
   }
 
   // Handle custom API errors
   if (err instanceof ApiError) {
+    const logLevel = err.statusCode >= 500 ? 'error' : 'warn';
+
+    appLogger[logLevel](err.message, {
+      ...errorContext,
+      errorType: 'ApiError',
+      statusCode: err.statusCode,
+      details: err.details,
+      reason: err.reason,
+      stack: env.isDevelopment ? err.stack : undefined,
+    });
+
     const response: {
       success: false;
       error: string;
       details?: Record<string, string>;
       reason?: string;
+      traceId: string;
     } = {
       success: false,
       error: err.message,
+      traceId,
     };
 
     if (err.details) response.details = err.details;
@@ -105,12 +153,20 @@ export const errorHandler = (
   if (err.name === 'PrismaClientKnownRequestError') {
     const prismaError = err as unknown as { code: string; meta?: { target?: string[] } };
 
+    appLogger.warn('Prisma error', {
+      ...errorContext,
+      errorType: 'PrismaError',
+      prismaCode: prismaError.code,
+      prismaMeta: prismaError.meta,
+    });
+
     // Unique constraint violation
     if (prismaError.code === 'P2002') {
       const target = prismaError.meta?.target?.[0] || 'field';
       return res.status(HTTP_STATUS.CONFLICT).json({
         success: false,
         error: `${target.charAt(0).toUpperCase() + target.slice(1)} already exists`,
+        traceId,
       });
     }
 
@@ -119,24 +175,45 @@ export const errorHandler = (
       return res.status(HTTP_STATUS.NOT_FOUND).json({
         success: false,
         error: ERROR_MESSAGES.NOT_FOUND,
+        traceId,
       });
     }
   }
 
   // Handle JWT errors
   if (err.name === 'JsonWebTokenError') {
+    appLogger.warn('JWT error - invalid token', {
+      ...errorContext,
+      errorType: 'JsonWebTokenError',
+    });
+
     return res.status(HTTP_STATUS.UNAUTHORIZED).json({
       success: false,
       error: ERROR_MESSAGES.INVALID_TOKEN,
+      traceId,
     });
   }
 
   if (err.name === 'TokenExpiredError') {
+    appLogger.warn('JWT error - token expired', {
+      ...errorContext,
+      errorType: 'TokenExpiredError',
+    });
+
     return res.status(HTTP_STATUS.UNAUTHORIZED).json({
       success: false,
       error: ERROR_MESSAGES.TOKEN_EXPIRED,
+      traceId,
     });
   }
+
+  // Unhandled error - log full stack trace
+  appLogger.error('Unhandled error', {
+    ...errorContext,
+    errorType: err.name,
+    message: err.message,
+    stack: err.stack,
+  });
 
   // Default to internal server error
   const statusCode = HTTP_STATUS.INTERNAL_SERVER_ERROR;
@@ -145,6 +222,7 @@ export const errorHandler = (
   return res.status(statusCode).json({
     success: false,
     error: message,
+    traceId,
   });
 };
 
@@ -154,10 +232,19 @@ export const errorHandler = (
 export const notFoundHandler = (
   req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction
 ): Response => {
+  const traceId = getTraceId();
+
+  appLogger.warn('Route not found', {
+    method: req.method,
+    url: req.originalUrl,
+    ip: req.ip,
+  });
+
   return res.status(HTTP_STATUS.NOT_FOUND).json({
     success: false,
     error: `Route ${req.method} ${req.originalUrl} not found`,
+    traceId,
   });
 };

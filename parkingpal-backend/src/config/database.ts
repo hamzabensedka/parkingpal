@@ -7,12 +7,11 @@ declare global {
   var prisma: PrismaClient | undefined;
 }
 
-// Create Prisma client with logging in development
+// Create Prisma client with minimal logging
+// Query logs removed - use Winston logger for application-level logging
 const createPrismaClient = () => {
   return new PrismaClient({
-    log: env.isDevelopment
-      ? ['query', 'info', 'warn', 'error']
-      : ['error'],
+    log: ['warn', 'error'],
   });
 };
 
