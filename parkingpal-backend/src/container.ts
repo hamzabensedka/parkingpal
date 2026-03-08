@@ -38,6 +38,7 @@ import { PrismaMessageRepository } from './repositories/prisma-message.repositor
 import { PrismaNotificationRepository } from './repositories/prisma-notification.repository';
 import { PrismaUserReportRepository } from './repositories/prisma-user-report.repository';
 import { PrismaUserBlockRepository } from './repositories/prisma-user-block.repository';
+import { PrismaAuditRepository } from './repositories/prisma-audit.repository';
 import { ExpoPushService } from './services/expo-push.service';
 
 // Services
@@ -55,6 +56,8 @@ import { NotificationService } from './modules/notifications/notification.servic
 import { EarningsService } from './modules/earnings/earnings.service';
 import { WebhookService } from './modules/webhooks/webhook.service';
 import { SafetyService } from './modules/safety/safety.service';
+import { AdminService } from './modules/admin/admin.service';
+import { EntityService } from './modules/admin/entity.service';
 
 // Controllers
 import { AuthController } from './modules/auth/auth.controller';
@@ -72,10 +75,19 @@ import { NotificationController } from './modules/notifications/notification.con
 import { EarningsController } from './modules/earnings/earnings.controller';
 import { WebhookController } from './modules/webhooks/webhook.controller';
 import { SafetyController } from './modules/safety/safety.controller';
+import { AdminController } from './modules/admin/admin.controller';
+import { EntityController } from './modules/admin/entity.controller';
 
 // Middleware factory
 import { createAuthMiddleware } from './middleware/authenticate';
 import { createBlockEnforcementMiddlewareSet } from './middleware/blockEnforcement';
+import { createAdminMiddleware } from './middleware/requireAdmin';
+
+// Admin routes factory
+import { createAdminRoutes } from './modules/admin/admin.routes';
+
+// Logger
+import { appLogger } from './logger';
 
 // ==========================================
 // 1. CREATE UTILITIES (Single Responsibility each)
@@ -154,6 +166,9 @@ const userReportRepository = new PrismaUserReportRepository(prisma);
 /** User block database access via Prisma */
 const userBlockRepository = new PrismaUserBlockRepository(prisma);
 
+/** Admin audit log database access via Prisma */
+const auditRepository = new PrismaAuditRepository(prisma);
+
 // ==========================================
 // 3. CREATE SERVICES (Business logic)
 //    Dependencies injected via constructor
@@ -182,8 +197,8 @@ const vehicleService = new VehicleService(vehicleRepository);
 /** Payment method business logic */
 const paymentMethodService = new PaymentMethodService(paymentMethodRepository);
 
-/** Spot business logic (also needs userRepository to upgrade renter → both) */
-const spotService = new SpotService(spotRepository, userRepository);
+/** Spot business logic (also needs userRepository to upgrade renter → both, bookingRepository for availability) */
+const spotService = new SpotService(spotRepository, userRepository, bookingRepository);
 
 /** Favorite business logic */
 const favoriteService = new FavoriteService(prisma, spotRepository);
@@ -233,6 +248,20 @@ const safetyService = new SafetyService(
   userBlockRepository,
   userRepository
 );
+
+/** Admin business logic */
+const adminService = new AdminService({
+  userRepository,
+  spotRepository,
+  bookingRepository,
+  userReportRepository,
+  auditRepository,
+  passwordUtil,
+  tokenUtil,
+});
+
+/** Generic entity service (uses Prisma directly for dynamic model access) */
+const entityService = new EntityService(prisma);
 
 // ==========================================
 // 4. CREATE CONTROLLERS (HTTP handling only)
@@ -288,6 +317,12 @@ const webhookController = new WebhookController(
 /** Safety HTTP handler */
 const safetyController = new SafetyController(safetyService);
 
+/** Admin HTTP handler */
+const adminController = new AdminController(adminService);
+
+/** Entity CRUD HTTP handler */
+const entityController = new EntityController(entityService);
+
 // ==========================================
 // 5. CREATE MIDDLEWARE (with injected dependencies)
 // ==========================================
@@ -301,11 +336,26 @@ const { authenticate, optionalAuthenticate } = createAuthMiddleware(
 /** Block enforcement middleware set */
 const blockEnforcementMiddleware = createBlockEnforcementMiddlewareSet(userBlockRepository);
 
+/** Admin middleware using userRepository */
+const { requireAdmin, requireRole } = createAdminMiddleware(userRepository);
+
+/** Admin routes with all dependencies */
+const adminRoutes = createAdminRoutes(
+  adminController,
+  entityController,
+  authenticate,
+  requireAdmin,
+  requireRole
+);
+
 // ==========================================
 // EXPORTS
 // ==========================================
 
 export {
+  // Logger (singleton)
+  appLogger as logger,
+
   // Utilities (exposed for testing or direct use)
   passwordUtil,
   tokenUtil,
@@ -348,4 +398,10 @@ export {
   authenticate,
   optionalAuthenticate,
   blockEnforcementMiddleware,
+
+  // Admin
+  adminController,
+  adminRoutes,
+  requireAdmin,
+  requireRole,
 };

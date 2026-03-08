@@ -5,6 +5,8 @@ import path from 'path';
 import { env } from './config/env';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import { generalLimiter } from './middleware/rateLimiter';
+import { tracingMiddleware } from './middleware/tracing';
+import { httpLoggerMiddleware } from './middleware/httpLogger';
 import authRoutes, { userRouter } from './modules/auth/auth.routes';
 import spotRoutes from './modules/spots/spot.routes';
 import bookingRoutes from './modules/bookings/booking.routes';
@@ -16,7 +18,7 @@ import notificationRoutes from './modules/notifications/notification.routes';
 import earningsRoutes from './modules/earnings/earnings.routes';
 import webhookRoutes from './modules/webhooks/webhook.routes';
 import safetyRoutes from './modules/safety/safety.routes';
-import { reviewController, authenticate } from './container';
+import { reviewController, authenticate, adminRoutes } from './container';
 
 // Create Express application
 const app: Application = express();
@@ -42,6 +44,7 @@ const corsOptions = {
     // List of allowed origins
     const allowedOrigins = [
       'http://localhost:3000',
+      'http://localhost:5173', // Vite admin dashboard
       'http://localhost:5000',
       'http://localhost:8081', // Expo development
       'http://localhost:19006', // Expo web
@@ -49,6 +52,7 @@ const corsOptions = {
       'https://parkingpal.app',
       'https://www.parkingpal.app',
       'https://api.parkingpal.fr',
+      'https://admin.parkingpal.fr', // Admin dashboard
     ];
 
     if (allowedOrigins.includes(origin) || env.isDevelopment) {
@@ -63,6 +67,17 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+
+// ==========================================
+// Request Tracing (BEFORE body parsing)
+// ==========================================
+
+/**
+ * CRITICAL: Tracing must be early so ALL requests get a traceId.
+ * This enables correlation of logs across the entire request lifecycle,
+ * including webhook signature verification errors.
+ */
+app.use(tracingMiddleware);
 
 // ==========================================
 // Webhook Routes (BEFORE body parsing!)
@@ -81,6 +96,16 @@ app.use('/api/webhooks', webhookRoutes);
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// ==========================================
+// HTTP Request Logging (AFTER body parsing)
+// ==========================================
+
+/**
+ * HTTP logger needs req.body for error context logging.
+ * Must come after express.json() but before routes.
+ */
+app.use(httpLoggerMiddleware);
 
 // ==========================================
 // Static Files (Uploads)
@@ -143,6 +168,9 @@ app.use('/api/earnings', earningsRoutes);
 
 // Safety routes (reporting and blocking)
 app.use('/api/safety', safetyRoutes);
+
+// Admin dashboard routes
+app.use('/api/admin', adminRoutes);
 
 // ==========================================
 // Error Handling

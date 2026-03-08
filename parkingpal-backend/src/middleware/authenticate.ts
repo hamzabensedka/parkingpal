@@ -166,9 +166,13 @@ export const requireUserType = (...allowedTypes: string[]) => {
 
     const userType = req.user.userType.toLowerCase();
 
-    // Hosts and superhosts have access to host routes
-    // Renters only have access to renter routes
-    const hasAccess = allowedTypes.includes(userType);
+    // 'both' users have access to both host and renter routes
+    // Direct match or 'both' with either 'host' or 'renter' allowed
+    const hasAccess =
+      allowedTypes.includes(userType) ||
+      (userType === 'both' && (allowedTypes.includes('host') || allowedTypes.includes('renter')));
+
+    console.log('[DEBUG requireUserType]', { userType, allowedTypes, hasAccess });
 
     if (!hasAccess) {
       res.status(HTTP_STATUS.FORBIDDEN).json({
