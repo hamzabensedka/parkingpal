@@ -14,10 +14,11 @@ import MapLibreGL from '@maplibre/maplibre-react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS, AMENITIES, SPOT_TYPES, MAPLIBRE_STYLE } from '../../utils/constants';
 import { formatPrice, formatRating, formatRelativeTime } from '../../utils/formatting';
 import { getStarArray } from '../../utils/helpers';
-import { Button, Card, Avatar, Badge } from '../../components/common';
+import { Button, Card, Avatar, Badge, IDVerificationModal } from '../../components/common';
 import { spotApi } from '../../services/api';
 import { mapSpotDTOToSpot } from '../../utils/spotMappers';
 import { Spot } from '../../types';
@@ -32,11 +33,13 @@ const SpotDetailScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<RouteProp<SpotDetailRouteParams, 'SpotDetail'>>();
   const { colors } = useTheme();
+  const { user } = useAuth();
   const insets = useSafeAreaInsets();
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [spot, setSpot] = useState<Spot | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showIDVerificationModal, setShowIDVerificationModal] = useState(false);
 
   const spotId = route.params?.spotId;
 
@@ -75,12 +78,24 @@ const SpotDetailScreen: React.FC = () => {
 
   const handleBookNow = useCallback(() => {
     if (!spot) return;
-    navigation.navigate('BookingDateTime', { 
+
+    // Check if user has verified their ID
+    if (user && !user.verified?.id) {
+      setShowIDVerificationModal(true);
+      return;
+    }
+
+    navigation.navigate('BookingDateTime', {
       spotId: spot.id,
       spotTitle: spot.title,
       hourlyRate: spot.hourlyRate,
     });
-  }, [navigation, spot]);
+  }, [navigation, spot, user]);
+
+  const handleVerifyID = useCallback(() => {
+    setShowIDVerificationModal(false);
+    navigation.navigate('IDVerification');
+  }, [navigation]);
 
   const handleContactHost = useCallback(() => {
     // Navigate to chat
@@ -413,6 +428,13 @@ const SpotDetailScreen: React.FC = () => {
           style={styles.bookButton}
         />
       </SafeAreaView>
+
+      {/* ID Verification Modal */}
+      <IDVerificationModal
+        visible={showIDVerificationModal}
+        onClose={() => setShowIDVerificationModal(false)}
+        onVerifyPress={handleVerifyID}
+      />
     </View>
   );
 };

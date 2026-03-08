@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import * as ImagePicker from 'expo-image-picker';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -20,14 +21,20 @@ import { Button } from '../../components/common';
 type IDVerificationScreenNavigationProp = NativeStackNavigationProp<AuthStackParamList, 'IDVerification'>;
 
 interface IDVerificationScreenProps {
-  navigation: IDVerificationScreenNavigationProp;
+  navigation?: IDVerificationScreenNavigationProp;
 }
 
-const IDVerificationScreen: React.FC<IDVerificationScreenProps> = ({ navigation }) => {
+const IDVerificationScreen: React.FC<IDVerificationScreenProps> = ({ navigation: propNavigation }) => {
+  const navigation = useNavigation<any>();
+  const route = useRoute();
   const { verifyId, isLoading } = useAuth();
   const { colors } = useTheme();
   const [idImage, setIdImage] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
+
+  // Determine if we're in the onboarding flow or main app flow
+  const isOnboardingFlow = route.name === 'IDVerification' &&
+    navigation.getState()?.routeNames?.includes('OnboardingComplete');
 
   const requestPermission = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
@@ -47,8 +54,7 @@ const IDVerificationScreen: React.FC<IDVerificationScreenProps> = ({ navigation 
 
     const result = await ImagePicker.launchCameraAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
+      allowsEditing: false,
       quality: 0.8,
     });
 
@@ -60,8 +66,7 @@ const IDVerificationScreen: React.FC<IDVerificationScreenProps> = ({ navigation 
   const handleChooseFromLibrary = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
+      allowsEditing: false,
       quality: 0.8,
     });
 
@@ -77,7 +82,16 @@ const IDVerificationScreen: React.FC<IDVerificationScreenProps> = ({ navigation 
     try {
       const success = await verifyId(idImage);
       if (success) {
-        navigation.navigate('OnboardingComplete');
+        if (isOnboardingFlow) {
+          navigation.navigate('OnboardingComplete');
+        } else {
+          // In main app flow, show success and go back
+          Alert.alert(
+            'ID Verified!',
+            'Your identity has been verified. You can now book parking spots.',
+            [{ text: 'Continue', onPress: () => navigation.goBack() }]
+          );
+        }
       } else {
         Alert.alert(
           'Verification Failed',
@@ -92,7 +106,11 @@ const IDVerificationScreen: React.FC<IDVerificationScreenProps> = ({ navigation 
   };
 
   const handleSkip = () => {
-    navigation.navigate('OnboardingComplete');
+    if (isOnboardingFlow) {
+      navigation.navigate('OnboardingComplete');
+    } else {
+      navigation.goBack();
+    }
   };
 
   return (

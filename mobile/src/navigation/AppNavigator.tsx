@@ -32,6 +32,9 @@ import BookingConfirmationScreen from '../screens/renter/BookingConfirmationScre
 import ActiveBookingScreen from '../screens/renter/ActiveBookingScreen';
 import CancelBookingScreen from '../screens/renter/CancelBookingScreen';
 
+// Auth screens that can be accessed from main app
+import IDVerificationScreen from '../screens/auth/IDVerificationScreen';
+
 // Host screens that need to be accessible from anywhere
 import HostActiveBookingScreen from '../screens/host/HostActiveBookingScreen';
 
@@ -267,6 +270,16 @@ const AppNavigator: React.FC = () => {
               options={{
                 headerShown: true,
                 title: 'Cancel Booking',
+                headerStyle: { backgroundColor: NEUTRAL_COLORS.white },
+                headerTintColor: NEUTRAL_COLORS.black,
+              }}
+            />
+            <Stack.Screen
+              name="IDVerification"
+              component={IDVerificationScreen}
+              options={{
+                headerShown: true,
+                title: 'Verify Your ID',
                 headerStyle: { backgroundColor: NEUTRAL_COLORS.white },
                 headerTintColor: NEUTRAL_COLORS.black,
               }}

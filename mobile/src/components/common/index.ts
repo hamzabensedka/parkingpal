@@ -10,3 +10,4 @@ export { default as ErrorState } from './ErrorState';
 export { ReviewList } from './ReviewList';
 export { default as PhoneVerificationModal } from './PhoneVerificationModal';
 export { default as ReportUserModal } from './ReportUserModal';
+export { default as IDVerificationModal } from './IDVerificationModal';
