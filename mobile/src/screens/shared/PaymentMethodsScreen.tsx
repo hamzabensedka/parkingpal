@@ -14,6 +14,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { useError } from '../../contexts/ErrorContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
 import { PaymentMethod } from '../../types';
 import { Card, Badge, Button, EmptyState } from '../../components/common';
@@ -159,6 +160,7 @@ const PaymentMethodsScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const { colors } = useTheme();
   const { paymentMethods, deletePaymentMethod, setDefaultPaymentMethod } = useAuth();
+  const { showPopup } = useError();
 
   const handleAddCard = useCallback(() => {
     navigation.navigate('AddPaymentCard');
@@ -168,11 +170,7 @@ const PaymentMethodsScreen: React.FC = () => {
     (id: string) => {
       const method = paymentMethods.find((m) => m.id === id);
       if (method?.isDefault) {
-        Alert.alert(
-          'Cannot Delete',
-          'You cannot delete your default payment method. Please set another card as default first.',
-          [{ text: 'OK' }]
-        );
+        showPopup({ title: 'Cannot Delete', message: 'You cannot delete your default payment method. Please set another card as default first.', severity: 'info' });
         return;
       }
 

@@ -6,13 +6,13 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
-  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useError } from '../../contexts/ErrorContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
 import { HostStackParamList } from '../../types';
 import { Button, Card } from '../../components/common';
@@ -28,6 +28,7 @@ interface PhotoItem {
 const AddListingPhotosScreen = ({ navigation, route }: Props) => {
   const { address, latitude, longitude } = route.params;
   const { colors } = useTheme();
+  const { showPopup } = useError();
 
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
 
@@ -35,7 +36,7 @@ const AddListingPhotosScreen = ({ navigation, route }: Props) => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (!permissionResult.granted) {
-      Alert.alert('Permission Required', 'Please allow access to your photo library.');
+      showPopup({ title: 'Permission Required', message: 'Please allow access to your photo library.', severity: 'info' });
       return;
     }
 
@@ -61,7 +62,7 @@ const AddListingPhotosScreen = ({ navigation, route }: Props) => {
     const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
 
     if (!permissionResult.granted) {
-      Alert.alert('Permission Required', 'Please allow access to your camera.');
+      showPopup({ title: 'Permission Required', message: 'Please allow access to your camera.', severity: 'info' });
       return;
     }
 
@@ -101,7 +102,7 @@ const AddListingPhotosScreen = ({ navigation, route }: Props) => {
 
   const handleContinue = () => {
     if (photos.length < 1) {
-      Alert.alert('Add Photos', 'Please add at least one photo of your parking spot.');
+      showPopup({ title: 'Add Photos', message: 'Please add at least one photo of your parking spot.', severity: 'info' });
       return;
     }
 

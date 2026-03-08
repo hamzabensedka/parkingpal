@@ -13,6 +13,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
 import { Button, Input, Card } from '../../components/common';
 import { reviewApi } from '../../services/api';
+import { useError } from '../../contexts/ErrorContext';
 
 const REVIEW_CATEGORIES = [
   { id: 'cleanliness', label: 'Cleanliness', icon: 'broom' },
@@ -36,6 +37,7 @@ const QUICK_TAGS = [
 const ReviewScreen: React.FC<any> = ({ navigation, route }) => {
   const { bookingId, spotTitle, hostName, renterName } = route.params;
   const { colors } = useTheme();
+  const { showError, showPopup } = useError();
 
   const [overallRating, setOverallRating] = useState(0);
   const [categoryRatings, setCategoryRatings] = useState<Record<string, number>>({});
@@ -64,7 +66,7 @@ const ReviewScreen: React.FC<any> = ({ navigation, route }) => {
 
   const handleSubmit = useCallback(async () => {
     if (overallRating === 0) {
-      Alert.alert('Rating Required', 'Please select an overall rating.');
+      showPopup({ title: 'Rating Required', message: 'Please select an overall rating.', severity: 'info' });
       return;
     }
 
@@ -84,9 +86,8 @@ const ReviewScreen: React.FC<any> = ({ navigation, route }) => {
         'Thank you for your feedback!',
         [{ text: 'OK', onPress: () => navigation.goBack() }]
       );
-    } catch (error: any) {
-      const errorMessage = error.response?.data?.message || 'Failed to submit review. Please try again.';
-      Alert.alert('Error', errorMessage);
+    } catch (error) {
+      showError(error);
     } finally {
       setIsLoading(false);
     }

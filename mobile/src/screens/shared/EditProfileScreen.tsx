@@ -13,6 +13,7 @@ import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { useError } from '../../contexts/ErrorContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
 import { Button, Input, Card, Avatar, PhoneVerificationModal } from '../../components/common';
 
@@ -20,6 +21,7 @@ const EditProfileScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const { colors } = useTheme();
   const { user, updateProfile, sendPhoneCode, verifyPhone } = useAuth();
+  const { showError, showPopup } = useError();
 
   const [firstName, setFirstName] = useState(user?.firstName || '');
   const [lastName, setLastName] = useState(user?.lastName || '');
@@ -34,7 +36,7 @@ const EditProfileScreen: React.FC = () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (!permissionResult.granted) {
-      Alert.alert('Permission Required', 'Please allow access to your photo library.');
+      showPopup({ title: 'Permission Required', message: 'Please allow access to your photo library.', severity: 'info' });
       return;
     }
 
@@ -52,7 +54,7 @@ const EditProfileScreen: React.FC = () => {
 
   const handleSave = useCallback(async () => {
     if (!firstName.trim() || !lastName.trim()) {
-      Alert.alert('Required Fields', 'Please fill in your first and last name.');
+      showPopup({ title: 'Required Fields', message: 'Please fill in your first and last name.', severity: 'info' });
       return;
     }
 
@@ -71,7 +73,7 @@ const EditProfileScreen: React.FC = () => {
       Alert.alert('Success', 'Your profile has been updated.');
       navigation.goBack();
     } catch (error) {
-      Alert.alert('Error', 'Failed to update profile. Please try again.');
+      showError(error);
     } finally {
       setIsLoading(false);
     }
@@ -184,7 +186,7 @@ const EditProfileScreen: React.FC = () => {
               ) : (
                 <TouchableOpacity onPress={() => {
                   if (!phone.trim()) {
-                    Alert.alert('Phone Required', 'Please enter your phone number first.');
+                    showPopup({ title: 'Phone Required', message: 'Please enter your phone number first.', severity: 'info' });
                     return;
                   }
                   setShowPhoneVerification(true);

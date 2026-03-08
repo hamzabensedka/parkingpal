@@ -12,6 +12,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useBooking } from '../../contexts/BookingContext';
+import { useError } from '../../contexts/ErrorContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
 import { RenterStackParamList } from '../../types';
 import { Button, Card, Input } from '../../components/common';
@@ -38,6 +39,7 @@ const CancelBookingScreen = ({ navigation, route }: Props) => {
   const { bookingId } = route.params;
   const { colors, NEUTRAL_COLORS } = useTheme();
   const { upcomingBookings, cancelBooking } = useBooking();
+  const { showError, showPopup } = useError();
 
   const [selectedReason, setSelectedReason] = useState<CancellationReason | null>(null);
   const [additionalNotes, setAdditionalNotes] = useState('');
@@ -69,7 +71,7 @@ const CancelBookingScreen = ({ navigation, route }: Props) => {
 
   const handleCancel = async () => {
     if (!selectedReason) {
-      Alert.alert('Select Reason', 'Please select a cancellation reason.');
+      showPopup({ title: 'Select Reason', message: 'Please select a cancellation reason.', severity: 'info' });
       return;
     }
 
@@ -96,7 +98,7 @@ const CancelBookingScreen = ({ navigation, route }: Props) => {
                 [{ text: 'OK', onPress: () => navigation.goBack() }]
               );
             } catch (error) {
-              Alert.alert('Error', 'Failed to cancel booking. Please try again.');
+              showError(error);
             } finally {
               setIsLoading(false);
             }

@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useError } from '../../contexts/ErrorContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
 import { Button, Input, Card } from '../../components/common';
 
@@ -37,6 +38,7 @@ const ISSUE_TYPES: { value: IssueType; label: string; icon: string }[] = [
 const ReportIssueScreen: React.FC<any> = ({ navigation, route }) => {
   const { bookingId } = route.params;
   const { colors } = useTheme();
+  const { showError, showPopup } = useError();
 
   const [selectedIssue, setSelectedIssue] = useState<IssueType | null>(null);
   const [description, setDescription] = useState('');
@@ -61,12 +63,12 @@ const ReportIssueScreen: React.FC<any> = ({ navigation, route }) => {
 
   const handleSubmit = useCallback(async () => {
     if (!selectedIssue) {
-      Alert.alert('Select Issue Type', 'Please select the type of issue you\'re experiencing.');
+      showPopup({ title: 'Select Issue Type', message: 'Please select the type of issue you\'re experiencing.', severity: 'info' });
       return;
     }
 
     if (!description.trim()) {
-      Alert.alert('Description Required', 'Please describe the issue.');
+      showPopup({ title: 'Description Required', message: 'Please describe the issue.', severity: 'info' });
       return;
     }
 
@@ -81,7 +83,7 @@ const ReportIssueScreen: React.FC<any> = ({ navigation, route }) => {
         [{ text: 'OK', onPress: () => navigation.goBack() }]
       );
     } catch (error) {
-      Alert.alert('Error', 'Failed to submit report. Please try again.');
+      showError(error);
     } finally {
       setIsLoading(false);
     }

@@ -7,6 +7,7 @@ import { ThemeProvider } from './src/contexts/ThemeContext';
 import { AuthProvider } from './src/contexts/AuthContext';
 import { BookingProvider } from './src/contexts/BookingContext';
 import { NotificationProvider } from './src/contexts/NotificationContext';
+import { ErrorProvider } from './src/contexts/ErrorContext';
 import AppNavigator from './src/navigation/AppNavigator';
 import { STRIPE_PUBLISHABLE_KEY, STRIPE_MERCHANT_NAME } from './src/utils/constants';
 
@@ -29,7 +30,9 @@ const App: React.FC = () => {
             <AuthProvider>
               <BookingProvider>
                 <NotificationProvider>
-                  <AppNavigator />
+                  <ErrorProvider>
+                    <AppNavigator />
+                  </ErrorProvider>
                 </NotificationProvider>
               </BookingProvider>
             </AuthProvider>

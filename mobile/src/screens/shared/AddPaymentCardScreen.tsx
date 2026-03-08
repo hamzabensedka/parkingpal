@@ -14,6 +14,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { useError } from '../../contexts/ErrorContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
 import { Button, Input, Card } from '../../components/common';
 
@@ -21,6 +22,7 @@ const AddPaymentCardScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const { colors } = useTheme();
   const { addPaymentMethod, paymentMethods } = useAuth();
+  const { showError } = useError();
 
   const [cardNumber, setCardNumber] = useState('');
   const [expiryDate, setExpiryDate] = useState('');
@@ -179,7 +181,7 @@ const AddPaymentCardScreen: React.FC = () => {
         },
       ]);
     } catch (error) {
-      Alert.alert('Error', 'Failed to add payment card. Please try again.');
+      showError(error);
     } finally {
       setIsLoading(false);
     }

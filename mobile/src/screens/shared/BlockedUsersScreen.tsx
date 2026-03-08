@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useError } from '../../contexts/ErrorContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
 import { safetyApi } from '../../services/api';
 import type { UserBlock } from '../../services/api/safetyApi';
@@ -19,6 +20,7 @@ import { Card, Loading, EmptyState } from '../../components/common';
 
 const BlockedUsersScreen: React.FC = () => {
   const { colors } = useTheme();
+  const { showError } = useError();
   const [blocks, setBlocks] = useState<UserBlock[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -44,7 +46,7 @@ const BlockedUsersScreen: React.FC = () => {
       setOffset(newOffset + response.blocks.length);
     } catch (error) {
       console.error('Failed to fetch blocked users:', error);
-      Alert.alert('Error', 'Failed to load blocked users');
+      showError(error);
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -80,8 +82,8 @@ const BlockedUsersScreen: React.FC = () => {
               await safetyApi.unblockUser(block.blockedId);
               setBlocks(prev => prev.filter(b => b.id !== block.id));
               Alert.alert('Success', 'User has been unblocked');
-            } catch (error: any) {
-              Alert.alert('Error', error.message || 'Failed to unblock user');
+            } catch (error) {
+              showError(error);
             }
           },
         },

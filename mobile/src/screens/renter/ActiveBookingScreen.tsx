@@ -11,6 +11,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useBooking } from '../../contexts/BookingContext';
+import { useError } from '../../contexts/ErrorContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
 import { RenterStackParamList, Booking } from '../../types';
 import { Button, Card, Loading } from '../../components/common';
@@ -23,6 +24,7 @@ const ActiveBookingScreen = ({ navigation, route }: Props) => {
   const { bookingId } = route.params;
   const { colors } = useTheme();
   const { activeBookings, extendBooking, endBookingEarly } = useBooking();
+  const { showError } = useError();
 
   const [booking, setBooking] = useState<Booking | null>(null);
   const [timeRemaining, setTimeRemaining] = useState<string>('');
@@ -82,7 +84,7 @@ const ActiveBookingScreen = ({ navigation, route }: Props) => {
       await extendBooking(booking.id, hours);
       Alert.alert('Success', `Your booking has been extended by ${hours} hour(s).`);
     } catch (error) {
-      Alert.alert('Error', 'Failed to extend booking. Please try again.');
+      showError(error, () => handleExtend(hours));
     } finally {
       setIsExtending(false);
     }
@@ -105,7 +107,7 @@ const ActiveBookingScreen = ({ navigation, route }: Props) => {
               await endBookingEarly(booking.id);
               navigation.goBack();
             } catch (error) {
-              Alert.alert('Error', 'Failed to end booking. Please try again.');
+              showError(error);
             } finally {
               setIsEnding(false);
             }

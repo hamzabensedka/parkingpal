@@ -108,5 +108,16 @@ export function createApiClient(config: ApiClientConfig): AxiosInstance {
     }
   );
 
+  // Enrich errors with parsed backend payload for downstream classification
+  client.interceptors.response.use(
+    (res) => res,
+    (err) => {
+      if (err.response?.data) {
+        err.backendError = err.response.data;
+      }
+      return Promise.reject(err);
+    },
+  );
+
   return client;
 }

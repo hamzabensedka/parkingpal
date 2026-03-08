@@ -12,6 +12,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { useError } from '../../contexts/ErrorContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
 import type { VehicleSizeType } from '@parkingpal/shared-types';
 import { Button, Input, Card } from '../../components/common';
@@ -28,6 +29,7 @@ const AddVehicleScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const { colors } = useTheme();
   const { addVehicle } = useAuth();
+  const { showError, showPopup } = useError();
 
   const [make, setMake] = useState('');
   const [model, setModel] = useState('');
@@ -42,12 +44,12 @@ const AddVehicleScreen: React.FC = () => {
 
   const handleSave = useCallback(async () => {
     if (!isValid) {
-      Alert.alert('Required Fields', 'Please fill in all required fields.');
+      showPopup({ title: 'Required Fields', message: 'Please fill in all required fields.', severity: 'info' });
       return;
     }
 
     if (year.length !== 4 || parseInt(year, 10) < 1950 || parseInt(year, 10) > new Date().getFullYear() + 1) {
-      Alert.alert('Invalid Year', 'Please enter a valid year.');
+      showPopup({ title: 'Invalid Year', message: 'Please enter a valid year.', severity: 'info' });
       return;
     }
 
@@ -68,7 +70,7 @@ const AddVehicleScreen: React.FC = () => {
         { text: 'OK', onPress: () => navigation.goBack() },
       ]);
     } catch (error) {
-      Alert.alert('Error', 'Failed to add vehicle. Please try again.');
+      showError(error);
     } finally {
       setIsLoading(false);
     }

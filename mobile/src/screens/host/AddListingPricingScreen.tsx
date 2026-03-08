@@ -5,12 +5,12 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useError } from '../../contexts/ErrorContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
 import { HostStackParamList } from '../../types';
 import { Button, Input, Card } from '../../components/common';
@@ -22,6 +22,7 @@ const SERVICE_FEE_PERCENTAGE = 0.15; // 15% service fee
 const AddListingPricingScreen = ({ navigation, route }: Props) => {
   const { location, photos, spotType, amenities, vehicleSizes, accessInstructions, accessType, numberOfSpots } = route.params;
   const { colors } = useTheme();
+  const { showPopup } = useError();
 
   const [hourlyRate, setHourlyRate] = useState('');
   const [dailyRate, setDailyRate] = useState('');
@@ -65,7 +66,7 @@ const AddListingPricingScreen = ({ navigation, route }: Props) => {
 
   const handleContinue = () => {
     if (!hourlyRate || parseFloat(hourlyRate) <= 0) {
-      Alert.alert('Set Hourly Rate', 'Please set at least an hourly rate for your listing.');
+      showPopup({ title: 'Set Hourly Rate', message: 'Please set at least an hourly rate for your listing.', severity: 'info' });
       return;
     }
 

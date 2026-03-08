@@ -14,6 +14,7 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useError } from '../../contexts/ErrorContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '../../utils/constants';
 import { AuthStackParamList } from '../../types';
 import { Button } from '../../components/common';
@@ -29,6 +30,7 @@ const IDVerificationScreen: React.FC<IDVerificationScreenProps> = ({ navigation:
   const route = useRoute();
   const { verifyId, isLoading } = useAuth();
   const { colors } = useTheme();
+  const { showError, showPopup } = useError();
   const [idImage, setIdImage] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
 
@@ -39,10 +41,11 @@ const IDVerificationScreen: React.FC<IDVerificationScreenProps> = ({ navigation:
   const requestPermission = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert(
-        'Permission Required',
-        'Please enable camera access to take a photo of your ID.'
-      );
+      showPopup({
+        title: 'Permission Required',
+        message: 'Please enable camera access to take a photo of your ID.',
+        severity: 'info',
+      });
       return false;
     }
     return true;
@@ -93,13 +96,14 @@ const IDVerificationScreen: React.FC<IDVerificationScreenProps> = ({ navigation:
           );
         }
       } else {
-        Alert.alert(
-          'Verification Failed',
-          'We could not verify your ID. Please try again with a clearer photo.'
-        );
+        showPopup({
+          title: 'Verification Failed',
+          message: 'We could not verify your ID. Please try again with a clearer photo.',
+          severity: 'error',
+        });
       }
     } catch (error) {
-      Alert.alert('Error', 'Something went wrong. Please try again.');
+      showError(error, handleVerify);
     } finally {
       setIsVerifying(false);
     }

@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useError } from '../../contexts/ErrorContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
 import { Card, Button } from '../../components/common';
 import { spotApi } from '../../services/api';
@@ -29,6 +30,7 @@ const EditListingScreen: React.FC = () => {
   const route = useRoute<RouteProp<EditListingRouteParams, 'EditListing'>>();
   const navigation = useNavigation<any>();
   const { colors, NEUTRAL_COLORS } = useTheme();
+  const { showError, showPopup } = useError();
   const { listingId } = route.params;
 
   const [listing, setListing] = useState<SpotDTO | null>(null);
@@ -66,9 +68,9 @@ const EditListingScreen: React.FC = () => {
         setSpotLocation(spot.spotLocation || '');
         setHouseRules(spot.houseRules || '');
         setInstantBook(spot.instantBook || false);
-      } catch (error: any) {
+      } catch (error) {
         console.error('Failed to load listing:', error);
-        Alert.alert('Error', 'Failed to load listing details');
+        showError(error);
         navigation.goBack();
       } finally {
         setLoading(false);
@@ -81,19 +83,19 @@ const EditListingScreen: React.FC = () => {
   const handleSave = useCallback(async () => {
     // Validation
     if (!title.trim()) {
-      Alert.alert('Validation Error', 'Title is required');
+      showPopup({ title: 'Validation Error', message: 'Title is required', severity: 'info' });
       return;
     }
 
     const parsedHourlyRate = parseFloat(hourlyRate);
     if (hourlyRate && (isNaN(parsedHourlyRate) || parsedHourlyRate < 0)) {
-      Alert.alert('Validation Error', 'Hourly rate must be a valid positive number');
+      showPopup({ title: 'Validation Error', message: 'Hourly rate must be a valid positive number', severity: 'info' });
       return;
     }
 
     const parsedDailyRate = parseFloat(dailyRate);
     if (dailyRate && (isNaN(parsedDailyRate) || parsedDailyRate < 0)) {
-      Alert.alert('Validation Error', 'Daily rate must be a valid positive number');
+      showPopup({ title: 'Validation Error', message: 'Daily rate must be a valid positive number', severity: 'info' });
       return;
     }
 
@@ -121,9 +123,9 @@ const EditListingScreen: React.FC = () => {
           onPress: () => navigation.goBack(),
         },
       ]);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Failed to update listing:', error);
-      Alert.alert('Error', error.message || 'Failed to update listing');
+      showError(error, handleSave);
     } finally {
       setSaving(false);
     }

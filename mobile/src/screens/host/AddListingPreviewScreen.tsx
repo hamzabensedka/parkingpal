@@ -12,6 +12,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { CommonActions } from '@react-navigation/native';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useError } from '../../contexts/ErrorContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
 import { HostStackParamList } from '../../types';
@@ -24,6 +25,7 @@ type Props = NativeStackScreenProps<HostStackParamList, 'AddListingPreview'>;
 const AddListingPreviewScreen = ({ navigation, route }: Props) => {
   const { location, photos, spotType, amenities, vehicleSizes, accessInstructions, accessType, hourlyRate, dailyRate, availability, title, description, houseRules, numberOfSpots } = route.params;
   const { colors } = useTheme();
+  const { showError } = useError();
   const { refreshProfile, switchUserType } = useAuth();
 
   const [isPublishing, setIsPublishing] = useState(false);
@@ -103,12 +105,9 @@ const AddListingPreviewScreen = ({ navigation, route }: Props) => {
           },
         ]
       );
-    } catch (error: any) {
+    } catch (error) {
       setIsPublishing(false);
-      Alert.alert(
-        'Publishing Failed',
-        error?.message || 'Something went wrong. Please try again.',
-      );
+      showError(error, handlePublish);
     }
   };
 

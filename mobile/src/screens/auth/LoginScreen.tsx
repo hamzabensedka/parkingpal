@@ -7,12 +7,12 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuth } from '../../contexts/AuthContext';
+import { useError } from '../../contexts/ErrorContext';
 import { RENTER_COLORS, NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '../../utils/constants';
 import { AuthStackParamList } from '../../types';
 import { Button, Input } from '../../components/common';
@@ -26,6 +26,7 @@ interface LoginScreenProps {
 
 const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   const { login, loginWithGoogle, loginWithApple, isLoading } = useAuth();
+  const { showError } = useError();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
@@ -54,24 +55,24 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     try {
       await login({ email, password });
       // Navigation will be handled by AppNavigator
-    } catch (error: any) {
-      Alert.alert('Login Failed', error.message || 'Please check your credentials and try again.');
+    } catch (error) {
+      showError(error, handleLogin);
     }
   };
 
   const handleGoogleLogin = async () => {
     try {
       await loginWithGoogle();
-    } catch (error: any) {
-      Alert.alert('Login Failed', error.message || 'Could not sign in with Google.');
+    } catch (error) {
+      showError(error);
     }
   };
 
   const handleAppleLogin = async () => {
     try {
       await loginWithApple();
-    } catch (error: any) {
-      Alert.alert('Login Failed', error.message || 'Could not sign in with Apple.');
+    } catch (error) {
+      showError(error);
     }
   };
 

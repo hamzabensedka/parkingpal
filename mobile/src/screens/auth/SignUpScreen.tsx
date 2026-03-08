@@ -7,12 +7,12 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuth } from '../../contexts/AuthContext';
+import { useError } from '../../contexts/ErrorContext';
 import { RENTER_COLORS, NEUTRAL_COLORS, TYPOGRAPHY, SPACING } from '../../utils/constants';
 import { AuthStackParamList } from '../../types';
 import { Button, Input } from '../../components/common';
@@ -35,6 +35,7 @@ interface FormData {
 
 const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation }) => {
   const { signup, isLoading } = useAuth();
+  const { showError } = useError();
   const [formData, setFormData] = useState<FormData>({
     firstName: '',
     lastName: '',
@@ -82,8 +83,8 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation }) => {
         password: formData.password,
       });
       navigation.navigate('UserType');
-    } catch (error: any) {
-      Alert.alert('Sign Up Failed', error.message || 'Please try again.');
+    } catch (error) {
+      showError(error, handleSignUp);
     }
   };
 

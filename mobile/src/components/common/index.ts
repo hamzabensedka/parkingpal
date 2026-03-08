@@ -11,3 +11,4 @@ export { ReviewList } from './ReviewList';
 export { default as PhoneVerificationModal } from './PhoneVerificationModal';
 export { default as ReportUserModal } from './ReportUserModal';
 export { default as IDVerificationModal } from './IDVerificationModal';
+export { default as ErrorPopup } from './ErrorPopup';

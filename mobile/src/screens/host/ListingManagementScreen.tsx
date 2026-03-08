@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useError } from '../../contexts/ErrorContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
 import { Card, Badge, EmptyState } from '../../components/common';
 import { spotApi } from '../../services/api';
@@ -158,6 +159,7 @@ const ListingItemCard: React.FC<ListingItemProps> = ({
 const ListingManagementScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const { colors, NEUTRAL_COLORS } = useTheme();
+  const { showError } = useError();
 
   const [listings, setListings] = useState<ListingItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -206,7 +208,7 @@ const ListingManagementScreen: React.FC = () => {
         : 'Your listing is paused and hidden from renters.';
 
       Alert.alert(active ? 'Listing Activated' : 'Listing Paused', message);
-    } catch (error: any) {
+    } catch (error) {
       // Revert optimistic update on error
       setListings(prev =>
         prev.map(listing =>
@@ -214,10 +216,7 @@ const ListingManagementScreen: React.FC = () => {
         )
       );
 
-      Alert.alert(
-        'Error',
-        error.message || `Failed to ${active ? 'activate' : 'pause'} listing. Please try again.`
-      );
+      showError(error);
     }
   }, [listings]);
 
@@ -247,11 +246,8 @@ const ListingManagementScreen: React.FC = () => {
               // Remove from local state
               setListings(prev => prev.filter(l => l.id !== listing.id));
               Alert.alert('Success', 'Listing deleted successfully');
-            } catch (error: any) {
-              Alert.alert(
-                'Error',
-                error.message || 'Failed to delete listing. Please try again.'
-              );
+            } catch (error) {
+              showError(error);
             }
           },
         },

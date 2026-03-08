@@ -13,12 +13,14 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useError } from '../../contexts/ErrorContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '../../utils/constants';
 import { Button, Card } from '../../components/common';
 import { paymentApi } from '../../services/api';
 
 const PayoutSettingsScreen: React.FC = () => {
   const { colors } = useTheme();
+  const { showError, showPopup } = useError();
   const [isLoading, setIsLoading] = useState(true);
   const [isOnboarding, setIsOnboarding] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -64,14 +66,11 @@ const PayoutSettingsScreen: React.FC = () => {
           [{ text: 'OK' }]
         );
       } else {
-        Alert.alert('Error', 'Unable to open the setup page. Please try again.');
+        showPopup({ title: 'Error', message: 'Unable to open the setup page. Please try again.', severity: 'error' });
       }
     } catch (err) {
       console.error('Error starting Connect onboarding:', err);
-      Alert.alert(
-        'Setup Failed',
-        err instanceof Error ? err.message : 'Failed to start payout setup. Please try again.'
-      );
+      showError(err, handleSetupPayout);
     } finally {
       setIsOnboarding(false);
     }

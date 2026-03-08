@@ -15,6 +15,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { RENTER_COLORS, NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
 import { safetyApi } from '../../services/api';
 import { REPORT_REASONS } from '../../services/api/safetyApi';
+import { useError } from '../../contexts/ErrorContext';
 import Button from './Button';
 import type { ReportReasonDTO } from '@parkingpal/shared-types';
 
@@ -37,6 +38,7 @@ const ReportUserModal: React.FC<ReportUserModalProps> = ({
   onClose,
   onSuccess,
 }) => {
+  const { showError } = useError();
   const [step, setStep] = useState<'reason' | 'details' | 'success'>('reason');
   const [selectedReason, setSelectedReason] = useState<ReportReasonDTO | null>(null);
   const [description, setDescription] = useState('');
@@ -103,8 +105,8 @@ const ReportUserModal: React.FC<ReportUserModalProps> = ({
             try {
               await safetyApi.blockUser(userId);
               Alert.alert('User Blocked', `${userName} has been blocked.`);
-            } catch (err: any) {
-              Alert.alert('Error', err.message || 'Failed to block user');
+            } catch (err) {
+              showError(err);
             }
           },
         },

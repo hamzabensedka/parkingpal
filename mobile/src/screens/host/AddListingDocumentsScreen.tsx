@@ -13,6 +13,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import * as ImagePicker from 'expo-image-picker';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useError } from '../../contexts/ErrorContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '../../utils/constants';
 import { HostStackParamList } from '../../types';
@@ -58,6 +59,7 @@ const DOCUMENT_OPTIONS: DocumentOption[] = [
 
 const AddListingDocumentsScreen = ({ navigation, route }: Props) => {
   const { colors } = useTheme();
+  const { showError, showPopup } = useError();
   const { user, verifyId } = useAuth();
 
   const [selectedDocType, setSelectedDocType] = useState<DocumentType>('utility_bill');
@@ -70,10 +72,11 @@ const AddListingDocumentsScreen = ({ navigation, route }: Props) => {
   const requestPermission = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert(
-        'Permission Required',
-        'Please enable camera access to take photos of your documents.'
-      );
+      showPopup({
+        title: 'Permission Required',
+        message: 'Please enable camera access to take photos of your documents.',
+        severity: 'info',
+      });
       return false;
     }
     return true;
@@ -115,10 +118,10 @@ const AddListingDocumentsScreen = ({ navigation, route }: Props) => {
       if (success) {
         Alert.alert('Success', 'Your ID has been verified!');
       } else {
-        Alert.alert('Verification Failed', 'Please try again with a clearer photo.');
+        showPopup({ title: 'Verification Failed', message: 'Please try again with a clearer photo.', severity: 'info' });
       }
     } catch (error) {
-      Alert.alert('Error', 'Something went wrong. Please try again.');
+      showError(error);
     } finally {
       setIsVerifyingId(false);
     }
@@ -126,20 +129,20 @@ const AddListingDocumentsScreen = ({ navigation, route }: Props) => {
 
   const handleContinue = () => {
     if (!isIdVerified && !idImage) {
-      Alert.alert(
-        'ID Required',
-        'Please upload your government-issued ID to continue.',
-        [{ text: 'OK' }]
-      );
+      showPopup({
+        title: 'ID Required',
+        message: 'Please upload your government-issued ID to continue.',
+        severity: 'info',
+      });
       return;
     }
 
     if (!ownershipDoc) {
-      Alert.alert(
-        'Document Required',
-        'Please upload a document proving your right to rent this parking spot.',
-        [{ text: 'OK' }]
-      );
+      showPopup({
+        title: 'Document Required',
+        message: 'Please upload a document proving your right to rent this parking spot.',
+        severity: 'info',
+      });
       return;
     }
 

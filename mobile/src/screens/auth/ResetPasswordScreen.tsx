@@ -7,13 +7,13 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 import { RENTER_COLORS, NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
+import { useError } from '../../contexts/ErrorContext';
 import { AuthStackParamList } from '../../types';
 import { Button, Input } from '../../components/common';
 import { authApi } from '../../services/api';
@@ -48,6 +48,7 @@ const passwordSchema = yup.object({
 
 const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ navigation, route }) => {
   const { token } = route.params;
+  const { showError } = useError();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -79,11 +80,8 @@ const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ navigation, r
     try {
       await authApi.resetPassword({ token, newPassword: password });
       setResetSuccess(true);
-    } catch (error: any) {
-      Alert.alert(
-        'Reset Failed',
-        error.message || 'The reset link may have expired. Please request a new one.'
-      );
+    } catch (error) {
+      showError(error, handleSubmit);
     } finally {
       setIsLoading(false);
     }

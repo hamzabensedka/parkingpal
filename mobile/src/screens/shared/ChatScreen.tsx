@@ -17,6 +17,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { useError } from '../../contexts/ErrorContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '../../utils/constants';
 import { formatTime, formatSmartDate } from '../../utils/formatting';
 import { Message } from '../../types';
@@ -44,6 +45,7 @@ const ChatScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const { colors, NEUTRAL_COLORS } = useTheme();
   const { user } = useAuth();
+  const { showError } = useError();
 
   const { conversationId, bookingId, recipientName, recipientId } = route.params;
 
@@ -85,8 +87,8 @@ const ChatScreen: React.FC = () => {
               await safetyApi.blockUser(recipientId);
               Alert.alert('User Blocked', `${recipientName} has been blocked.`);
               navigation.goBack();
-            } catch (err: any) {
-              Alert.alert('Error', err.message || 'Failed to block user');
+            } catch (err) {
+              showError(err);
             }
           },
         },

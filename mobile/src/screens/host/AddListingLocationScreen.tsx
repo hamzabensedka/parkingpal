@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Alert,
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -13,6 +12,7 @@ import * as Location from 'expo-location';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useError } from '../../contexts/ErrorContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS, MAPLIBRE_STYLE } from '../../utils/constants';
 import { HostStackParamList } from '../../types';
 import { Button, Input, Card } from '../../components/common';
@@ -25,6 +25,7 @@ const INITIAL_ZOOM = 13;
 
 const AddListingLocationScreen = ({ navigation }: Props) => {
   const { colors } = useTheme();
+  const { showError, showPopup } = useError();
   const cameraRef = useRef<MapLibreGL.CameraRef>(null);
 
   const [address, setAddress] = useState('');
@@ -101,7 +102,7 @@ const AddListingLocationScreen = ({ navigation }: Props) => {
       });
       await updateAddressFromCoordinates(result.latitude, result.longitude);
     } else {
-      Alert.alert('Not Found', 'Could not find this address. Please try a different search.');
+      showPopup({ title: 'Not Found', message: 'Could not find this address. Please try a different search.', severity: 'info' });
     }
   }, [address, updateAddressFromCoordinates]);
 
@@ -109,7 +110,7 @@ const AddListingLocationScreen = ({ navigation }: Props) => {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('Permission Denied', 'Location permission is required to use this feature.');
+        showPopup({ title: 'Permission Required', message: 'Location permission is required to use this feature.', severity: 'info' });
         return;
       }
 
@@ -126,14 +127,14 @@ const AddListingLocationScreen = ({ navigation }: Props) => {
         animationDuration: 500,
       });
       await updateAddressFromCoordinates(coords.latitude, coords.longitude);
-    } catch {
-      Alert.alert('Error', 'Failed to get current location. Please try again.');
+    } catch (error) {
+      showError(error);
     }
   }, [updateAddressFromCoordinates]);
 
   const handleContinue = () => {
     if (!selectedLocation) {
-      Alert.alert('Select Location', 'Please select a location on the map or enter an address.');
+      showPopup({ title: 'Select Location', message: 'Please select a location on the map or enter an address.', severity: 'info' });
       return;
     }
 

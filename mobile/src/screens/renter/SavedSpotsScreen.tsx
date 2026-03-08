@@ -18,6 +18,7 @@ import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constan
 import { Spot } from '../../types';
 import { Card, Badge, EmptyState } from '../../components/common';
 import { favoriteApi } from '../../services/api';
+import { useError } from '../../contexts/ErrorContext';
 import { mapSpotSummaryToSpot } from '../../utils/spotMappers';
 
 const SWIPE_THRESHOLD = -80;
@@ -132,6 +133,7 @@ const SwipeableSpotCard: React.FC<SwipeableSpotCardProps> = ({
 const SavedSpotsScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const { colors, NEUTRAL_COLORS } = useTheme();
+  const { showError } = useError();
 
   const [savedSpots, setSavedSpots] = useState<Spot[]>([]);
   const [loading, setLoading] = useState(true);
@@ -188,7 +190,7 @@ const SavedSpotsScreen: React.FC = () => {
               setSavedSpots(prev => prev.filter(spot => spot.id !== spotId));
             } catch (err) {
               console.error('Failed to remove favorite:', err);
-              Alert.alert('Error', 'Failed to remove spot from favorites');
+              showError(err);
             }
           },
         },

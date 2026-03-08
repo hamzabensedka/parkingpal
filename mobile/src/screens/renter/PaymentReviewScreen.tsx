@@ -14,6 +14,7 @@ import { useStripe, CardField, CardFieldInput } from '@stripe/stripe-react-nativ
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useBooking } from '../../contexts/BookingContext';
+import { useError } from '../../contexts/ErrorContext';
 import { paymentApi } from '../../services/api';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
 import { RenterStackParamList, PaymentMethod } from '../../types';
@@ -40,6 +41,7 @@ const PaymentReviewScreen = ({ navigation, route }: Props) => {
   const { paymentMethods: authPaymentMethods, vehicles } = useAuth();
   const { createBooking } = useBooking();
   const { confirmPayment: stripeConfirmPayment } = useStripe();
+  const { showError, showPopup } = useError();
 
   const vehicle = vehicles?.find((v) => v.id === vehicleId);
 
@@ -92,7 +94,7 @@ const PaymentReviewScreen = ({ navigation, route }: Props) => {
       setPromoApplied(true);
       Alert.alert('Success', '€5 discount applied!');
     } else {
-      Alert.alert('Invalid Code', 'The promo code is not valid or has expired.');
+      showPopup({ title: 'Invalid Code', message: 'The promo code is not valid or has expired.', severity: 'info' });
     }
   };
 
@@ -113,17 +115,17 @@ const PaymentReviewScreen = ({ navigation, route }: Props) => {
   const handleConfirmBooking = async () => {
     // Validate card selection
     if (!useNewCard && !selectedPaymentMethod) {
-      Alert.alert('Payment Required', 'Please select a payment method or enter new card details.');
+      showPopup({ title: 'Payment Required', message: 'Please select a payment method or enter new card details.', severity: 'info' });
       return;
     }
 
     if (useNewCard && (!cardDetails || !cardDetails.complete)) {
-      Alert.alert('Card Required', 'Please enter valid card details.');
+      showPopup({ title: 'Card Required', message: 'Please enter valid card details.', severity: 'info' });
       return;
     }
 
     if (!vehicle) {
-      Alert.alert('Vehicle required', 'Please go back and select a vehicle.');
+      showPopup({ title: 'Vehicle Required', message: 'Please go back and select a vehicle.', severity: 'info' });
       return;
     }
 
@@ -153,19 +155,18 @@ const PaymentReviewScreen = ({ navigation, route }: Props) => {
 
       if (stripeError) {
         // Payment failed - show error but booking is created
-        Alert.alert(
-          'Payment Failed',
-          stripeError.message || 'Your payment could not be processed. Please try again.',
-          [
-            {
-              text: 'Retry',
-              onPress: () => {
-                setIsLoading(false);
-                setPaymentStep('idle');
-              },
+        showPopup({
+          title: 'Payment Failed',
+          message: 'Your payment could not be processed. Please try again.',
+          severity: 'error',
+          action: {
+            label: 'Retry',
+            onPress: () => {
+              setIsLoading(false);
+              setPaymentStep('idle');
             },
-          ]
-        );
+          },
+        });
         return;
       }
 
@@ -185,8 +186,7 @@ const PaymentReviewScreen = ({ navigation, route }: Props) => {
         vehiclePlate,
       });
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unable to complete your booking. Please try again.';
-      Alert.alert('Booking Failed', message);
+      showError(error, handleConfirmBooking);
     } finally {
       setIsLoading(false);
       setPaymentStep('idle');
