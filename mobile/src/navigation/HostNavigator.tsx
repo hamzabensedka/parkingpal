@@ -9,7 +9,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { NEUTRAL_COLORS } from '../utils/constants';
 import { useNotifications } from '../contexts/NotificationContext';
-import { HostTabParamList } from '../types';
+import { HostTabParamList, HostStackParamList } from '../types';
 
 // Host screens
 import HostDashboardScreen from '../screens/host/HostDashboardScreen';
@@ -20,7 +20,9 @@ import AddListingAccessScreen from '../screens/host/AddListingAccessScreen';
 import AddListingPricingScreen from '../screens/host/AddListingPricingScreen';
 import AddListingAvailabilityScreen from '../screens/host/AddListingAvailabilityScreen';
 import AddListingDescriptionScreen from '../screens/host/AddListingDescriptionScreen';
+import AddListingDocumentsScreen from '../screens/host/AddListingDocumentsScreen';
 import AddListingPreviewScreen from '../screens/host/AddListingPreviewScreen';
+import PayoutSettingsScreen from '../screens/host/PayoutSettingsScreen';
 import EditListingScreen from '../screens/host/EditListingScreen';
 import ListingManagementScreen from '../screens/host/ListingManagementScreen';
 import EarningsScreen from '../screens/host/EarningsScreen';
@@ -31,7 +33,7 @@ import MessagesScreen from '../screens/shared/MessagesScreen';
 
 const Tab = createBottomTabNavigator<HostTabParamList>();
 const DashboardStack = createNativeStackNavigator();
-const ListingsStack = createNativeStackNavigator();
+const ListingsStack = createNativeStackNavigator<HostStackParamList>();
 const ProfileStack = createNativeStackNavigator();
 
 // Dashboard Stack Navigator
@@ -53,6 +55,11 @@ const DashboardStackNavigator: React.FC = () => {
         name="Earnings"
         component={EarningsScreen}
         options={{ title: 'Earnings' }}
+      />
+      <DashboardStack.Screen
+        name="PayoutSettings"
+        component={PayoutSettingsScreen}
+        options={{ title: 'Payout Settings' }}
       />
     </DashboardStack.Navigator>
   );
@@ -107,6 +114,11 @@ const ListingsStackNavigator: React.FC = () => {
         name="AddListingDescription"
         component={AddListingDescriptionScreen}
         options={{ title: 'Description' }}
+      />
+      <ListingsStack.Screen
+        name="AddListingDocuments"
+        component={AddListingDocumentsScreen}
+        options={{ title: 'Verification' }}
       />
       <ListingsStack.Screen
         name="AddListingPreview"

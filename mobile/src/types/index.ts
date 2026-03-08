@@ -302,10 +302,12 @@ export type RenterStackParamList = {
   BookingHistory: undefined;
   CancelBooking: { bookingId: string };
   SavedSpots: undefined;
+  IDVerification: undefined;
 };
 
 export type HostStackParamList = {
   DashboardMain: undefined;
+  ListingsMain: undefined;
   AddListingLocation: undefined;
   AddListingPhotos: { address: string; latitude: number; longitude: number };
   AddListingDetails: {
@@ -355,6 +357,24 @@ export type HostStackParamList = {
     availability: Record<string, SpotAvailability>;
     numberOfSpots: number;
   };
+  AddListingDocuments: {
+    location: { address: string; latitude: number; longitude: number };
+    photos: string[];
+    spotType: SpotType;
+    amenities: AmenityType[];
+    vehicleSizes: VehicleSize[];
+    accessInstructions: string;
+    accessType: AccessType;
+    hourlyRate: number;
+    dailyRate?: number;
+    availability: Record<string, SpotAvailability>;
+    title: string;
+    description: string;
+    houseRules?: string;
+    numberOfSpots: number;
+  };
+  // Standalone Stripe Connect onboarding screen (accessible from Earnings/Profile)
+  PayoutSettings: undefined;
   AddListingPreview: {
     location: { address: string; latitude: number; longitude: number };
     photos: string[];
@@ -370,6 +390,10 @@ export type HostStackParamList = {
     description: string;
     houseRules?: string;
     numberOfSpots: number;
+    ownershipDocument?: {
+      uri: string;
+      type: string;
+    };
   };
   ListingManagement: undefined;
   EditListing: { spotId: string };

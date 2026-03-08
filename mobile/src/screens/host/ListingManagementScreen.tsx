@@ -16,9 +16,9 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
 import { Card, Badge, EmptyState } from '../../components/common';
 import { spotApi } from '../../services/api';
-import type { SpotSummaryDTO } from '@parkingpal/shared-types';
+import type { SpotSummaryDTO, SpotStatusDTO } from '@parkingpal/shared-types';
 
-type ListingItem = SpotSummaryDTO & { isActive: boolean };
+type ListingItem = SpotSummaryDTO;
 
 interface ListingItemProps {
   listing: ListingItem;
@@ -28,6 +28,30 @@ interface ListingItemProps {
   onDelete: () => void;
 }
 
+const getStatusBadge = (status: SpotStatusDTO): { text: string; variant: 'success' | 'warning' | 'info' | 'error' | 'default' } => {
+  switch (status) {
+    case 'active':
+      return { text: 'Active', variant: 'success' };
+    case 'pending_verification':
+      return { text: 'Pending Approval', variant: 'warning' };
+    case 'under_review':
+      return { text: 'Under Review', variant: 'info' };
+    case 'rejected':
+      return { text: 'Rejected', variant: 'error' };
+    case 'paused':
+      return { text: 'Paused', variant: 'default' };
+    case 'draft':
+      return { text: 'Draft', variant: 'default' };
+    default:
+      return { text: status, variant: 'default' };
+  }
+};
+
+const canToggleStatus = (status: SpotStatusDTO): boolean => {
+  // Only active and paused spots can be toggled
+  return status === 'active' || status === 'paused';
+};
+
 const ListingItemCard: React.FC<ListingItemProps> = ({
   listing,
   onToggleActive,
@@ -36,6 +60,11 @@ const ListingItemCard: React.FC<ListingItemProps> = ({
   onDelete,
 }) => {
   const { colors, NEUTRAL_COLORS } = useTheme();
+  const statusBadge = getStatusBadge(listing.status);
+  const canToggle = canToggleStatus(listing.status);
+  const isActive = listing.status === 'active';
+  const isPending = listing.status === 'pending_verification' || listing.status === 'under_review';
+  const isRejected = listing.status === 'rejected';
 
   return (
     <Card style={styles.listingCard} onPress={onPress}>
@@ -48,39 +77,67 @@ const ListingItemCard: React.FC<ListingItemProps> = ({
         <View style={styles.listingHeader}>
           <Text style={styles.listingTitle} numberOfLines={1}>{listing.title}</Text>
           <Badge
-            text={listing.isActive ? 'Active' : 'Paused'}
-            variant={listing.isActive ? 'success' : 'default'}
+            text={statusBadge.text}
+            variant={statusBadge.variant}
             size="small"
           />
         </View>
 
         <Text style={styles.listingAddress} numberOfLines={1}>{listing.address}</Text>
 
-        <View style={styles.listingStats}>
-          <View style={styles.statItem}>
-            <Icon name="star" size={14} color={NEUTRAL_COLORS.darkGray} />
-            <Text style={styles.statText}>
-              {listing.rating.toFixed(1)} ({listing.reviewCount})
+        {/* Show status message for pending/rejected spots */}
+        {isPending && (
+          <View style={styles.statusMessage}>
+            <Icon name="clock-outline" size={14} color={NEUTRAL_COLORS.darkGray} />
+            <Text style={styles.statusMessageText}>
+              Your listing is being reviewed. We'll notify you once approved.
             </Text>
           </View>
-          <View style={styles.statItem}>
-            <Icon name="cash" size={14} color={colors.primary} />
-            <Text style={styles.statText}>€{listing.hourlyRate}/hr</Text>
+        )}
+        {isRejected && (
+          <View style={[styles.statusMessage, { backgroundColor: '#FEE2E2' }]}>
+            <Icon name="alert-circle-outline" size={14} color={NEUTRAL_COLORS.error} />
+            <Text style={[styles.statusMessageText, { color: NEUTRAL_COLORS.error }]}>
+              Your listing was rejected. Please edit and resubmit.
+            </Text>
           </View>
-        </View>
+        )}
+
+        {!isPending && !isRejected && (
+          <View style={styles.listingStats}>
+            <View style={styles.statItem}>
+              <Icon name="star" size={14} color={NEUTRAL_COLORS.darkGray} />
+              <Text style={styles.statText}>
+                {listing.rating.toFixed(1)} ({listing.reviewCount})
+              </Text>
+            </View>
+            <View style={styles.statItem}>
+              <Icon name="cash" size={14} color={colors.primary} />
+              <Text style={styles.statText}>€{listing.hourlyRate}/hr</Text>
+            </View>
+          </View>
+        )}
 
         <View style={styles.listingActions}>
-          <View style={styles.toggleContainer}>
-            <Text style={styles.toggleLabel}>
-              {listing.isActive ? 'Active' : 'Paused'}
-            </Text>
-            <Switch
-              value={listing.isActive}
-              onValueChange={(value) => onToggleActive(listing.id, value)}
-              trackColor={{ false: NEUTRAL_COLORS.lightGray, true: colors.light }}
-              thumbColor={listing.isActive ? colors.primary : NEUTRAL_COLORS.gray}
-            />
-          </View>
+          {canToggle ? (
+            <View style={styles.toggleContainer}>
+              <Text style={styles.toggleLabel}>
+                {isActive ? 'Active' : 'Paused'}
+              </Text>
+              <Switch
+                value={isActive}
+                onValueChange={(value) => onToggleActive(listing.id, value)}
+                trackColor={{ false: NEUTRAL_COLORS.lightGray, true: colors.light }}
+                thumbColor={isActive ? colors.primary : NEUTRAL_COLORS.gray}
+              />
+            </View>
+          ) : (
+            <View style={styles.toggleContainer}>
+              <Text style={[styles.toggleLabel, { color: NEUTRAL_COLORS.gray }]}>
+                {isPending ? 'Awaiting approval' : 'Cannot activate'}
+              </Text>
+            </View>
+          )}
 
           <View style={styles.actionButtons}>
             <TouchableOpacity style={styles.editButton} onPress={onEdit}>
@@ -109,12 +166,7 @@ const ListingManagementScreen: React.FC = () => {
     try {
       setIsLoading(true);
       const spots = await spotApi.getMyListings();
-      setListings(
-        spots.map((spot) => ({
-          ...spot,
-          isActive: spot.status === 'active',
-        })),
-      );
+      setListings(spots);
     } catch (error) {
       console.error('Failed to fetch listings:', error);
       // Fall back to empty list on error
@@ -132,10 +184,13 @@ const ListingManagementScreen: React.FC = () => {
   );
 
   const handleToggleActive = useCallback(async (id: string, active: boolean) => {
+    const previousStatus = listings.find(l => l.id === id)?.status;
+    const newStatus = active ? 'active' : 'paused';
+
     // Optimistically update UI
     setListings(prev =>
       prev.map(listing =>
-        listing.id === id ? { ...listing, isActive: active } : listing
+        listing.id === id ? { ...listing, status: newStatus as SpotStatusDTO } : listing
       )
     );
 
@@ -155,7 +210,7 @@ const ListingManagementScreen: React.FC = () => {
       // Revert optimistic update on error
       setListings(prev =>
         prev.map(listing =>
-          listing.id === id ? { ...listing, isActive: !active } : listing
+          listing.id === id ? { ...listing, status: previousStatus! } : listing
         )
       );
 
@@ -164,7 +219,7 @@ const ListingManagementScreen: React.FC = () => {
         error.message || `Failed to ${active ? 'activate' : 'pause'} listing. Please try again.`
       );
     }
-  }, []);
+  }, [listings]);
 
   const handleListingPress = useCallback((listing: ListingItem) => {
     navigation.navigate('SpotDetail', { spotId: listing.id });
@@ -205,19 +260,12 @@ const ListingManagementScreen: React.FC = () => {
   }, []);
 
   const handleAddListing = useCallback(() => {
-    if (listings.length > 0) {
-      Alert.alert(
-        'One Listing Allowed',
-        'You can only have one active listing at a time. Edit or remove your current listing to create a new one.',
-      );
-      return;
-    }
     navigation.navigate('AddListingLocation');
-  }, [navigation, listings.length]);
+  }, [navigation]);
 
-  const hasListing = listings.length > 0;
-  const activeCount = listings.filter(l => l.isActive).length;
-  const pausedCount = listings.filter(l => !l.isActive).length;
+  const activeCount = listings.filter(l => l.status === 'active').length;
+  const pausedCount = listings.filter(l => l.status === 'paused').length;
+  const pendingCount = listings.filter(l => l.status === 'pending_verification' || l.status === 'under_review').length;
 
   const renderHeader = () => (
     <View style={styles.header}>
@@ -229,36 +277,25 @@ const ListingManagementScreen: React.FC = () => {
           <Text style={styles.statLabel}>Active</Text>
         </Card>
         <Card style={styles.statCard}>
+          <Icon name="clock-outline" size={24} color="#F59E0B" />
+          <Text style={styles.statNumber}>{pendingCount}</Text>
+          <Text style={styles.statLabel}>Pending</Text>
+        </Card>
+        <Card style={styles.statCard}>
           <Icon name="home-off" size={24} color={NEUTRAL_COLORS.gray} />
           <Text style={styles.statNumber}>{pausedCount}</Text>
           <Text style={styles.statLabel}>Paused</Text>
         </Card>
-        <Card style={styles.statCard}>
-          <Icon name="home-group" size={24} color={colors.primary} />
-          <Text style={styles.statNumber}>{listings.length}</Text>
-          <Text style={styles.statLabel}>Total</Text>
-        </Card>
       </View>
 
-      {/* Add Button – hidden when a listing already exists */}
-      {!hasListing && (
-        <TouchableOpacity
-          style={[styles.addButton, { backgroundColor: colors.primary }]}
-          onPress={handleAddListing}
-        >
-          <Icon name="plus" size={20} color={NEUTRAL_COLORS.white} />
-          <Text style={styles.addButtonText}>Add New Listing</Text>
-        </TouchableOpacity>
-      )}
-
-      {hasListing && (
-        <View style={styles.oneListingNotice}>
-          <Icon name="information-outline" size={16} color={NEUTRAL_COLORS.gray} />
-          <Text style={styles.oneListingText}>
-            You can have one listing at a time. Edit your listing below.
-          </Text>
-        </View>
-      )}
+      {/* Add Button */}
+      <TouchableOpacity
+        style={[styles.addButton, { backgroundColor: colors.primary }]}
+        onPress={handleAddListing}
+      >
+        <Icon name="plus" size={20} color={NEUTRAL_COLORS.white} />
+        <Text style={styles.addButtonText}>Add New Listing</Text>
+      </TouchableOpacity>
     </View>
   );
 
@@ -384,6 +421,21 @@ const styles = StyleSheet.create({
     fontSize: TYPOGRAPHY.fontSize.sm,
     color: NEUTRAL_COLORS.gray,
     marginBottom: SPACING.sm,
+  },
+  statusMessage: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.xs,
+    backgroundColor: '#FEF3C7',
+    paddingVertical: SPACING.xs,
+    paddingHorizontal: SPACING.sm,
+    borderRadius: RADIUS.sm,
+    marginBottom: SPACING.sm,
+  },
+  statusMessageText: {
+    flex: 1,
+    fontSize: TYPOGRAPHY.fontSize.xs,
+    color: NEUTRAL_COLORS.darkGray,
   },
   listingStats: {
     flexDirection: 'row',

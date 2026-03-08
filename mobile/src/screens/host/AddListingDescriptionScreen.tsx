@@ -32,7 +32,7 @@ const AddListingDescriptionScreen = ({ navigation, route }: Props) => {
       return;
     }
 
-    navigation.navigate('AddListingPreview', {
+    navigation.navigate('AddListingDocuments', {
       location,
       photos,
       spotType,
