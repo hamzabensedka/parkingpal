@@ -4,11 +4,11 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   Alert,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
@@ -16,7 +16,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useError } from '../../contexts/ErrorContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
-import { Button, Input, Card } from '../../components/common';
+import { Button, Input, Card, AnimatedPressable } from '../../components/common';
 
 const AddPaymentCardScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -214,7 +214,8 @@ const AddPaymentCardScreen: React.FC = () => {
           keyboardShouldPersistTaps="handled"
         >
           {/* Card Preview */}
-          <View
+          <Animated.View
+            entering={FadeInDown.delay(0).duration(500).springify()}
             style={[
               styles.cardPreview,
               { backgroundColor: colors.dark },
@@ -243,10 +244,10 @@ const AddPaymentCardScreen: React.FC = () => {
                 </Text>
               </View>
             </View>
-          </View>
+          </Animated.View>
 
           {/* Form */}
-          <View style={styles.form}>
+          <Animated.View entering={FadeInDown.delay(100).duration(500).springify()} style={styles.form}>
             <Input
               label="Card Number"
               value={cardNumber}
@@ -299,10 +300,10 @@ const AddPaymentCardScreen: React.FC = () => {
             />
 
             {/* Set as Default Toggle */}
-            <TouchableOpacity
+            <AnimatedPressable
               style={styles.toggleRow}
               onPress={() => setIsDefault(!isDefault)}
-              activeOpacity={0.7}
+              haptic
             >
               <View style={styles.toggleContent}>
                 <Icon
@@ -332,8 +333,8 @@ const AddPaymentCardScreen: React.FC = () => {
                   ]}
                 />
               </View>
-            </TouchableOpacity>
-          </View>
+            </AnimatedPressable>
+          </Animated.View>
 
           {/* Security Note */}
           <Card style={styles.securityCard}>

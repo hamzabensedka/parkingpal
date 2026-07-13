@@ -4,16 +4,16 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   RefreshControl,
 } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
-import { Card, Avatar, Badge } from '../../components/common';
+import { Card, Avatar, Badge, AnimatedPressable } from '../../components/common';
 import { format } from 'date-fns';
 
 interface StatCardProps {
@@ -81,7 +81,7 @@ const BookingItem: React.FC<BookingItemProps> = ({ booking, onPress }) => {
   };
 
   return (
-    <TouchableOpacity style={styles.bookingItem} onPress={onPress}>
+    <AnimatedPressable style={styles.bookingItem} onPress={onPress} haptic>
       <Avatar name={booking.renterName} imageUrl={booking.renterAvatar} size={40} />
       <View style={styles.bookingInfo}>
         <Text style={styles.bookingRenter}>{booking.renterName}</Text>
@@ -96,7 +96,7 @@ const BookingItem: React.FC<BookingItemProps> = ({ booking, onPress }) => {
           €{booking.total.toFixed(2)}
         </Text>
       </View>
-    </TouchableOpacity>
+    </AnimatedPressable>
   );
 };
 
@@ -175,24 +175,24 @@ const HostDashboardScreen: React.FC = () => {
       <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />
         }
       >
         {/* Header */}
-        <View style={styles.header}>
+        <Animated.View entering={FadeInDown.delay(0).duration(500).springify()} style={styles.header}>
           <View>
             <Text style={styles.greeting}>
               Welcome back,
             </Text>
             <Text style={styles.userName}>{user?.firstName}!</Text>
           </View>
-          <TouchableOpacity onPress={() => navigation.navigate('HostProfile')}>
+          <AnimatedPressable onPress={() => navigation.navigate('HostProfile')} haptic>
             <Avatar name={user?.firstName} imageUrl={user?.avatar} size={48} />
-          </TouchableOpacity>
-        </View>
+          </AnimatedPressable>
+        </Animated.View>
 
         {/* Quick Stats */}
-        <View style={styles.statsGrid}>
+        <Animated.View entering={FadeInDown.delay(100).duration(500).springify()} style={styles.statsGrid}>
           <StatCard
             icon="cash"
             label="Today"
@@ -206,9 +206,9 @@ const HostDashboardScreen: React.FC = () => {
             trend={{ value: 12, isPositive: true }}
             onPress={handleViewEarnings}
           />
-        </View>
+        </Animated.View>
 
-        <View style={styles.statsGrid}>
+        <Animated.View entering={FadeInDown.delay(200).duration(500).springify()} style={styles.statsGrid}>
           <StatCard
             icon="car-clock"
             label="Active"
@@ -219,7 +219,7 @@ const HostDashboardScreen: React.FC = () => {
             label="Pending"
             value={stats.pendingBookings.toString()}
           />
-        </View>
+        </Animated.View>
 
         {/* Quick Actions */}
         <View style={styles.section}>
@@ -279,9 +279,9 @@ const HostDashboardScreen: React.FC = () => {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Recent Bookings</Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Bookings')}>
+            <AnimatedPressable onPress={() => navigation.navigate('Bookings')} haptic>
               <Text style={[styles.seeAllLink, { color: colors.primary }]}>See All</Text>
-            </TouchableOpacity>
+            </AnimatedPressable>
           </View>
 
           <Card style={styles.bookingsCard}>

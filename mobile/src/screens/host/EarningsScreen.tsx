@@ -4,17 +4,17 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   Dimensions,
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
-import { Card } from '../../components/common';
+import { Card, AnimatedPressable } from '../../components/common';
 import { format } from 'date-fns';
 import { earningsApi } from '../../services/api';
 import type {
@@ -130,12 +130,13 @@ const EarningsScreen: React.FC = () => {
         <View style={styles.errorContainer}>
           <Icon name="alert-circle-outline" size={48} color={NEUTRAL_COLORS.gray} />
           <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity
+          <AnimatedPressable
             style={[styles.retryButton, { backgroundColor: colors.primary }]}
             onPress={() => fetchDashboard(selectedPeriod)}
+            haptic
           >
             <Text style={styles.retryButtonText}>Retry</Text>
-          </TouchableOpacity>
+          </AnimatedPressable>
         </View>
       </SafeAreaView>
     );
@@ -151,21 +152,22 @@ const EarningsScreen: React.FC = () => {
       <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
+          <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} tintColor={colors.primary} colors={[colors.primary]} />
         }
       >
         {/* Balance Card */}
+        <Animated.View entering={FadeInDown.delay(0).duration(500).springify()}>
         <View style={[styles.balanceCard, { backgroundColor: colors.primary }]}>
           <Text style={styles.balanceLabel}>Available Balance</Text>
           <Text style={styles.balanceAmount}>
             €{(summary?.pendingPayout || 0).toFixed(2)}
           </Text>
-          <TouchableOpacity style={styles.payoutButton}>
+          <AnimatedPressable style={styles.payoutButton} haptic>
             <Icon name="bank-transfer-out" size={18} color={colors.primary} />
             <Text style={[styles.payoutButtonText, { color: colors.primary }]}>
               Request Payout
             </Text>
-          </TouchableOpacity>
+          </AnimatedPressable>
 
           {summary?.lastPayout && summary?.lastPayoutDate && (
             <View style={styles.lastPayoutRow}>
@@ -176,17 +178,20 @@ const EarningsScreen: React.FC = () => {
             </View>
           )}
         </View>
+        </Animated.View>
 
         {/* Period Selector */}
+        <Animated.View entering={FadeInDown.delay(100).duration(500).springify()}>
         <View style={styles.periodSelector}>
           {periods.map((period) => (
-            <TouchableOpacity
+            <AnimatedPressable
               key={period.value}
               style={[
                 styles.periodButton,
                 selectedPeriod === period.value && { backgroundColor: colors.primary },
               ]}
               onPress={() => handlePeriodChange(period.value)}
+              haptic
             >
               <Text
                 style={[
@@ -196,7 +201,7 @@ const EarningsScreen: React.FC = () => {
               >
                 {period.label}
               </Text>
-            </TouchableOpacity>
+            </AnimatedPressable>
           ))}
         </View>
 
@@ -249,8 +254,10 @@ const EarningsScreen: React.FC = () => {
             <Text style={styles.statSubtext}>Per booking</Text>
           </Card>
         </View>
+        </Animated.View>
 
         {/* Chart */}
+        <Animated.View entering={FadeInDown.delay(200).duration(500).springify()}>
         <Card style={styles.chartCard}>
           <Text style={styles.chartTitle}>Earnings Overview</Text>
           <View style={styles.chartPlaceholder}>
@@ -281,21 +288,23 @@ const EarningsScreen: React.FC = () => {
             )}
           </View>
         </Card>
+        </Animated.View>
 
         {/* Transaction History */}
+        <Animated.View entering={FadeInDown.delay(300).duration(500).springify()}>
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Recent Transactions</Text>
-            <TouchableOpacity>
+            <AnimatedPressable haptic>
               <Text style={[styles.seeAllLink, { color: colors.primary }]}>See All</Text>
-            </TouchableOpacity>
+            </AnimatedPressable>
           </View>
 
           {transactions.length > 0 ? (
             <Card style={styles.transactionsCard}>
               {transactions.map((transaction: EarningsTransactionDTO, index: number) => (
                 <View key={transaction.id}>
-                  <TouchableOpacity style={styles.transactionItem}>
+                  <AnimatedPressable style={styles.transactionItem} haptic>
                     <View
                       style={[
                         styles.transactionIcon,
@@ -331,7 +340,7 @@ const EarningsScreen: React.FC = () => {
                       {transaction.amount >= 0 ? '+' : ''}€
                       {Math.abs(transaction.amount).toFixed(2)}
                     </Text>
-                  </TouchableOpacity>
+                  </AnimatedPressable>
 
                   {index < transactions.length - 1 && (
                     <View style={styles.transactionDivider} />
@@ -349,6 +358,7 @@ const EarningsScreen: React.FC = () => {
             </Card>
           )}
         </View>
+        </Animated.View>
 
         {/* Payout Settings */}
         <View style={styles.section}>

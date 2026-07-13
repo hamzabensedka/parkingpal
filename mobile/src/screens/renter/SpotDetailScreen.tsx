@@ -3,13 +3,15 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
-  TouchableOpacity,
   Dimensions,
   Image,
-  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import Animated, {
+  FadeInDown,
+  useSharedValue,
+  useAnimatedScrollHandler,
+} from 'react-native-reanimated';
 import MapLibreGL from '@maplibre/maplibre-react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -18,12 +20,23 @@ import { useAuth } from '../../contexts/AuthContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS, AMENITIES, SPOT_TYPES, MAPLIBRE_STYLE } from '../../utils/constants';
 import { formatPrice, formatRating, formatRelativeTime } from '../../utils/formatting';
 import { getStarArray } from '../../utils/helpers';
-import { Button, Card, Avatar, Badge, IDVerificationModal } from '../../components/common';
+import {
+  Button,
+  Card,
+  Avatar,
+  Badge,
+  IDVerificationModal,
+  AnimatedPressable,
+  ParallaxPhotoHeader,
+  AnimatedHeader,
+  Loading,
+} from '../../components/common';
 import { spotApi } from '../../services/api';
 import { mapSpotDTOToSpot } from '../../utils/spotMappers';
 import { Spot } from '../../types';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const PHOTO_HEIGHT = 300;
 
 type SpotDetailRouteParams = {
   SpotDetail: { spotId: string };
@@ -35,7 +48,6 @@ const SpotDetailScreen: React.FC = () => {
   const { colors } = useTheme();
   const { user } = useAuth();
   const insets = useSafeAreaInsets();
-  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [spot, setSpot] = useState<Spot | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -43,15 +55,21 @@ const SpotDetailScreen: React.FC = () => {
 
   const spotId = route.params?.spotId;
 
+  // Scroll tracking for parallax + animated header
+  const scrollY = useSharedValue(0);
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y;
+    },
+  });
+
   // Fetch spot details from API
   useEffect(() => {
     const fetchSpot = async () => {
       if (!spotId) return;
-
       try {
         setLoading(true);
         setError(null);
-
         const spotDTO = await spotApi.getById(spotId);
         const mappedSpot = mapSpotDTOToSpot(spotDTO);
         setSpot(mappedSpot);
@@ -62,7 +80,6 @@ const SpotDetailScreen: React.FC = () => {
         setLoading(false);
       }
     };
-
     fetchSpot();
   }, [spotId]);
 
@@ -71,20 +88,12 @@ const SpotDetailScreen: React.FC = () => {
     return SPOT_TYPES.find((t) => t.id === spot.spotType);
   }, [spot]);
 
-  const starArray = useMemo(() => {
-    if (!spot) return [];
-    return getStarArray(spot.rating);
-  }, [spot]);
-
   const handleBookNow = useCallback(() => {
     if (!spot) return;
-
-    // Check if user has verified their ID
     if (user && !user.verified?.id) {
       setShowIDVerificationModal(true);
       return;
     }
-
     navigation.navigate('BookingDateTime', {
       spotId: spot.id,
       spotTitle: spot.title,
@@ -113,59 +122,6 @@ const SpotDetailScreen: React.FC = () => {
     // Save to favorites
   }, []);
 
-  const renderPhotoGallery = () => {
-    if (!spot) return null;
-    return (
-      <View style={styles.photoGallery}>
-        <ScrollView
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          onMomentumScrollEnd={(e) => {
-            const index = Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH);
-            setCurrentPhotoIndex(index);
-          }}
-        >
-          {spot.photos.map((photo, index) => (
-            <View key={index} style={styles.photoContainer}>
-              <View style={[styles.photoPlaceholder, { backgroundColor: NEUTRAL_COLORS.lightGray }]}>
-                <Icon name="image" size={48} color={NEUTRAL_COLORS.gray} />
-              </View>
-            </View>
-          ))}
-        </ScrollView>
-
-        {/* Photo indicators */}
-        <View style={styles.photoIndicators}>
-          {spot.photos.map((_, index) => (
-            <View
-              key={index}
-              style={[
-                styles.photoIndicator,
-                currentPhotoIndex === index && styles.photoIndicatorActive,
-              ]}
-            />
-          ))}
-        </View>
-
-        {/* Header actions – offset by the status bar inset */}
-        <View style={[styles.headerActions, { top: insets.top + SPACING.sm }]}>
-          <TouchableOpacity style={styles.headerButton} onPress={handleGoBack}>
-            <Icon name="arrow-left" size={24} color={NEUTRAL_COLORS.black} />
-          </TouchableOpacity>
-          <View style={styles.headerRight}>
-            <TouchableOpacity style={styles.headerButton} onPress={handleShare}>
-              <Icon name="share-variant" size={24} color={NEUTRAL_COLORS.black} />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.headerButton} onPress={handleSave}>
-              <Icon name="heart-outline" size={24} color={NEUTRAL_COLORS.black} />
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-    );
-  };
-
   const renderAmenities = () => {
     if (!spot) return null;
     return (
@@ -187,8 +143,6 @@ const SpotDetailScreen: React.FC = () => {
   };
 
   const renderHost = () => {
-    // The current spot endpoints don't include host profile yet.
-    // Keep the UI stable with a placeholder until we add host detail/reviews.
     const host = spot?.host;
     const hostName = host?.firstName ? `Hosted by ${host.firstName}` : 'Host details coming soon';
     const joinedText = host?.memberSince ? `Joined ${formatRelativeTime(host.memberSince)}` : null;
@@ -214,12 +168,13 @@ const SpotDetailScreen: React.FC = () => {
               {[reviewsText, joinedText].filter(Boolean).join(' • ') || '—'}
             </Text>
           </View>
-          <TouchableOpacity
+          <AnimatedPressable
             style={[styles.contactButton, { borderColor: colors.primary }]}
             onPress={handleContactHost}
+            haptic
           >
             <Icon name="message-outline" size={20} color={colors.primary} />
-          </TouchableOpacity>
+          </AnimatedPressable>
         </View>
       </Card>
     );
@@ -227,7 +182,6 @@ const SpotDetailScreen: React.FC = () => {
 
   const renderReviews = () => {
     if (!spot) return null;
-    // Reviews will be implemented in Phase 4
     return (
       <View style={styles.reviewsSection}>
         <View style={styles.reviewsHeader}>
@@ -236,9 +190,9 @@ const SpotDetailScreen: React.FC = () => {
             <Text style={styles.ratingText}>{spot.rating.toFixed(1)}</Text>
             <Text style={styles.reviewCount}>({spot.reviewCount} reviews)</Text>
           </View>
-          <TouchableOpacity>
+          <AnimatedPressable>
             <Text style={[styles.seeAllLink, { color: colors.primary }]}>See all</Text>
-          </TouchableOpacity>
+          </AnimatedPressable>
         </View>
         <Text style={styles.reviewPlaceholder}>Reviews coming soon</Text>
       </View>
@@ -249,7 +203,7 @@ const SpotDetailScreen: React.FC = () => {
   if (loading) {
     return (
       <View style={[styles.container, styles.centerContent]}>
-        <ActivityIndicator size="large" color={colors.primary} />
+        <Loading />
         <Text style={styles.loadingText}>Loading spot details...</Text>
       </View>
     );
@@ -262,27 +216,46 @@ const SpotDetailScreen: React.FC = () => {
         <Icon name="alert-circle" size={64} color={NEUTRAL_COLORS.error} />
         <Text style={styles.errorTitle}>Failed to load spot</Text>
         <Text style={styles.errorText}>{error || 'Spot not found'}</Text>
-        <TouchableOpacity
+        <AnimatedPressable
           style={[styles.retryButton, { backgroundColor: colors.primary }]}
           onPress={() => navigation.goBack()}
+          haptic
         >
           <Text style={styles.retryButtonText}>Go Back</Text>
-        </TouchableOpacity>
+        </AnimatedPressable>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <ScrollView
+      {/* Scroll-tracking animated header (transparent → solid) */}
+      <AnimatedHeader
+        scrollY={scrollY}
+        title={spot.title}
+        threshold={PHOTO_HEIGHT - 60}
+        onBack={handleGoBack}
+      />
+
+      <Animated.ScrollView
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {renderPhotoGallery()}
+        {/* Parallax photo header */}
+        <ParallaxPhotoHeader
+          photos={spot.photos}
+          scrollY={scrollY}
+          height={PHOTO_HEIGHT}
+          onBack={handleGoBack}
+          onShare={handleShare}
+          onSave={handleSave}
+        />
 
         <View style={styles.content}>
-          {/* Title & Rating */}
-          <View style={styles.titleSection}>
+          {/* Title & Rating — staggered entrance */}
+          <Animated.View entering={FadeInDown.delay(0).duration(500).springify()} style={styles.titleSection}>
             <Text style={styles.title}>{spot.title}</Text>
             <View style={styles.subtitleRow}>
               <View style={styles.spotTypeTag}>
@@ -301,10 +274,10 @@ const SpotDetailScreen: React.FC = () => {
               <Icon name="map-marker-outline" size={14} color={NEUTRAL_COLORS.darkGray} />
               {' '}{spot.address}
             </Text>
-          </View>
+          </Animated.View>
 
           {/* Quick Info */}
-          <View style={styles.quickInfo}>
+          <Animated.View entering={FadeInDown.delay(100).duration(500).springify()} style={styles.quickInfo}>
             {spot.instantBook && (
               <View style={styles.quickInfoItem}>
                 <Icon name="flash" size={20} color={NEUTRAL_COLORS.success} />
@@ -317,42 +290,42 @@ const SpotDetailScreen: React.FC = () => {
                 Fits {spot.vehicleSizes.join(', ')}
               </Text>
             </View>
-          </View>
+          </Animated.View>
 
           {/* Description */}
-          <View style={styles.section}>
+          <Animated.View entering={FadeInDown.delay(200).duration(500).springify()} style={styles.section}>
             <Text style={styles.sectionTitle}>About this spot</Text>
             <Text style={styles.description}>{spot.description}</Text>
-          </View>
+          </Animated.View>
 
           {/* Amenities */}
-          <View style={styles.section}>
+          <Animated.View entering={FadeInDown.delay(300).duration(500).springify()} style={styles.section}>
             <Text style={styles.sectionTitle}>Amenities</Text>
             {renderAmenities()}
-          </View>
+          </Animated.View>
 
           {/* Host */}
-          <View style={styles.section}>
+          <Animated.View entering={FadeInDown.delay(400).duration(500).springify()} style={styles.section}>
             <Text style={styles.sectionTitle}>Your Host</Text>
             {renderHost()}
-          </View>
+          </Animated.View>
 
           {/* House Rules */}
           {spot.houseRules && (
-            <View style={styles.section}>
+            <Animated.View entering={FadeInDown.delay(500).duration(500).springify()} style={styles.section}>
               <Text style={styles.sectionTitle}>House Rules</Text>
               <Text style={styles.rulesText}>{spot.houseRules}</Text>
-            </View>
+            </Animated.View>
           )}
 
           {/* Reviews */}
-          <View style={styles.section}>
+          <Animated.View entering={FadeInDown.delay(550).duration(500).springify()} style={styles.section}>
             <Text style={styles.sectionTitle}>Reviews</Text>
             {renderReviews()}
-          </View>
+          </Animated.View>
 
           {/* Location Map Preview */}
-          <View style={styles.section}>
+          <Animated.View entering={FadeInDown.delay(600).duration(500).springify()} style={styles.section}>
             <Text style={styles.sectionTitle}>Location</Text>
             <View style={styles.mapPreviewContainer}>
               <MapLibreGL.MapView
@@ -384,10 +357,10 @@ const SpotDetailScreen: React.FC = () => {
                 <Text style={styles.mapAttributionText}>&copy; OpenStreetMap contributors</Text>
               </View>
             </View>
-          </View>
+          </Animated.View>
 
           {/* Cancellation Policy */}
-          <View style={styles.section}>
+          <Animated.View entering={FadeInDown.delay(650).duration(500).springify()} style={styles.section}>
             <Text style={styles.sectionTitle}>Cancellation Policy</Text>
             <View style={styles.policyCard}>
               <Icon name="calendar-remove" size={20} color={colors.primary} />
@@ -405,9 +378,9 @@ const SpotDetailScreen: React.FC = () => {
                 </Text>
               </View>
             </View>
-          </View>
+          </Animated.View>
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
 
       {/* Bottom Bar */}
       <SafeAreaView edges={['bottom']} style={styles.bottomBar}>
@@ -446,57 +419,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 100,
-  },
-  photoGallery: {
-    height: 280,
-    position: 'relative',
-  },
-  photoContainer: {
-    width: SCREEN_WIDTH,
-    height: 280,
-  },
-  photoPlaceholder: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  photoIndicators: {
-    position: 'absolute',
-    bottom: SPACING.md,
-    flexDirection: 'row',
-    alignSelf: 'center',
-    gap: 6,
-  },
-  photoIndicator: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
-  },
-  photoIndicatorActive: {
-    backgroundColor: NEUTRAL_COLORS.white,
-    width: 20,
-  },
-  headerActions: {
-    position: 'absolute',
-    top: SPACING.xl,
-    left: SPACING.md,
-    right: SPACING.md,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  headerButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: NEUTRAL_COLORS.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...SHADOWS.small,
-  },
-  headerRight: {
-    flexDirection: 'row',
-    gap: SPACING.sm,
   },
   content: {
     padding: SPACING.lg,
@@ -658,39 +580,6 @@ const styles = StyleSheet.create({
   seeAllLink: {
     fontSize: TYPOGRAPHY.fontSize.base,
     fontWeight: '500',
-  },
-  reviewItem: {
-    marginBottom: SPACING.md,
-    paddingBottom: SPACING.md,
-    borderBottomWidth: 1,
-    borderBottomColor: NEUTRAL_COLORS.lightGray,
-  },
-  reviewHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: SPACING.sm,
-  },
-  reviewerInfo: {
-    flex: 1,
-    marginLeft: SPACING.sm,
-  },
-  reviewerName: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    fontWeight: '600',
-    color: NEUTRAL_COLORS.black,
-  },
-  reviewDate: {
-    fontSize: TYPOGRAPHY.fontSize.xs,
-    color: NEUTRAL_COLORS.gray,
-  },
-  reviewStars: {
-    flexDirection: 'row',
-    gap: 2,
-  },
-  reviewText: {
-    fontSize: TYPOGRAPHY.fontSize.sm,
-    color: NEUTRAL_COLORS.darkGray,
-    lineHeight: 20,
   },
   policyCard: {
     flexDirection: 'row',

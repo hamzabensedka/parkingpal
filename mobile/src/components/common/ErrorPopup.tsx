@@ -1,17 +1,26 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   Modal,
-  TouchableOpacity,
-  Animated,
   Dimensions,
+  Pressable,
 } from 'react-native';
+import ReAnimated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withTiming,
+  runOnJS,
+} from 'react-native-reanimated';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
+import { SPRING } from '../../utils/animations';
 import type { ErrorSeverity } from '../../utils/errorClassifier';
 import Button from './Button';
+import LottieAnimation from './LottieAnimation';
 
 interface ErrorPopupAction {
   label: string;
@@ -34,12 +43,16 @@ interface ErrorPopupProps {
   onDismiss: () => void;
 }
 
-// ─── Severity-based styling ───
-
 const SEVERITY_STYLES: Record<ErrorSeverity, { iconBg: string; iconColor: string }> = {
   error: { iconBg: '#fef2f2', iconColor: '#dc2626' },
   warning: { iconBg: '#fefce8', iconColor: '#ca8a04' },
   info: { iconBg: NEUTRAL_COLORS.lightGray, iconColor: NEUTRAL_COLORS.darkGray },
+};
+
+const SEVERITY_LOTTIE: Record<ErrorSeverity, boolean> = {
+  error: true,
+  warning: true,
+  info: false,
 };
 
 const SEVERITY_ICONS: Record<ErrorSeverity, string> = {
@@ -49,42 +62,49 @@ const SEVERITY_ICONS: Record<ErrorSeverity, string> = {
 };
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+const DISMISS_THRESHOLD = 100;
 
 const ErrorPopup: React.FC<ErrorPopupProps> = ({ visible, config, onDismiss }) => {
-  const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
-  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const translateY = useSharedValue(SCREEN_HEIGHT);
+  const backdropOpacity = useSharedValue(0);
+  const dragY = useSharedValue(0);
 
   useEffect(() => {
     if (visible && config) {
-      // Slide in
-      Animated.parallel([
-        Animated.timing(slideAnim, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-      ]).start();
+      translateY.value = withSpring(0, SPRING.snappy);
+      backdropOpacity.value = withTiming(1, { duration: 300 });
     } else {
-      // Slide out
-      Animated.parallel([
-        Animated.timing(slideAnim, {
-          toValue: SCREEN_HEIGHT,
-          duration: 200,
-          useNativeDriver: true,
-        }),
-        Animated.timing(fadeAnim, {
-          toValue: 0,
-          duration: 200,
-          useNativeDriver: true,
-        }),
-      ]).start();
+      translateY.value = withTiming(SCREEN_HEIGHT, { duration: 200 });
+      backdropOpacity.value = withTiming(0, { duration: 200 });
     }
-  }, [visible, config, slideAnim, fadeAnim]);
+  }, [visible, config]);
+
+  const panGesture = Gesture.Pan()
+    .onUpdate((e) => {
+      if (e.translationY > 0) {
+        dragY.value = e.translationY;
+      }
+    })
+    .onEnd((e) => {
+      if (e.translationY > DISMISS_THRESHOLD) {
+        translateY.value = withTiming(SCREEN_HEIGHT, { duration: 200 });
+        backdropOpacity.value = withTiming(0, { duration: 200 });
+        runOnJS(onDismiss)();
+      } else {
+        dragY.value = withSpring(0, SPRING.snappy);
+      }
+    })
+    .onFinalize(() => {
+      dragY.value = withSpring(0, SPRING.snappy);
+    });
+
+  const sheetStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value + dragY.value }],
+  }));
+
+  const backdropStyle = useAnimatedStyle(() => ({
+    opacity: backdropOpacity.value,
+  }));
 
   if (!config) return null;
 
@@ -92,59 +112,46 @@ const ErrorPopup: React.FC<ErrorPopupProps> = ({ visible, config, onDismiss }) =
   const { iconBg, iconColor } = SEVERITY_STYLES[severity];
   const iconName = config.icon || SEVERITY_ICONS[severity];
   const dismissable = config.dismissable !== false;
+  const useLottie = SEVERITY_LOTTIE[severity];
 
   return (
-    <Modal
-      visible={visible}
-      animationType="none"
-      transparent
-      onRequestClose={dismissable ? onDismiss : undefined}
-    >
+    <Modal visible={visible} animationType="none" transparent onRequestClose={dismissable ? onDismiss : undefined}>
       <View style={styles.overlay}>
-        {/* Backdrop */}
-        <Animated.View style={[styles.backdrop, { opacity: fadeAnim }]}>
-          <TouchableOpacity
-            style={StyleSheet.absoluteFill}
-            activeOpacity={1}
-            onPress={dismissable ? onDismiss : undefined}
-          />
-        </Animated.View>
+        <ReAnimated.View style={[styles.backdrop, backdropStyle]}>
+          <Pressable style={StyleSheet.absoluteFill} onPress={dismissable ? onDismiss : undefined} />
+        </ReAnimated.View>
 
-        {/* Bottom sheet */}
-        <Animated.View
-          style={[styles.modal, { transform: [{ translateY: slideAnim }] }]}
-        >
-          {/* Close button */}
-          {dismissable && (
-            <TouchableOpacity style={styles.closeButton} onPress={onDismiss}>
-              <Icon name="close" size={24} color={NEUTRAL_COLORS.gray} />
-            </TouchableOpacity>
-          )}
-
-          <View style={styles.content}>
-            {/* Icon */}
-            <View style={[styles.iconContainer, { backgroundColor: iconBg }]}>
-              <Icon name={iconName} size={32} color={iconColor} />
+        <GestureDetector gesture={panGesture}>
+          <ReAnimated.View style={[styles.modal, sheetStyle]}>
+            {/* Drag handle */}
+            <View style={styles.dragHandle}>
+              <View style={styles.dragIndicator} />
             </View>
 
-            {/* Title */}
-            <Text style={styles.title}>{config.title}</Text>
+            <View style={styles.content}>
+              {useLottie ? (
+                <LottieAnimation name="error-warning" size={80} autoPlay loop={false} />
+              ) : (
+                <View style={[styles.iconContainer, { backgroundColor: iconBg }]}>
+                  <Icon name={iconName} size={32} color={iconColor} />
+                </View>
+              )}
 
-            {/* Message */}
-            <Text style={styles.message}>{config.message}</Text>
+              <Text style={styles.title}>{config.title}</Text>
+              <Text style={styles.message}>{config.message}</Text>
 
-            {/* Action button */}
-            {config.action && (
-              <Button
-                title={config.action.label}
-                onPress={config.action.onPress}
-                variant="primary"
-                fullWidth
-                style={styles.actionButton}
-              />
-            )}
-          </View>
-        </Animated.View>
+              {config.action && (
+                <Button
+                  title={config.action.label}
+                  onPress={config.action.onPress}
+                  variant="primary"
+                  fullWidth
+                  style={styles.actionButton}
+                />
+              )}
+            </View>
+          </ReAnimated.View>
+        </GestureDetector>
       </View>
     </Modal>
   );
@@ -163,19 +170,23 @@ const styles = StyleSheet.create({
     backgroundColor: NEUTRAL_COLORS.white,
     borderTopLeftRadius: RADIUS.xl,
     borderTopRightRadius: RADIUS.xl,
-    padding: SPACING.xl,
+    paddingHorizontal: SPACING.xl,
     paddingBottom: SPACING['2xl'],
   },
-  closeButton: {
-    position: 'absolute',
-    top: SPACING.md,
-    right: SPACING.md,
-    padding: SPACING.sm,
-    zIndex: 1,
+  dragHandle: {
+    alignItems: 'center',
+    paddingTop: SPACING.sm,
+    paddingBottom: SPACING.md,
+  },
+  dragIndicator: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: NEUTRAL_COLORS.lightGray,
   },
   content: {
     alignItems: 'center',
-    paddingTop: SPACING.md,
+    paddingTop: SPACING.sm,
   },
   iconContainer: {
     width: 64,

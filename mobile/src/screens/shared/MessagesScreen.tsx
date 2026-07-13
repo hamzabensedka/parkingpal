@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -15,7 +16,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
 import { formatRelativeTime } from '../../utils/formatting';
 import { Conversation } from '../../types';
-import { Card, Avatar, EmptyState } from '../../components/common';
+import { Card, Avatar, EmptyState, AnimatedPressable } from '../../components/common';
 import { messageApi } from '../../services/api';
 
 const MessagesScreen: React.FC = () => {
@@ -80,7 +81,7 @@ const MessagesScreen: React.FC = () => {
     [navigation, user]
   );
 
-  const renderConversation = ({ item }: { item: Conversation }) => {
+  const renderConversation = ({ item, index }: { item: Conversation; index: number }) => {
     const otherParticipant = item.participants.find(
       (p) => p.id !== user?.id
     ) || item.participants[0];
@@ -89,94 +90,99 @@ const MessagesScreen: React.FC = () => {
     const isSentByMe = item.lastMessage?.senderId === user?.id;
 
     return (
-      <Card
-        style={styles.conversationCard}
+      <AnimatedPressable
         onPress={() => handleConversationPress(item)}
-        elevation="small"
+        haptic
+        scaleTo={0.98}
       >
-        <View style={styles.conversationRow}>
-          {/* Avatar */}
-          <View style={styles.avatarContainer}>
-            <Avatar
-              firstName={otherParticipant.firstName}
-              lastName={otherParticipant.lastName}
-              uri={otherParticipant.profilePhoto}
-              size="medium"
-              showBadge={otherParticipant.verified?.id}
-              badgeIcon="check-decagram"
-              badgeColor={colors.primary}
-            />
-            {/* Online indicator */}
-            {isUnread && (
-              <View
-                style={[
-                  styles.onlineIndicator,
-                  { backgroundColor: colors.primary, borderColor: NEUTRAL_COLORS.white },
-                ]}
+        <Card
+          style={styles.conversationCard}
+          elevation="small"
+        >
+          <View style={styles.conversationRow}>
+            {/* Avatar */}
+            <View style={styles.avatarContainer}>
+              <Avatar
+                firstName={otherParticipant.firstName}
+                lastName={otherParticipant.lastName}
+                uri={otherParticipant.profilePhoto}
+                size="medium"
+                showBadge={otherParticipant.verified?.id}
+                badgeIcon="check-decagram"
+                badgeColor={colors.primary}
               />
-            )}
-          </View>
-
-          {/* Content */}
-          <View style={styles.conversationContent}>
-            <View style={styles.conversationHeader}>
-              <Text
-                style={[
-                  styles.participantName,
-                  isUnread && styles.unreadText,
-                ]}
-                numberOfLines={1}
-              >
-                {otherParticipant.firstName} {otherParticipant.lastName}
-              </Text>
-              <Text
-                style={[
-                  styles.timestamp,
-                  isUnread && { color: colors.primary },
-                ]}
-              >
-                {item.lastMessage
-                  ? formatRelativeTime(item.lastMessage.createdAt)
-                  : ''}
-              </Text>
-            </View>
-
-            <View style={styles.messagePreviewRow}>
-              <Text
-                style={[
-                  styles.messagePreview,
-                  isUnread && styles.unreadText,
-                ]}
-                numberOfLines={2}
-              >
-                {isSentByMe ? 'You: ' : ''}
-                {item.lastMessage?.text || 'No messages yet'}
-              </Text>
-
+              {/* Online indicator */}
               {isUnread && (
                 <View
                   style={[
-                    styles.unreadBadge,
-                    { backgroundColor: colors.primary },
+                    styles.onlineIndicator,
+                    { backgroundColor: colors.primary, borderColor: NEUTRAL_COLORS.white },
                   ]}
-                >
-                  <Text style={styles.unreadBadgeText}>
-                    {item.unreadCount}
-                  </Text>
-                </View>
+                />
               )}
             </View>
-          </View>
 
-          {/* Chevron */}
-          <Icon
-            name="chevron-right"
-            size={20}
-            color={NEUTRAL_COLORS.gray}
-            style={styles.chevron}
-          />
-        </View>
-      </Card>
+            {/* Content */}
+            <View style={styles.conversationContent}>
+              <View style={styles.conversationHeader}>
+                <Text
+                  style={[
+                    styles.participantName,
+                    isUnread && styles.unreadText,
+                  ]}
+                  numberOfLines={1}
+                >
+                  {otherParticipant.firstName} {otherParticipant.lastName}
+                </Text>
+                <Text
+                  style={[
+                    styles.timestamp,
+                    isUnread && { color: colors.primary },
+                  ]}
+                >
+                  {item.lastMessage
+                    ? formatRelativeTime(item.lastMessage.createdAt)
+                    : ''}
+                </Text>
+              </View>
+
+              <View style={styles.messagePreviewRow}>
+                <Text
+                  style={[
+                    styles.messagePreview,
+                    isUnread && styles.unreadText,
+                  ]}
+                  numberOfLines={2}
+                >
+                  {isSentByMe ? 'You: ' : ''}
+                  {item.lastMessage?.text || 'No messages yet'}
+                </Text>
+
+                {isUnread && (
+                  <View
+                    style={[
+                      styles.unreadBadge,
+                      { backgroundColor: colors.primary },
+                    ]}
+                  >
+                    <Text style={styles.unreadBadgeText}>
+                      {item.unreadCount}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            </View>
+
+            {/* Chevron */}
+            <Icon
+              name="chevron-right"
+              size={20}
+              color={NEUTRAL_COLORS.gray}
+              style={styles.chevron}
+            />
+          </View>
+        </Card>
+      </AnimatedPressable>
     );
   };
 
@@ -220,14 +226,16 @@ const MessagesScreen: React.FC = () => {
     <SafeAreaView style={styles.container} edges={['bottom']}>
       {/* Header Stats */}
       {conversations.length > 0 && totalUnread > 0 && (
-        <View style={styles.headerBar}>
-          <View style={[styles.unreadSummary, { backgroundColor: colors.lightest }]}>
-            <Icon name="email-outline" size={20} color={colors.primary} />
-            <Text style={[styles.unreadSummaryText, { color: colors.dark }]}>
-              {totalUnread} unread message{totalUnread !== 1 ? 's' : ''}
-            </Text>
+        <Animated.View entering={FadeInDown.delay(0).duration(500).springify()}>
+          <View style={styles.headerBar}>
+            <View style={[styles.unreadSummary, { backgroundColor: colors.lightest }]}>
+              <Icon name="email-outline" size={20} color={colors.primary} />
+              <Text style={[styles.unreadSummaryText, { color: colors.dark }]}>
+                {totalUnread} unread message{totalUnread !== 1 ? 's' : ''}
+              </Text>
+            </View>
           </View>
-        </View>
+        </Animated.View>
       )}
 
       {/* Conversations List */}

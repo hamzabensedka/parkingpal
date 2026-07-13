@@ -4,16 +4,16 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
 import { RenterStackParamList, Vehicle } from '../../types';
-import { Button, Card, EmptyState } from '../../components/common';
+import { Button, Card, EmptyState, AnimatedPressable } from '../../components/common';
 
 type Props = NativeStackScreenProps<RenterStackParamList, 'VehicleSelection'>;
 
@@ -74,127 +74,136 @@ const VehicleSelectionScreen = ({ navigation, route }: Props) => {
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Info Card */}
-        <Card style={styles.infoCard}>
-          <Icon name="information" size={24} color={colors.primary} />
-          <Text style={styles.infoText}>
-            Select the vehicle you'll be parking. Make sure the license plate matches your vehicle for access.
-          </Text>
-        </Card>
+        <Animated.View entering={FadeInDown.delay(0).duration(500).springify()}>
+          <Card style={styles.infoCard}>
+            <Icon name="information" size={24} color={colors.primary} />
+            <Text style={styles.infoText}>
+              Select the vehicle you'll be parking. Make sure the license plate matches your vehicle for access.
+            </Text>
+          </Card>
+        </Animated.View>
 
         {/* Vehicles List */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Your Vehicles</Text>
-            <TouchableOpacity onPress={handleAddVehicle}>
-              <Text style={[styles.addLink, { color: colors.primary }]}>+ Add New</Text>
-            </TouchableOpacity>
-          </View>
-
-          {vehicles.length === 0 ? (
-            <EmptyState
-              icon="car-off"
-              title="No vehicles added"
-              description="Add a vehicle to continue with your booking"
-              actionLabel="Add Vehicle"
-              onAction={handleAddVehicle}
-            />
-          ) : (
-            <View style={styles.vehiclesList}>
-              {vehicles.map((vehicle) => {
-                const isSelected = selectedVehicle?.id === vehicle.id;
-
-                return (
-                  <TouchableOpacity
-                    key={vehicle.id}
-                    style={[
-                      styles.vehicleCard,
-                      isSelected && { borderColor: colors.primary, borderWidth: 2 },
-                    ]}
-                    onPress={() => setSelectedVehicle(vehicle)}
-                  >
-                    <View style={styles.vehicleIconContainer}>
-                      <Icon
-                        name={getVehicleIcon(vehicle.type)}
-                        size={32}
-                        color={isSelected ? colors.primary : NEUTRAL_COLORS.gray}
-                      />
-                    </View>
-
-                    <View style={styles.vehicleInfo}>
-                      <Text style={styles.vehicleName}>
-                        {vehicle.make} {vehicle.model}
-                      </Text>
-                      <Text style={styles.vehicleDetails}>
-                        {vehicle.color} • {vehicle.year}
-                      </Text>
-                      <View style={styles.plateContainer}>
-                        <Icon name="card-text" size={14} color={NEUTRAL_COLORS.gray} />
-                        <Text style={styles.plateText}>{vehicle.licensePlate}</Text>
-                      </View>
-                    </View>
-
-                    <View style={styles.checkContainer}>
-                      {isSelected ? (
-                        <View style={[styles.checkCircle, { backgroundColor: colors.primary }]}>
-                          <Icon name="check" size={16} color={NEUTRAL_COLORS.white} />
-                        </View>
-                      ) : (
-                        <View style={styles.uncheckCircle} />
-                      )}
-                    </View>
-
-                    {vehicle.isDefault && (
-                      <View style={[styles.defaultBadge, { backgroundColor: colors.lightest }]}>
-                        <Text style={[styles.defaultText, { color: colors.primary }]}>Default</Text>
-                      </View>
-                    )}
-                  </TouchableOpacity>
-                );
-              })}
+        <Animated.View entering={FadeInDown.delay(100).duration(500).springify()}>
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Your Vehicles</Text>
+              <AnimatedPressable onPress={handleAddVehicle}>
+                <Text style={[styles.addLink, { color: colors.primary }]}>+ Add New</Text>
+              </AnimatedPressable>
             </View>
-          )}
-        </View>
+
+            {vehicles.length === 0 ? (
+              <EmptyState
+                icon="car-off"
+                title="No vehicles added"
+                description="Add a vehicle to continue with your booking"
+                actionLabel="Add Vehicle"
+                onAction={handleAddVehicle}
+              />
+            ) : (
+              <View style={styles.vehiclesList}>
+                {vehicles.map((vehicle) => {
+                  const isSelected = selectedVehicle?.id === vehicle.id;
+
+                  return (
+                    <AnimatedPressable
+                      key={vehicle.id}
+                      style={[
+                        styles.vehicleCard,
+                        isSelected && { borderColor: colors.primary, borderWidth: 2 },
+                      ]}
+                      onPress={() => setSelectedVehicle(vehicle)}
+                      haptic
+                    >
+                      <View style={styles.vehicleIconContainer}>
+                        <Icon
+                          name={getVehicleIcon(vehicle.type)}
+                          size={32}
+                          color={isSelected ? colors.primary : NEUTRAL_COLORS.gray}
+                        />
+                      </View>
+
+                      <View style={styles.vehicleInfo}>
+                        <Text style={styles.vehicleName}>
+                          {vehicle.make} {vehicle.model}
+                        </Text>
+                        <Text style={styles.vehicleDetails}>
+                          {vehicle.color} • {vehicle.year}
+                        </Text>
+                        <View style={styles.plateContainer}>
+                          <Icon name="card-text" size={14} color={NEUTRAL_COLORS.gray} />
+                          <Text style={styles.plateText}>{vehicle.licensePlate}</Text>
+                        </View>
+                      </View>
+
+                      <View style={styles.checkContainer}>
+                        {isSelected ? (
+                          <View style={[styles.checkCircle, { backgroundColor: colors.primary }]}>
+                            <Icon name="check" size={16} color={NEUTRAL_COLORS.white} />
+                          </View>
+                        ) : (
+                          <View style={styles.uncheckCircle} />
+                        )}
+                      </View>
+
+                      {vehicle.isDefault && (
+                        <View style={[styles.defaultBadge, { backgroundColor: colors.lightest }]}>
+                          <Text style={[styles.defaultText, { color: colors.primary }]}>Default</Text>
+                        </View>
+                      )}
+                    </AnimatedPressable>
+                  );
+                })}
+              </View>
+            )}
+          </View>
+        </Animated.View>
 
         {/* Booking Summary */}
-        <Card style={styles.summaryCard}>
-          <Text style={styles.summaryTitle}>Booking Summary</Text>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Spot</Text>
-            <Text style={styles.summaryValue} numberOfLines={1}>{spotTitle}</Text>
-          </View>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Duration</Text>
-            <Text style={styles.summaryValue}>{duration} hour{duration > 1 ? 's' : ''}</Text>
-          </View>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Rate</Text>
-            <Text style={styles.summaryValue}>€{hourlyRate}/hour</Text>
-          </View>
-          {selectedVehicle && (
+        <Animated.View entering={FadeInDown.delay(200).duration(500).springify()}>
+          <Card style={styles.summaryCard}>
+            <Text style={styles.summaryTitle}>Booking Summary</Text>
             <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Vehicle</Text>
-              <Text style={styles.summaryValue}>
-                {selectedVehicle.make} {selectedVehicle.model}
-              </Text>
+              <Text style={styles.summaryLabel}>Spot</Text>
+              <Text style={styles.summaryValue} numberOfLines={1}>{spotTitle}</Text>
             </View>
-          )}
-          <View style={styles.divider} />
-          <View style={styles.summaryRow}>
-            <Text style={styles.totalLabel}>Total</Text>
-            <Text style={[styles.totalValue, { color: colors.primary }]}>€{total.toFixed(2)}</Text>
-          </View>
-        </Card>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Duration</Text>
+              <Text style={styles.summaryValue}>{duration} hour{duration > 1 ? 's' : ''}</Text>
+            </View>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Rate</Text>
+              <Text style={styles.summaryValue}>{hourlyRate}/hour</Text>
+            </View>
+            {selectedVehicle && (
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>Vehicle</Text>
+                <Text style={styles.summaryValue}>
+                  {selectedVehicle.make} {selectedVehicle.model}
+                </Text>
+              </View>
+            )}
+            <View style={styles.divider} />
+            <View style={styles.summaryRow}>
+              <Text style={styles.totalLabel}>Total</Text>
+              <Text style={[styles.totalValue, { color: colors.primary }]}>{total.toFixed(2)}</Text>
+            </View>
+          </Card>
+        </Animated.View>
       </ScrollView>
 
       {/* Continue Button */}
-      <View style={styles.footer}>
-        <Button
-          title="Continue to Payment"
-          onPress={handleContinue}
-          disabled={!selectedVehicle}
-          fullWidth
-        />
-      </View>
+      <Animated.View entering={FadeInUp.delay(300).duration(500).springify()}>
+        <View style={styles.footer}>
+          <Button
+            title="Continue to Payment"
+            onPress={handleContinue}
+            disabled={!selectedVehicle}
+            fullWidth
+          />
+        </View>
+      </Animated.View>
     </SafeAreaView>
   );
 };

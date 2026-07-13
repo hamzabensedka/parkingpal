@@ -4,16 +4,17 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  TouchableOpacity,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme } from '../../contexts/ThemeContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
 import { RenterStackParamList, Spot } from '../../types';
-import { Card, Badge, EmptyState, Chip } from '../../components/common';
+import { Card, Badge, EmptyState, Chip, AnimatedPressable } from '../../components/common';
 import { spotApi } from '../../services/api';
 import { mapSpotSummaryToSpot } from '../../utils/spotMappers';
 
@@ -36,6 +37,7 @@ const SearchResultsScreen = ({ navigation, route }: Props) => {
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [spots, setSpots] = useState<Spot[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Fetch spots from API
@@ -108,6 +110,12 @@ const SearchResultsScreen = ({ navigation, route }: Props) => {
 
     return sorted;
   }, [spots, sortBy]);
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await new Promise(resolve => setTimeout(resolve, 800));
+    setRefreshing(false);
+  }, []);
 
   const handleSpotPress = useCallback((spot: Spot) => {
     navigation.navigate('SpotDetail', { spotId: spot.id });
@@ -194,18 +202,22 @@ const SearchResultsScreen = ({ navigation, route }: Props) => {
 
   const renderHeader = () => (
     <View style={styles.header}>
-      <View style={styles.resultsInfo}>
-        <Text style={styles.resultsCount}>
-          {filteredSpots.length} spot{filteredSpots.length !== 1 ? 's' : ''} found
-        </Text>
-        {query && (
-          <Text style={styles.searchQuery}>for "{query}"</Text>
-        )}
-      </View>
+      <Animated.View entering={FadeInDown.delay(0).duration(500).springify()}>
+        <View style={styles.resultsInfo}>
+          <Text style={styles.resultsCount}>
+            {filteredSpots.length} spot{filteredSpots.length !== 1 ? 's' : ''} found
+          </Text>
+          {query && (
+            <Text style={styles.searchQuery}>for "{query}"</Text>
+          )}
+        </View>
+      </Animated.View>
 
+      <Animated.View entering={FadeInDown.delay(100).duration(500).springify()}>
       <View style={styles.headerActions}>
         {/* Sort Button */}
-        <TouchableOpacity
+        <AnimatedPressable
+          haptic
           style={styles.sortButton}
           onPress={() => setShowSortMenu(!showSortMenu)}
         >
@@ -214,10 +226,11 @@ const SearchResultsScreen = ({ navigation, route }: Props) => {
             {SORT_OPTIONS.find(o => o.value === sortBy)?.label}
           </Text>
           <Icon name="chevron-down" size={16} color={NEUTRAL_COLORS.gray} />
-        </TouchableOpacity>
+        </AnimatedPressable>
 
         {/* Filter Button */}
-        <TouchableOpacity
+        <AnimatedPressable
+          haptic
           style={[styles.filterButton, activeFiltersCount > 0 && { borderColor: colors.primary }]}
           onPress={handleFilterPress}
         >
@@ -231,15 +244,16 @@ const SearchResultsScreen = ({ navigation, route }: Props) => {
               <Text style={styles.filterBadgeText}>{activeFiltersCount}</Text>
             </View>
           )}
-        </TouchableOpacity>
+        </AnimatedPressable>
       </View>
 
       {/* Sort Menu */}
       {showSortMenu && (
         <View style={styles.sortMenu}>
           {SORT_OPTIONS.map((option) => (
-            <TouchableOpacity
+            <AnimatedPressable
               key={option.value}
+              haptic
               style={[
                 styles.sortOption,
                 sortBy === option.value && { backgroundColor: colors.lightest },
@@ -258,7 +272,7 @@ const SearchResultsScreen = ({ navigation, route }: Props) => {
               {sortBy === option.value && (
                 <Icon name="check" size={18} color={colors.primary} />
               )}
-            </TouchableOpacity>
+            </AnimatedPressable>
           ))}
         </View>
       )}
@@ -281,12 +295,13 @@ const SearchResultsScreen = ({ navigation, route }: Props) => {
           <Icon name="alert-circle" size={48} color={NEUTRAL_COLORS.error} />
           <Text style={styles.errorTitle}>Failed to load spots</Text>
           <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity
+          <AnimatedPressable
+            haptic
             style={[styles.retryButton, { backgroundColor: colors.primary }]}
             onPress={() => navigation.replace('SearchResults', { query, filters })}
           >
             <Text style={styles.retryButtonText}>Retry</Text>
-          </TouchableOpacity>
+          </AnimatedPressable>
         </View>
       );
     }
@@ -309,6 +324,9 @@ const SearchResultsScreen = ({ navigation, route }: Props) => {
         renderItem={renderSpotCard}
         keyExtractor={(item) => item.id}
         ListHeaderComponent={!loading ? renderHeader : undefined}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.primary} colors={[colors.primary]} />
+        }
         ListEmptyComponent={renderEmptyState}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}

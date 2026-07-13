@@ -5,7 +5,6 @@ import {
   StyleSheet,
   FlatList,
   TextInput,
-  TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
@@ -15,13 +14,14 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
+import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useError } from '../../contexts/ErrorContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '../../utils/constants';
 import { formatTime, formatSmartDate } from '../../utils/formatting';
 import { Message } from '../../types';
-import { Avatar, EmptyState, ReportUserModal } from '../../components/common';
+import { Avatar, EmptyState, ReportUserModal, AnimatedPressable } from '../../components/common';
 import { safetyApi } from '../../services/api';
 import { parseISO, isSameDay } from 'date-fns';
 import { messageApi } from '../../services/api';
@@ -62,12 +62,13 @@ const ChatScreen: React.FC = () => {
   useEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <TouchableOpacity
+        <AnimatedPressable
           style={{ padding: SPACING.sm, marginRight: SPACING.xs }}
           onPress={() => setShowMenu(true)}
+          haptic
         >
           <Icon name="dots-vertical" size={24} color={NEUTRAL_COLORS.black} />
-        </TouchableOpacity>
+        </AnimatedPressable>
       ),
     });
   }, [navigation]);
@@ -324,79 +325,84 @@ const ChatScreen: React.FC = () => {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       >
         {/* Messages List */}
-        <FlatList
-          ref={flatListRef}
-          data={processedMessages()}
-          renderItem={renderMessage}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.listContent}
-          ListEmptyComponent={renderEmptyState}
-          showsVerticalScrollIndicator={false}
-          inverted
-        />
+        <Animated.View entering={FadeInDown.duration(500).springify()} style={{ flex: 1 }}>
+          <FlatList
+            ref={flatListRef}
+            data={processedMessages()}
+            renderItem={renderMessage}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.listContent}
+            ListEmptyComponent={renderEmptyState}
+            showsVerticalScrollIndicator={false}
+            inverted
+          />
+        </Animated.View>
 
         {/* Input Bar */}
-        <View
-          style={[
-            styles.inputBar,
-            {
-              backgroundColor: NEUTRAL_COLORS.white,
-              borderTopColor: NEUTRAL_COLORS.lightGray,
-            },
-          ]}
-        >
-          <TouchableOpacity style={styles.attachButton}>
-            <Icon name="plus-circle-outline" size={24} color={NEUTRAL_COLORS.gray} />
-          </TouchableOpacity>
-
+        <Animated.View entering={FadeInUp.delay(100).duration(500).springify()}>
           <View
             style={[
-              styles.inputContainer,
+              styles.inputBar,
               {
-                backgroundColor: NEUTRAL_COLORS.background,
-                borderColor: NEUTRAL_COLORS.lightGray,
+                backgroundColor: NEUTRAL_COLORS.white,
+                borderTopColor: NEUTRAL_COLORS.lightGray,
               },
             ]}
           >
-            <TextInput
-              style={[styles.textInput, { color: NEUTRAL_COLORS.black }]}
-              value={inputText}
-              onChangeText={setInputText}
-              placeholder="Type a message..."
-              placeholderTextColor={NEUTRAL_COLORS.gray}
-              multiline
-              maxLength={1000}
-              editable={!sending}
-            />
-          </View>
+            <AnimatedPressable style={styles.attachButton} haptic>
+              <Icon name="plus-circle-outline" size={24} color={NEUTRAL_COLORS.gray} />
+            </AnimatedPressable>
 
-          <TouchableOpacity
-            style={[
-              styles.sendButton,
-              {
-                backgroundColor: inputText.trim() && !sending
-                  ? colors.primary
-                  : NEUTRAL_COLORS.lightGray,
-              },
-            ]}
-            onPress={handleSend}
-            disabled={!inputText.trim() || sending}
-          >
-            {sending ? (
-              <ActivityIndicator size="small" color={NEUTRAL_COLORS.white} />
-            ) : (
-              <Icon
-                name="send"
-                size={20}
-                color={
-                  inputText.trim()
-                    ? NEUTRAL_COLORS.white
-                    : NEUTRAL_COLORS.gray
-                }
+            <View
+              style={[
+                styles.inputContainer,
+                {
+                  backgroundColor: NEUTRAL_COLORS.background,
+                  borderColor: NEUTRAL_COLORS.lightGray,
+                },
+              ]}
+            >
+              <TextInput
+                style={[styles.textInput, { color: NEUTRAL_COLORS.black }]}
+                value={inputText}
+                onChangeText={setInputText}
+                placeholder="Type a message..."
+                placeholderTextColor={NEUTRAL_COLORS.gray}
+                multiline
+                maxLength={1000}
+                editable={!sending}
               />
-            )}
-          </TouchableOpacity>
-        </View>
+            </View>
+
+            <AnimatedPressable
+              style={[
+                styles.sendButton,
+                {
+                  backgroundColor: inputText.trim() && !sending
+                    ? colors.primary
+                    : NEUTRAL_COLORS.lightGray,
+                },
+              ]}
+              onPress={handleSend}
+              disabled={!inputText.trim() || sending}
+              haptic
+            >
+              {sending ? (
+                <ActivityIndicator size="small" color={NEUTRAL_COLORS.white} />
+              ) : (
+                <Icon
+                  name="send"
+                  size={20}
+                  color={
+                    inputText.trim()
+                      ? NEUTRAL_COLORS.white
+                      : NEUTRAL_COLORS.gray
+                  }
+                />
+              )}
+            </AnimatedPressable>
+          </View>
+        </Animated.View>
       </KeyboardAvoidingView>
 
       {/* Options Menu Modal */}
@@ -406,29 +412,33 @@ const ChatScreen: React.FC = () => {
         animationType="fade"
         onRequestClose={() => setShowMenu(false)}
       >
-        <TouchableOpacity
+        <AnimatedPressable
           style={styles.menuOverlay}
           activeOpacity={1}
           onPress={() => setShowMenu(false)}
         >
-          <View style={styles.menuContainer}>
-            <TouchableOpacity
-              style={styles.menuItem}
-              onPress={handleReportUser}
-            >
-              <Icon name="flag-outline" size={20} color={NEUTRAL_COLORS.black} />
-              <Text style={styles.menuItemText}>Report User</Text>
-            </TouchableOpacity>
-            <View style={styles.menuDivider} />
-            <TouchableOpacity
-              style={styles.menuItem}
-              onPress={handleBlockUser}
-            >
-              <Icon name="account-cancel" size={20} color="#ef4444" />
-              <Text style={[styles.menuItemText, { color: '#ef4444' }]}>Block User</Text>
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
+          <Animated.View entering={FadeInDown.duration(300).springify()}>
+            <View style={styles.menuContainer}>
+              <AnimatedPressable
+                style={styles.menuItem}
+                onPress={handleReportUser}
+                haptic
+              >
+                <Icon name="flag-outline" size={20} color={NEUTRAL_COLORS.black} />
+                <Text style={styles.menuItemText}>Report User</Text>
+              </AnimatedPressable>
+              <View style={styles.menuDivider} />
+              <AnimatedPressable
+                style={styles.menuItem}
+                onPress={handleBlockUser}
+                haptic
+              >
+                <Icon name="account-cancel" size={20} color="#ef4444" />
+                <Text style={[styles.menuItemText, { color: '#ef4444' }]}>Block User</Text>
+              </AnimatedPressable>
+            </View>
+          </Animated.View>
+        </AnimatedPressable>
       </Modal>
 
       {/* Report User Modal */}

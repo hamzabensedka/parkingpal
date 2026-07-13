@@ -4,15 +4,15 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
 } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Slider from '@react-native-community/slider';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS, SPOT_TYPES, AMENITIES, VEHICLE_TYPES } from '../../utils/constants';
-import { Button, Chip } from '../../components/common';
+import { Button, Chip, AnimatedPressable } from '../../components/common';
 
 const FiltersScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -135,9 +135,10 @@ const FiltersScreen: React.FC = () => {
         {/* Toggles */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>More Options</Text>
-          <TouchableOpacity
+          <AnimatedPressable
             style={styles.toggleRow}
             onPress={() => setInstantBookOnly(!instantBookOnly)}
+            haptic
           >
             <View style={styles.toggleInfo}>
               <Icon name="flash" size={24} color={colors.primary} />
@@ -153,11 +154,12 @@ const FiltersScreen: React.FC = () => {
               size={40}
               color={instantBookOnly ? colors.primary : NEUTRAL_COLORS.gray}
             />
-          </TouchableOpacity>
+          </AnimatedPressable>
 
-          <TouchableOpacity
+          <AnimatedPressable
             style={styles.toggleRow}
             onPress={() => setSuperhostOnly(!superhostOnly)}
+            haptic
           >
             <View style={styles.toggleInfo}>
               <Icon name="star-circle" size={24} color={colors.primary} />
@@ -173,15 +175,15 @@ const FiltersScreen: React.FC = () => {
               size={40}
               color={superhostOnly ? colors.primary : NEUTRAL_COLORS.gray}
             />
-          </TouchableOpacity>
+          </AnimatedPressable>
         </View>
       </ScrollView>
 
       {/* Bottom Buttons */}
       <View style={styles.bottomBar}>
-        <TouchableOpacity onPress={handleReset}>
+        <AnimatedPressable onPress={handleReset} haptic>
           <Text style={[styles.resetText, { color: colors.primary }]}>Reset</Text>
-        </TouchableOpacity>
+        </AnimatedPressable>
         <Button
           title="Show Results"
           onPress={handleApply}

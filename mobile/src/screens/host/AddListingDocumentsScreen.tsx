@@ -4,10 +4,10 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   Image,
   Alert,
 } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import * as ImagePicker from 'expo-image-picker';
@@ -17,7 +17,7 @@ import { useError } from '../../contexts/ErrorContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '../../utils/constants';
 import { HostStackParamList } from '../../types';
-import { Button, Card } from '../../components/common';
+import { Button, Card, AnimatedPressable } from '../../components/common';
 
 type Props = NativeStackScreenProps<HostStackParamList, 'AddListingDocuments'>;
 
@@ -188,12 +188,13 @@ const AddListingDocumentsScreen = ({ navigation, route }: Props) => {
       {image ? (
         <View style={styles.imagePreview}>
           <Image source={{ uri: image }} style={styles.previewImage} />
-          <TouchableOpacity
+          <AnimatedPressable
+            haptic
             style={styles.removeButton}
             onPress={() => setImage(null)}
           >
             <Icon name="close-circle" size={28} color={NEUTRAL_COLORS.error} />
-          </TouchableOpacity>
+          </AnimatedPressable>
         </View>
       ) : isVerified ? (
         <View style={[styles.verifiedPlaceholder, { backgroundColor: colors.lightest }]}>
@@ -204,7 +205,8 @@ const AddListingDocumentsScreen = ({ navigation, route }: Props) => {
         </View>
       ) : (
         <View style={styles.uploadButtons}>
-          <TouchableOpacity
+          <AnimatedPressable
+            haptic
             style={[styles.uploadButton, { borderColor: colors.primary }]}
             onPress={() => takePhoto(setImage)}
           >
@@ -212,8 +214,9 @@ const AddListingDocumentsScreen = ({ navigation, route }: Props) => {
             <Text style={[styles.uploadButtonText, { color: colors.primary }]}>
               Take Photo
             </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
+          </AnimatedPressable>
+          <AnimatedPressable
+            haptic
             style={[styles.uploadButton, { borderColor: colors.primary }]}
             onPress={() => pickImage(setImage)}
           >
@@ -221,7 +224,7 @@ const AddListingDocumentsScreen = ({ navigation, route }: Props) => {
             <Text style={[styles.uploadButtonText, { color: colors.primary }]}>
               Upload
             </Text>
-          </TouchableOpacity>
+          </AnimatedPressable>
         </View>
       )}
     </Card>
@@ -231,85 +234,94 @@ const AddListingDocumentsScreen = ({ navigation, route }: Props) => {
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Header */}
-        <View style={[styles.header, { backgroundColor: colors.lightest }]}>
-          <Icon name="shield-check-outline" size={48} color={colors.primary} />
-          <Text style={styles.headerTitle}>Verify Your Listing</Text>
-          <Text style={styles.headerSubtitle}>
-            We need to verify your identity and ownership to protect our community
-          </Text>
-        </View>
-
-        {/* ID Verification Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>
-            <Icon name="card-account-details" size={20} color={NEUTRAL_COLORS.black} />
-            {' '}Step 1: Verify Your Identity
-          </Text>
-          {renderDocumentUpload(
-            'Government-Issued ID',
-            "Upload your driver's license, passport, or national ID card. Your name must match your profile.",
-            idImage,
-            setIdImage,
-            isIdVerified
-          )}
-        </View>
-
-        {/* Ownership Document Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>
-            <Icon name="home-outline" size={20} color={NEUTRAL_COLORS.black} />
-            {' '}Step 2: Prove Ownership or Permission
-          </Text>
-
-          <Text style={styles.docTypeLabel}>Select document type:</Text>
-          <View style={styles.docTypeGrid}>
-            {DOCUMENT_OPTIONS.map((option) => (
-              <TouchableOpacity
-                key={option.id}
-                style={[
-                  styles.docTypeOption,
-                  selectedDocType === option.id && {
-                    borderColor: colors.primary,
-                    backgroundColor: colors.lightest,
-                  },
-                ]}
-                onPress={() => setSelectedDocType(option.id)}
-              >
-                <Icon
-                  name={option.icon}
-                  size={24}
-                  color={selectedDocType === option.id ? colors.primary : NEUTRAL_COLORS.gray}
-                />
-                <Text
-                  style={[
-                    styles.docTypeLabel,
-                    selectedDocType === option.id && { color: colors.primary, fontWeight: '600' },
-                  ]}
-                >
-                  {option.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          {renderDocumentUpload(
-            DOCUMENT_OPTIONS.find(d => d.id === selectedDocType)?.label || 'Document',
-            DOCUMENT_OPTIONS.find(d => d.id === selectedDocType)?.description || '',
-            ownershipDoc,
-            setOwnershipDoc
-          )}
-        </View>
-
-        {/* Info Box */}
-        <View style={styles.infoBox}>
-          <Icon name="information" size={20} color={colors.primary} />
-          <View style={styles.infoContent}>
-            <Text style={styles.infoTitle}>Why we need these documents</Text>
-            <Text style={styles.infoText}>
-              Verification helps protect renters from fraud and ensures you have the legal right to rent out this parking spot. Your documents are encrypted and securely stored.
+        <Animated.View entering={FadeInDown.delay(0).duration(500).springify()}>
+          <View style={[styles.header, { backgroundColor: colors.lightest }]}>
+            <Icon name="shield-check-outline" size={48} color={colors.primary} />
+            <Text style={styles.headerTitle}>Verify Your Listing</Text>
+            <Text style={styles.headerSubtitle}>
+              We need to verify your identity and ownership to protect our community
             </Text>
           </View>
-        </View>
+        </Animated.View>
+
+        {/* ID Verification Section */}
+        <Animated.View entering={FadeInDown.delay(100).duration(500).springify()}>
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>
+              <Icon name="card-account-details" size={20} color={NEUTRAL_COLORS.black} />
+              {' '}Step 1: Verify Your Identity
+            </Text>
+            {renderDocumentUpload(
+              'Government-Issued ID',
+              "Upload your driver's license, passport, or national ID card. Your name must match your profile.",
+              idImage,
+              setIdImage,
+              isIdVerified
+            )}
+          </View>
+        </Animated.View>
+
+        {/* Ownership Document Section */}
+        <Animated.View entering={FadeInDown.delay(200).duration(500).springify()}>
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>
+              <Icon name="home-outline" size={20} color={NEUTRAL_COLORS.black} />
+              {' '}Step 2: Prove Ownership or Permission
+            </Text>
+
+            <Text style={styles.docTypeLabel}>Select document type:</Text>
+            <View style={styles.docTypeGrid}>
+              {DOCUMENT_OPTIONS.map((option) => (
+                <AnimatedPressable
+                  haptic
+                  key={option.id}
+                  style={[
+                    styles.docTypeOption,
+                    selectedDocType === option.id && {
+                      borderColor: colors.primary,
+                      backgroundColor: colors.lightest,
+                    },
+                  ]}
+                  onPress={() => setSelectedDocType(option.id)}
+                >
+                  <Icon
+                    name={option.icon}
+                    size={24}
+                    color={selectedDocType === option.id ? colors.primary : NEUTRAL_COLORS.gray}
+                  />
+                  <Text
+                    style={[
+                      styles.docTypeLabel,
+                      selectedDocType === option.id && { color: colors.primary, fontWeight: '600' },
+                    ]}
+                  >
+                    {option.label}
+                  </Text>
+                </AnimatedPressable>
+              ))}
+            </View>
+
+            {renderDocumentUpload(
+              DOCUMENT_OPTIONS.find(d => d.id === selectedDocType)?.label || 'Document',
+              DOCUMENT_OPTIONS.find(d => d.id === selectedDocType)?.description || '',
+              ownershipDoc,
+              setOwnershipDoc
+            )}
+          </View>
+        </Animated.View>
+
+        {/* Info Box */}
+        <Animated.View entering={FadeInDown.delay(300).duration(500).springify()}>
+          <View style={styles.infoBox}>
+            <Icon name="information" size={20} color={colors.primary} />
+            <View style={styles.infoContent}>
+              <Text style={styles.infoTitle}>Why we need these documents</Text>
+              <Text style={styles.infoText}>
+                Verification helps protect renters from fraud and ensures you have the legal right to rent out this parking spot. Your documents are encrypted and securely stored.
+              </Text>
+            </View>
+          </View>
+        </Animated.View>
 
         {/* Review Note */}
         <View style={styles.reviewNote}>

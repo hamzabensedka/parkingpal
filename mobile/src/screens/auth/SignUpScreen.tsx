@@ -3,11 +3,11 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
 } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -15,7 +15,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useError } from '../../contexts/ErrorContext';
 import { RENTER_COLORS, NEUTRAL_COLORS, TYPOGRAPHY, SPACING } from '../../utils/constants';
 import { AuthStackParamList } from '../../types';
-import { Button, Input } from '../../components/common';
+import { Button, Input, AnimatedPressable } from '../../components/common';
 import { signUpSchema } from '../../utils/validation';
 
 type SignUpScreenNavigationProp = NativeStackNavigationProp<AuthStackParamList, 'SignUp'>;
@@ -100,143 +100,153 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation }) => {
           keyboardShouldPersistTaps="handled"
         >
           {/* Back Button */}
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
-            <Icon name="arrow-left" size={24} color={NEUTRAL_COLORS.black} />
-          </TouchableOpacity>
+          <Animated.View entering={FadeInDown.delay(0).duration(500).springify()}>
+            <AnimatedPressable
+              style={styles.backButton}
+              onPress={() => navigation.goBack()}
+            >
+              <Icon name="arrow-left" size={24} color={NEUTRAL_COLORS.black} />
+            </AnimatedPressable>
+          </Animated.View>
 
           {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.title}>Create Account</Text>
-            <Text style={styles.subtitle}>
-              Join ParkingPal and start finding parking or earning from your space
-            </Text>
-          </View>
+          <Animated.View entering={FadeInDown.delay(100).duration(500).springify()}>
+            <View style={styles.header}>
+              <Text style={styles.title}>Create Account</Text>
+              <Text style={styles.subtitle}>
+                Join ParkingPal and start finding parking or earning from your space
+              </Text>
+            </View>
+          </Animated.View>
 
           {/* Form */}
-          <View style={styles.form}>
-            <View style={styles.nameRow}>
-              <View style={styles.nameField}>
-                <Input
-                  label="First Name"
-                  value={formData.firstName}
-                  onChangeText={(value) => updateField('firstName', value)}
-                  placeholder="John"
-                  leftIcon="account-outline"
-                  error={errors.firstName}
-                  required
-                />
+          <Animated.View entering={FadeInDown.delay(200).duration(500).springify()}>
+            <View style={styles.form}>
+              <View style={styles.nameRow}>
+                <View style={styles.nameField}>
+                  <Input
+                    label="First Name"
+                    value={formData.firstName}
+                    onChangeText={(value) => updateField('firstName', value)}
+                    placeholder="John"
+                    leftIcon="account-outline"
+                    error={errors.firstName}
+                    required
+                  />
+                </View>
+                <View style={styles.nameField}>
+                  <Input
+                    label="Last Name"
+                    value={formData.lastName}
+                    onChangeText={(value) => updateField('lastName', value)}
+                    placeholder="Doe"
+                    error={errors.lastName}
+                    required
+                  />
+                </View>
               </View>
-              <View style={styles.nameField}>
-                <Input
-                  label="Last Name"
-                  value={formData.lastName}
-                  onChangeText={(value) => updateField('lastName', value)}
-                  placeholder="Doe"
-                  error={errors.lastName}
-                  required
-                />
+
+              <Input
+                label="Email"
+                value={formData.email}
+                onChangeText={(value) => updateField('email', value)}
+                placeholder="john.doe@email.com"
+                type="email"
+                leftIcon="email-outline"
+                error={errors.email}
+                required
+              />
+
+              <Input
+                label="Phone Number"
+                value={formData.phone}
+                onChangeText={(value) => updateField('phone', value)}
+                placeholder="+33 6 12 34 56 78"
+                type="phone"
+                leftIcon="phone-outline"
+                error={errors.phone}
+                required
+              />
+
+              <Input
+                label="Password"
+                value={formData.password}
+                onChangeText={(value) => updateField('password', value)}
+                placeholder="Create a strong password"
+                type="password"
+                leftIcon="lock-outline"
+                error={errors.password}
+                required
+              />
+
+              <Input
+                label="Confirm Password"
+                value={formData.confirmPassword}
+                onChangeText={(value) => updateField('confirmPassword', value)}
+                placeholder="Confirm your password"
+                type="password"
+                leftIcon="lock-check-outline"
+                error={errors.confirmPassword}
+                required
+              />
+
+              {/* Password Requirements */}
+              <View style={styles.passwordRequirements}>
+                <Text style={styles.requirementsTitle}>Password must contain:</Text>
+                <View style={styles.requirement}>
+                  <Icon
+                    name={formData.password.length >= 8 ? 'check-circle' : 'circle-outline'}
+                    size={16}
+                    color={formData.password.length >= 8 ? NEUTRAL_COLORS.success : NEUTRAL_COLORS.gray}
+                  />
+                  <Text style={styles.requirementText}>At least 8 characters</Text>
+                </View>
+                <View style={styles.requirement}>
+                  <Icon
+                    name={/[A-Z]/.test(formData.password) ? 'check-circle' : 'circle-outline'}
+                    size={16}
+                    color={/[A-Z]/.test(formData.password) ? NEUTRAL_COLORS.success : NEUTRAL_COLORS.gray}
+                  />
+                  <Text style={styles.requirementText}>One uppercase letter</Text>
+                </View>
+                <View style={styles.requirement}>
+                  <Icon
+                    name={/[0-9]/.test(formData.password) ? 'check-circle' : 'circle-outline'}
+                    size={16}
+                    color={/[0-9]/.test(formData.password) ? NEUTRAL_COLORS.success : NEUTRAL_COLORS.gray}
+                  />
+                  <Text style={styles.requirementText}>One number</Text>
+                </View>
               </View>
+
+              <Button
+                title="Create Account"
+                onPress={handleSignUp}
+                loading={isLoading}
+                fullWidth
+                style={styles.signUpButton}
+              />
             </View>
-
-            <Input
-              label="Email"
-              value={formData.email}
-              onChangeText={(value) => updateField('email', value)}
-              placeholder="john.doe@email.com"
-              type="email"
-              leftIcon="email-outline"
-              error={errors.email}
-              required
-            />
-
-            <Input
-              label="Phone Number"
-              value={formData.phone}
-              onChangeText={(value) => updateField('phone', value)}
-              placeholder="+33 6 12 34 56 78"
-              type="phone"
-              leftIcon="phone-outline"
-              error={errors.phone}
-              required
-            />
-
-            <Input
-              label="Password"
-              value={formData.password}
-              onChangeText={(value) => updateField('password', value)}
-              placeholder="Create a strong password"
-              type="password"
-              leftIcon="lock-outline"
-              error={errors.password}
-              required
-            />
-
-            <Input
-              label="Confirm Password"
-              value={formData.confirmPassword}
-              onChangeText={(value) => updateField('confirmPassword', value)}
-              placeholder="Confirm your password"
-              type="password"
-              leftIcon="lock-check-outline"
-              error={errors.confirmPassword}
-              required
-            />
-
-            {/* Password Requirements */}
-            <View style={styles.passwordRequirements}>
-              <Text style={styles.requirementsTitle}>Password must contain:</Text>
-              <View style={styles.requirement}>
-                <Icon
-                  name={formData.password.length >= 8 ? 'check-circle' : 'circle-outline'}
-                  size={16}
-                  color={formData.password.length >= 8 ? NEUTRAL_COLORS.success : NEUTRAL_COLORS.gray}
-                />
-                <Text style={styles.requirementText}>At least 8 characters</Text>
-              </View>
-              <View style={styles.requirement}>
-                <Icon
-                  name={/[A-Z]/.test(formData.password) ? 'check-circle' : 'circle-outline'}
-                  size={16}
-                  color={/[A-Z]/.test(formData.password) ? NEUTRAL_COLORS.success : NEUTRAL_COLORS.gray}
-                />
-                <Text style={styles.requirementText}>One uppercase letter</Text>
-              </View>
-              <View style={styles.requirement}>
-                <Icon
-                  name={/[0-9]/.test(formData.password) ? 'check-circle' : 'circle-outline'}
-                  size={16}
-                  color={/[0-9]/.test(formData.password) ? NEUTRAL_COLORS.success : NEUTRAL_COLORS.gray}
-                />
-                <Text style={styles.requirementText}>One number</Text>
-              </View>
-            </View>
-
-            <Button
-              title="Create Account"
-              onPress={handleSignUp}
-              loading={isLoading}
-              fullWidth
-              style={styles.signUpButton}
-            />
-          </View>
+          </Animated.View>
 
           {/* Terms */}
-          <Text style={styles.terms}>
-            By creating an account, you agree to our{' '}
-            <Text style={styles.termsLink}>Terms of Service</Text> and{' '}
-            <Text style={styles.termsLink}>Privacy Policy</Text>
-          </Text>
+          <Animated.View entering={FadeInDown.delay(300).duration(500).springify()}>
+            <Text style={styles.terms}>
+              By creating an account, you agree to our{' '}
+              <Text style={styles.termsLink}>Terms of Service</Text> and{' '}
+              <Text style={styles.termsLink}>Privacy Policy</Text>
+            </Text>
+          </Animated.View>
 
           {/* Login Link */}
-          <View style={styles.loginContainer}>
-            <Text style={styles.loginText}>Already have an account? </Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-              <Text style={styles.loginLink}>Sign In</Text>
-            </TouchableOpacity>
-          </View>
+          <Animated.View entering={FadeInDown.delay(400).duration(500).springify()}>
+            <View style={styles.loginContainer}>
+              <Text style={styles.loginText}>Already have an account? </Text>
+              <AnimatedPressable onPress={() => navigation.navigate('Login')}>
+                <Text style={styles.loginLink}>Sign In</Text>
+              </AnimatedPressable>
+            </View>
+          </Animated.View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

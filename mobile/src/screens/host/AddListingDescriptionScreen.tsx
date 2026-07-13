@@ -4,16 +4,16 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   Switch,
 } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme } from '../../contexts/ThemeContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS, CANCELLATION_POLICIES } from '../../utils/constants';
 import { HostStackParamList } from '../../types';
-import { Button, Input, Card } from '../../components/common';
+import { Button, Input, Card, AnimatedPressable } from '../../components/common';
 
 type Props = NativeStackScreenProps<HostStackParamList, 'AddListingDescription'>;
 
@@ -56,24 +56,28 @@ const AddListingDescriptionScreen = ({ navigation, route }: Props) => {
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>Listing Details</Text>
-          <Text style={styles.subtitle}>
-            Make your listing stand out with a great title and description
-          </Text>
-        </View>
+        <Animated.View entering={FadeInDown.delay(0).duration(500).springify()}>
+          <View style={styles.header}>
+            <Text style={styles.title}>Listing Details</Text>
+            <Text style={styles.subtitle}>
+              Make your listing stand out with a great title and description
+            </Text>
+          </View>
+        </Animated.View>
 
         {/* Title */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Listing Title</Text>
-          <Input
-            value={title}
-            onChangeText={setTitle}
-            placeholder="e.g., Secure Garage Near Metro Station"
-            maxLength={60}
-          />
-          <Text style={styles.charCount}>{title.length}/60</Text>
-        </View>
+        <Animated.View entering={FadeInDown.delay(100).duration(500).springify()}>
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Listing Title</Text>
+            <Input
+              value={title}
+              onChangeText={setTitle}
+              placeholder="e.g., Secure Garage Near Metro Station"
+              maxLength={60}
+            />
+            <Text style={styles.charCount}>{title.length}/60</Text>
+          </View>
+        </Animated.View>
 
         {/* Description */}
         <View style={styles.section}>
@@ -129,13 +133,15 @@ const AddListingDescriptionScreen = ({ navigation, route }: Props) => {
         </Card>
 
         {/* Cancellation Policy */}
+        <Animated.View entering={FadeInDown.delay(200).duration(500).springify()}>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Cancellation Policy</Text>
           <View style={styles.policyList}>
             {CANCELLATION_POLICIES.map((policy) => {
               const isSelected = cancellationPolicy === policy.id;
               return (
-                <TouchableOpacity
+                <AnimatedPressable
+                  haptic
                   key={policy.id}
                   style={[
                     styles.policyItem,
@@ -160,24 +166,27 @@ const AddListingDescriptionScreen = ({ navigation, route }: Props) => {
                     </Text>
                     <Text style={styles.policyDesc}>{policy.description}</Text>
                   </View>
-                </TouchableOpacity>
+                </AnimatedPressable>
               );
             })}
           </View>
         </View>
+        </Animated.View>
 
         {/* Tips */}
-        <View style={[styles.tipBox, { backgroundColor: colors.lightest }]}>
-          <Icon name="lightbulb-on-outline" size={24} color={colors.primary} />
-          <View style={styles.tipContent}>
-            <Text style={[styles.tipTitle, { color: colors.dark }]}>Pro Tips</Text>
-            <Text style={styles.tipText}>
-              • Use descriptive titles that highlight key features{'\n'}
-              • Mention nearby landmarks and attractions{'\n'}
-              • Enable instant book to get more bookings
-            </Text>
+        <Animated.View entering={FadeInDown.delay(300).duration(500).springify()}>
+          <View style={[styles.tipBox, { backgroundColor: colors.lightest }]}>
+            <Icon name="lightbulb-on-outline" size={24} color={colors.primary} />
+            <View style={styles.tipContent}>
+              <Text style={[styles.tipTitle, { color: colors.dark }]}>Pro Tips</Text>
+              <Text style={styles.tipText}>
+                • Use descriptive titles that highlight key features{'\n'}
+                • Mention nearby landmarks and attractions{'\n'}
+                • Enable instant book to get more bookings
+              </Text>
+            </View>
           </View>
-        </View>
+        </Animated.View>
       </ScrollView>
 
       {/* Footer */}

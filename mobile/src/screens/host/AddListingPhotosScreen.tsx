@@ -4,9 +4,9 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   Image,
 } from 'react-native';
+import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -15,7 +15,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { useError } from '../../contexts/ErrorContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
 import { HostStackParamList } from '../../types';
-import { Button, Card } from '../../components/common';
+import { Button, Card, AnimatedPressable } from '../../components/common';
 
 type Props = NativeStackScreenProps<HostStackParamList, 'AddListingPhotos'>;
 
@@ -143,113 +143,125 @@ const AddListingPhotosScreen = ({ navigation, route }: Props) => {
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Info */}
-        <View style={styles.infoSection}>
-          <Text style={styles.title}>Add Photos</Text>
-          <Text style={styles.subtitle}>
-            Great photos help renters understand your space and increase bookings.
-          </Text>
-        </View>
+        <Animated.View entering={FadeInDown.delay(0).duration(500).springify()}>
+          <View style={styles.infoSection}>
+            <Text style={styles.title}>Add Photos</Text>
+            <Text style={styles.subtitle}>
+              Great photos help renters understand your space and increase bookings.
+            </Text>
+          </View>
+        </Animated.View>
 
         {/* Photo Grid */}
-        <View style={styles.photoSection}>
-          <View style={styles.photoGrid}>
-            {/* Add Photo Buttons */}
-            <TouchableOpacity
-              style={[styles.addPhotoCard, { borderColor: colors.primary }]}
-              onPress={handlePickImage}
-            >
-              <Icon name="image-plus" size={32} color={colors.primary} />
-              <Text style={[styles.addPhotoText, { color: colors.primary }]}>
-                From Gallery
-              </Text>
-            </TouchableOpacity>
+        <Animated.View entering={FadeInDown.delay(100).duration(500).springify()}>
+          <View style={styles.photoSection}>
+            <View style={styles.photoGrid}>
+              {/* Add Photo Buttons */}
+              <AnimatedPressable
+                style={[styles.addPhotoCard, { borderColor: colors.primary }]}
+                onPress={handlePickImage}
+                haptic
+              >
+                <Icon name="image-plus" size={32} color={colors.primary} />
+                <Text style={[styles.addPhotoText, { color: colors.primary }]}>
+                  From Gallery
+                </Text>
+              </AnimatedPressable>
 
-            <TouchableOpacity
-              style={[styles.addPhotoCard, { borderColor: colors.primary }]}
-              onPress={handleTakePhoto}
-            >
-              <Icon name="camera-plus" size={32} color={colors.primary} />
-              <Text style={[styles.addPhotoText, { color: colors.primary }]}>
-                Take Photo
-              </Text>
-            </TouchableOpacity>
+              <AnimatedPressable
+                style={[styles.addPhotoCard, { borderColor: colors.primary }]}
+                onPress={handleTakePhoto}
+                haptic
+              >
+                <Icon name="camera-plus" size={32} color={colors.primary} />
+                <Text style={[styles.addPhotoText, { color: colors.primary }]}>
+                  Take Photo
+                </Text>
+              </AnimatedPressable>
 
-            {/* Photo Items */}
-            {photos.map((photo) => (
-              <View key={photo.id} style={styles.photoItem}>
-                <Image source={{ uri: photo.uri }} style={styles.photoImage} />
+              {/* Photo Items */}
+              {photos.map((photo) => (
+                <View key={photo.id} style={styles.photoItem}>
+                  <Image source={{ uri: photo.uri }} style={styles.photoImage} />
 
-                {photo.isMain && (
-                  <View style={[styles.mainBadge, { backgroundColor: colors.primary }]}>
-                    <Text style={styles.mainBadgeText}>Main</Text>
-                  </View>
-                )}
+                  {photo.isMain && (
+                    <View style={[styles.mainBadge, { backgroundColor: colors.primary }]}>
+                      <Text style={styles.mainBadgeText}>Main</Text>
+                    </View>
+                  )}
 
-                <TouchableOpacity
-                  style={styles.removeButton}
-                  onPress={() => handleRemovePhoto(photo.id)}
-                >
-                  <Icon name="close-circle" size={24} color="#ef4444" />
-                </TouchableOpacity>
-
-                {!photo.isMain && (
-                  <TouchableOpacity
-                    style={[styles.setMainButton, { backgroundColor: colors.lightest }]}
-                    onPress={() => handleSetMainPhoto(photo.id)}
+                  <AnimatedPressable
+                    style={styles.removeButton}
+                    onPress={() => handleRemovePhoto(photo.id)}
+                    haptic
                   >
-                    <Text style={[styles.setMainText, { color: colors.primary }]}>
-                      Set as Main
-                    </Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-            ))}
-          </View>
+                    <Icon name="close-circle" size={24} color="#ef4444" />
+                  </AnimatedPressable>
 
-          <Text style={styles.photoCount}>
-            {photos.length} photo{photos.length !== 1 ? 's' : ''} added
-            {photos.length < 3 && ' (minimum 1, recommended 5+)'}
-          </Text>
-        </View>
+                  {!photo.isMain && (
+                    <AnimatedPressable
+                      style={[styles.setMainButton, { backgroundColor: colors.lightest }]}
+                      onPress={() => handleSetMainPhoto(photo.id)}
+                      haptic
+                    >
+                      <Text style={[styles.setMainText, { color: colors.primary }]}>
+                        Set as Main
+                      </Text>
+                    </AnimatedPressable>
+                  )}
+                </View>
+              ))}
+            </View>
+
+            <Text style={styles.photoCount}>
+              {photos.length} photo{photos.length !== 1 ? 's' : ''} added
+              {photos.length < 3 && ' (minimum 1, recommended 5+)'}
+            </Text>
+          </View>
+        </Animated.View>
 
         {/* Tips */}
-        {renderPhotoTips()}
+        <Animated.View entering={FadeInDown.delay(200).duration(500).springify()}>
+          {renderPhotoTips()}
+        </Animated.View>
       </ScrollView>
 
       {/* Footer */}
-      <View style={styles.footer}>
-        <View style={styles.progressContainer}>
-          <View style={[styles.progressStep, { backgroundColor: colors.primary }]}>
-            <Icon name="check" size={14} color={NEUTRAL_COLORS.white} />
+      <Animated.View entering={FadeInUp.delay(300).duration(500).springify()}>
+        <View style={styles.footer}>
+          <View style={styles.progressContainer}>
+            <View style={[styles.progressStep, { backgroundColor: colors.primary }]}>
+              <Icon name="check" size={14} color={NEUTRAL_COLORS.white} />
+            </View>
+            <View style={[styles.progressLine, { backgroundColor: colors.primary }]} />
+            <View style={[styles.progressStep, { backgroundColor: colors.primary }]}>
+              <Text style={styles.progressNumber}>2</Text>
+            </View>
+            <View style={styles.progressLine} />
+            <View style={styles.progressStep}>
+              <Text style={styles.progressNumber}>3</Text>
+            </View>
+            <View style={styles.progressLine} />
+            <View style={styles.progressStep}>
+              <Text style={styles.progressNumber}>4</Text>
+            </View>
           </View>
-          <View style={[styles.progressLine, { backgroundColor: colors.primary }]} />
-          <View style={[styles.progressStep, { backgroundColor: colors.primary }]}>
-            <Text style={styles.progressNumber}>2</Text>
-          </View>
-          <View style={styles.progressLine} />
-          <View style={styles.progressStep}>
-            <Text style={styles.progressNumber}>3</Text>
-          </View>
-          <View style={styles.progressLine} />
-          <View style={styles.progressStep}>
-            <Text style={styles.progressNumber}>4</Text>
+          <View style={styles.footerButtons}>
+            <Button
+              title="Back"
+              onPress={() => navigation.goBack()}
+              variant="outline"
+              style={styles.backButton}
+            />
+            <Button
+              title="Continue"
+              onPress={handleContinue}
+              disabled={photos.length < 1}
+              style={styles.continueButton}
+            />
           </View>
         </View>
-        <View style={styles.footerButtons}>
-          <Button
-            title="Back"
-            onPress={() => navigation.goBack()}
-            variant="outline"
-            style={styles.backButton}
-          />
-          <Button
-            title="Continue"
-            onPress={handleContinue}
-            disabled={photos.length < 1}
-            style={styles.continueButton}
-          />
-        </View>
-      </View>
+      </Animated.View>
     </SafeAreaView>
   );
 };

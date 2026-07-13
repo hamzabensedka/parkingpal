@@ -4,9 +4,9 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   Alert,
 } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
@@ -15,7 +15,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useError } from '../../contexts/ErrorContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
 import type { VehicleSizeType } from '@parkingpal/shared-types';
-import { Button, Input, Card } from '../../components/common';
+import { Button, Input, Card, AnimatedPressable } from '../../components/common';
 
 const VEHICLE_TYPES: { type: VehicleSizeType; label: string; icon: string }[] = [
   { type: 'compact', label: 'Compact', icon: 'car' },
@@ -84,19 +84,21 @@ const AddVehicleScreen: React.FC = () => {
         keyboardShouldPersistTaps="handled"
       >
         {/* Vehicle Type */}
+        <Animated.View entering={FadeInDown.delay(0).duration(500).springify()}>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Vehicle Type</Text>
           <View style={styles.typeGrid}>
             {VEHICLE_TYPES.map((type) => {
               const isSelected = vehicleType === type.type;
               return (
-                <TouchableOpacity
+                <AnimatedPressable
                   key={type.type}
                   style={[
                     styles.typeItem,
                     isSelected && { borderColor: colors.primary, backgroundColor: colors.lightest },
                   ]}
                   onPress={() => setVehicleType(type.type)}
+                  haptic
                 >
                   <Icon
                     name={type.icon}
@@ -109,13 +111,15 @@ const AddVehicleScreen: React.FC = () => {
                   ]}>
                     {type.label}
                   </Text>
-                </TouchableOpacity>
+                </AnimatedPressable>
               );
             })}
           </View>
         </View>
+        </Animated.View>
 
         {/* Vehicle Details Form */}
+        <Animated.View entering={FadeInDown.delay(100).duration(500).springify()}>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Vehicle Details</Text>
 
@@ -162,12 +166,15 @@ const AddVehicleScreen: React.FC = () => {
             leftIcon="card-text"
           />
         </View>
+        </Animated.View>
 
         {/* Default Toggle */}
+        <Animated.View entering={FadeInDown.delay(200).duration(500).springify()}>
         <Card style={styles.defaultCard}>
-          <TouchableOpacity
+          <AnimatedPressable
             style={styles.defaultRow}
             onPress={() => setIsDefault(!isDefault)}
+            haptic
           >
             <View style={[styles.defaultIcon, { backgroundColor: colors.lightest }]}>
               <Icon name="star" size={20} color={colors.primary} />
@@ -187,16 +194,19 @@ const AddVehicleScreen: React.FC = () => {
                 isDefault && styles.toggleKnobActive,
               ]} />
             </View>
-          </TouchableOpacity>
+          </AnimatedPressable>
         </Card>
+        </Animated.View>
 
         {/* Tips */}
+        <Animated.View entering={FadeInDown.delay(300).duration(500).springify()}>
         <View style={[styles.tipsCard, { backgroundColor: colors.lightest }]}>
           <Icon name="information" size={20} color={colors.primary} />
           <Text style={styles.tipsText}>
             Make sure your license plate is entered correctly. Hosts may verify your vehicle identity upon arrival.
           </Text>
         </View>
+        </Animated.View>
       </ScrollView>
 
       {/* Save Button */}

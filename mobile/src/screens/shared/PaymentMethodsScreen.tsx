@@ -4,11 +4,11 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  TouchableOpacity,
   Alert,
   Animated,
   PanResponder,
 } from 'react-native';
+import ReanimatedAnimated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
@@ -17,7 +17,8 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useError } from '../../contexts/ErrorContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
 import { PaymentMethod } from '../../types';
-import { Card, Badge, Button, EmptyState } from '../../components/common';
+import { Card, Badge, Button, EmptyState, AnimatedPressable } from '../../components/common';
+import ReanimatedView, { FadeInDown } from 'react-native-reanimated';
 
 const SWIPE_THRESHOLD = -80;
 
@@ -98,13 +99,14 @@ const SwipeablePaymentCard: React.FC<SwipeableCardProps> = ({
     <View style={styles.swipeableContainer}>
       {/* Delete action behind the card */}
       <View style={styles.deleteAction}>
-        <TouchableOpacity
+        <AnimatedPressable
           style={styles.deleteButton}
           onPress={() => onDelete(item.id)}
+          haptic
         >
           <Icon name="trash-can-outline" size={24} color={NEUTRAL_COLORS.white} />
           <Text style={styles.deleteText}>Delete</Text>
-        </TouchableOpacity>
+        </AnimatedPressable>
       </View>
 
       {/* Card content */}

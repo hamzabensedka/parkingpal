@@ -5,15 +5,15 @@ import {
   StyleSheet,
   Dimensions,
   FlatList,
-  TouchableOpacity,
   Animated,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuth } from '../../contexts/AuthContext';
 import { RENTER_COLORS, NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
 import { AuthStackParamList } from '../../types';
+import { AnimatedPressable, LottieAnimation } from '../../components/common';
+import type { LottieName } from '../../components/common';
 import Button from '../../components/common/Button';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -27,6 +27,7 @@ interface OnboardingScreenProps {
 interface OnboardingSlide {
   id: string;
   icon: string;
+  lottieName: LottieName;
   title: string;
   description: string;
   colors: string[];
@@ -36,6 +37,7 @@ const slides: OnboardingSlide[] = [
   {
     id: '1',
     icon: 'map-search-outline',
+    lottieName: 'onboarding-find',
     title: 'Find Parking Anywhere',
     description: 'Discover available parking spots near your destination with our interactive map. No more circling around!',
     colors: [RENTER_COLORS.dark, RENTER_COLORS.primary],
@@ -43,6 +45,7 @@ const slides: OnboardingSlide[] = [
   {
     id: '2',
     icon: 'calendar-check-outline',
+    lottieName: 'onboarding-book',
     title: 'Book Instantly',
     description: 'Reserve your spot in seconds. Pay securely in-app and get instant confirmation with access instructions.',
     colors: [RENTER_COLORS.primary, RENTER_COLORS.medium],
@@ -50,6 +53,7 @@ const slides: OnboardingSlide[] = [
   {
     id: '3',
     icon: 'cash-multiple',
+    lottieName: 'onboarding-earn',
     title: 'Earn Extra Income',
     description: 'Have an empty driveway or garage? List it on ParkingPal and start earning passive income today.',
     colors: [RENTER_COLORS.medium, RENTER_COLORS.lightMedium],
@@ -117,7 +121,7 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ navigation }) => {
             ]}
           >
             <View style={styles.iconCircle}>
-              <Icon name={item.icon} size={80} color={RENTER_COLORS.primary} />
+              <LottieAnimation name={item.lottieName} size={120} autoPlay loop />
             </View>
           </Animated.View>
 
@@ -199,9 +203,9 @@ const OnboardingScreen: React.FC<OnboardingScreenProps> = ({ navigation }) => {
 
         <View style={styles.buttons}>
           {!isLastSlide && (
-            <TouchableOpacity onPress={handleSkip} style={styles.skipButton}>
+            <AnimatedPressable onPress={handleSkip} style={styles.skipButton}>
               <Text style={styles.skipText}>Skip</Text>
-            </TouchableOpacity>
+            </AnimatedPressable>
           )}
 
           <Button

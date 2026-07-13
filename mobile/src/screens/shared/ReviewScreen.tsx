@@ -4,14 +4,14 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   Alert,
 } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useTheme } from '../../contexts/ThemeContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
-import { Button, Input, Card } from '../../components/common';
+import { Button, Input, Card, AnimatedPressable } from '../../components/common';
 import { reviewApi } from '../../services/api';
 import { useError } from '../../contexts/ErrorContext';
 
@@ -101,13 +101,13 @@ const ReviewScreen: React.FC<any> = ({ navigation, route }) => {
     return (
       <View style={styles.starsContainer}>
         {[1, 2, 3, 4, 5].map((star) => (
-          <TouchableOpacity key={star} onPress={() => onPress(star)}>
+          <AnimatedPressable key={star} onPress={() => onPress(star)} haptic>
             <Icon
               name={star <= currentRating ? 'star' : 'star-outline'}
               size={size}
               color={star <= currentRating ? NEUTRAL_COLORS.darkGray : NEUTRAL_COLORS.lightGray}
             />
-          </TouchableOpacity>
+          </AnimatedPressable>
         ))}
       </View>
     );
@@ -128,62 +128,70 @@ const ReviewScreen: React.FC<any> = ({ navigation, route }) => {
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>Leave a Review</Text>
-          <Text style={styles.subtitle}>
-            How was your experience with {reviewTarget}?
-          </Text>
-          {spotTitle && (
-            <Text style={styles.spotName}>{spotTitle}</Text>
-          )}
-        </View>
+        <Animated.View entering={FadeInDown.delay(0).duration(500).springify()}>
+          <View style={styles.header}>
+            <Text style={styles.title}>Leave a Review</Text>
+            <Text style={styles.subtitle}>
+              How was your experience with {reviewTarget}?
+            </Text>
+            {spotTitle && (
+              <Text style={styles.spotName}>{spotTitle}</Text>
+            )}
+          </View>
+        </Animated.View>
 
         {/* Overall Rating */}
-        <Card style={styles.ratingCard}>
-          <Text style={styles.ratingTitle}>Overall Rating</Text>
-          {renderStars(overallRating, handleStarPress, 44)}
-          <Text style={[
-            styles.ratingLabel,
-            overallRating > 0 && { color: NEUTRAL_COLORS.darkGray },
-          ]}>
-            {getRatingLabel(overallRating)}
-          </Text>
-        </Card>
+        <Animated.View entering={FadeInDown.delay(100).duration(500).springify()}>
+          <Card style={styles.ratingCard}>
+            <Text style={styles.ratingTitle}>Overall Rating</Text>
+            {renderStars(overallRating, handleStarPress, 44)}
+            <Text style={[
+              styles.ratingLabel,
+              overallRating > 0 && { color: NEUTRAL_COLORS.darkGray },
+            ]}>
+              {getRatingLabel(overallRating)}
+            </Text>
+          </Card>
+        </Animated.View>
 
         {/* Category Ratings */}
-        <Card style={styles.categoriesCard}>
-          <Text style={styles.categoriesTitle}>Rate Each Category</Text>
-          {REVIEW_CATEGORIES.map((category) => (
-            <View key={category.id} style={styles.categoryItem}>
-              <View style={styles.categoryInfo}>
-                <Icon name={category.icon} size={20} color={colors.primary} />
-                <Text style={styles.categoryLabel}>{category.label}</Text>
+        <Animated.View entering={FadeInDown.delay(200).duration(500).springify()}>
+          <Card style={styles.categoriesCard}>
+            <Text style={styles.categoriesTitle}>Rate Each Category</Text>
+            {REVIEW_CATEGORIES.map((category) => (
+              <View key={category.id} style={styles.categoryItem}>
+                <View style={styles.categoryInfo}>
+                  <Icon name={category.icon} size={20} color={colors.primary} />
+                  <Text style={styles.categoryLabel}>{category.label}</Text>
+                </View>
+                {renderStars(
+                  categoryRatings[category.id] || 0,
+                  (rating) => handleCategoryRating(category.id, rating),
+                  24
+                )}
               </View>
-              {renderStars(
-                categoryRatings[category.id] || 0,
-                (rating) => handleCategoryRating(category.id, rating),
-                24
-              )}
-            </View>
-          ))}
-        </Card>
+            ))}
+          </Card>
+        </Animated.View>
 
         {/* Written Review */}
-        <Card style={styles.reviewCard}>
-          <Text style={styles.reviewTitle}>Write Your Review</Text>
-          <Text style={styles.reviewSubtitle}>
-            Share your experience to help others make informed decisions
-          </Text>
-          <Input
-            value={reviewText}
-            onChangeText={setReviewText}
-            placeholder="What was your experience like? Was the spot easy to find? Was it clean and well-maintained?"
-            multiline
-            numberOfLines={6}
-            maxLength={500}
-          />
-          <Text style={styles.charCount}>{reviewText.length}/500</Text>
-        </Card>
+        <Animated.View entering={FadeInDown.delay(300).duration(500).springify()}>
+          <Card style={styles.reviewCard}>
+            <Text style={styles.reviewTitle}>Write Your Review</Text>
+            <Text style={styles.reviewSubtitle}>
+              Share your experience to help others make informed decisions
+            </Text>
+            <Input
+              value={reviewText}
+              onChangeText={setReviewText}
+              placeholder="What was your experience like? Was the spot easy to find? Was it clean and well-maintained?"
+              multiline
+              numberOfLines={6}
+              maxLength={500}
+            />
+            <Text style={styles.charCount}>{reviewText.length}/500</Text>
+          </Card>
+        </Animated.View>
 
         {/* Quick Tags */}
         <Card style={styles.tagsCard}>
@@ -192,13 +200,14 @@ const ReviewScreen: React.FC<any> = ({ navigation, route }) => {
             {QUICK_TAGS.map((tag) => {
               const isSelected = selectedTags.includes(tag);
               return (
-                <TouchableOpacity
+                <AnimatedPressable
                   key={tag}
                   style={[
                     styles.tag,
                     isSelected && { backgroundColor: colors.lightest, borderColor: colors.primary },
                   ]}
                   onPress={() => handleTagPress(tag)}
+                  haptic
                 >
                   <Text style={[
                     styles.tagText,
@@ -206,7 +215,7 @@ const ReviewScreen: React.FC<any> = ({ navigation, route }) => {
                   ]}>
                     {tag}
                   </Text>
-                </TouchableOpacity>
+                </AnimatedPressable>
               );
             })}
           </View>

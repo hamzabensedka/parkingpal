@@ -1,19 +1,23 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  Animated,
   Share,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { CommonActions } from '@react-navigation/native';
+import Animated, {
+  FadeInDown,
+  FadeInUp,
+  ZoomIn,
+} from 'react-native-reanimated';
 import { useTheme } from '../../contexts/ThemeContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
 import { RenterStackParamList } from '../../types';
-import { Button, Card } from '../../components/common';
+import { Button, Card, LottieAnimation } from '../../components/common';
 import { format } from 'date-fns';
 
 type Props = NativeStackScreenProps<RenterStackParamList, 'BookingConfirmation'>;
@@ -21,36 +25,6 @@ type Props = NativeStackScreenProps<RenterStackParamList, 'BookingConfirmation'>
 const BookingConfirmationScreen = ({ navigation, route }: Props) => {
   const { bookingId, spotTitle, startTime, endTime, total, vehiclePlate } = route.params;
   const { colors } = useTheme();
-
-  const checkmarkScale = useRef(new Animated.Value(0)).current;
-  const checkmarkOpacity = useRef(new Animated.Value(0)).current;
-  const contentOpacity = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    // Animate checkmark
-    Animated.parallel([
-      Animated.spring(checkmarkScale, {
-        toValue: 1,
-        tension: 50,
-        friction: 3,
-        useNativeDriver: true,
-      }),
-      Animated.timing(checkmarkOpacity, {
-        toValue: 1,
-        duration: 400,
-        useNativeDriver: true,
-      }),
-    ]).start();
-
-    // Animate content
-    setTimeout(() => {
-      Animated.timing(contentOpacity, {
-        toValue: 1,
-        duration: 400,
-        useNativeDriver: true,
-      }).start();
-    }, 300);
-  }, []);
 
   const startDate = new Date(startTime);
   const endDate = new Date(endTime);
@@ -96,31 +70,38 @@ const BookingConfirmationScreen = ({ navigation, route }: Props) => {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Confetti Overlay */}
+      <View style={styles.confettiContainer} pointerEvents="none">
+        <LottieAnimation name="confetti" size={300} autoPlay loop={false} />
+      </View>
+
       <View style={styles.content}>
         {/* Success Animation */}
         <Animated.View
-          style={[
-            styles.checkmarkContainer,
-            {
-              backgroundColor: colors.lightest,
-              transform: [{ scale: checkmarkScale }],
-              opacity: checkmarkOpacity,
-            },
-          ]}
+          entering={ZoomIn.delay(100).duration(600).springify()}
+          style={styles.checkmarkContainer}
         >
-          <View style={[styles.checkmarkCircle, { backgroundColor: colors.primary }]}>
-            <Icon name="check" size={60} color={NEUTRAL_COLORS.white} />
-          </View>
+          <LottieAnimation name="success-check" size={120} autoPlay loop={false} />
         </Animated.View>
 
-        {/* Content */}
-        <Animated.View style={[styles.textContent, { opacity: contentOpacity }]}>
-          <Text style={styles.title}>Booking Confirmed!</Text>
-          <Text style={styles.subtitle}>
-            Your parking spot has been successfully reserved.
-          </Text>
+        {/* Title */}
+        <Animated.Text
+          entering={FadeInDown.delay(400).duration(500).springify()}
+          style={styles.title}
+        >
+          Booking Confirmed!
+        </Animated.Text>
 
-          {/* Booking Details Card */}
+        {/* Subtitle */}
+        <Animated.Text
+          entering={FadeInDown.delay(500).duration(500).springify()}
+          style={styles.subtitle}
+        >
+          Your parking spot has been successfully reserved.
+        </Animated.Text>
+
+        {/* Booking Details Card */}
+        <Animated.View entering={FadeInDown.delay(600).duration(500).springify()}>
           <Card style={styles.detailsCard}>
             <View style={styles.bookingIdRow}>
               <Text style={styles.bookingIdLabel}>Booking ID</Text>
@@ -164,8 +145,10 @@ const BookingConfirmationScreen = ({ navigation, route }: Props) => {
               </Text>
             </View>
           </Card>
+        </Animated.View>
 
-          {/* Info Box */}
+        {/* Info Box */}
+        <Animated.View entering={FadeInDown.delay(700).duration(500).springify()}>
           <View style={[styles.infoBox, { backgroundColor: colors.lightest }]}>
             <Icon name="information" size={20} color={colors.primary} />
             <Text style={[styles.infoText, { color: colors.dark }]}>
@@ -175,7 +158,10 @@ const BookingConfirmationScreen = ({ navigation, route }: Props) => {
         </Animated.View>
 
         {/* Actions */}
-        <View style={styles.actions}>
+        <Animated.View
+          entering={FadeInUp.delay(800).duration(500).springify()}
+          style={styles.actions}
+        >
           <Button
             title="View My Bookings"
             onPress={handleViewBooking}
@@ -194,7 +180,7 @@ const BookingConfirmationScreen = ({ navigation, route }: Props) => {
             icon="share-variant"
             fullWidth
           />
-        </View>
+        </Animated.View>
       </View>
     </SafeAreaView>
   );
@@ -205,6 +191,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: NEUTRAL_COLORS.white,
   },
+  confettiContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    zIndex: 10,
+  },
   content: {
     flex: 1,
     paddingHorizontal: SPACING.lg,
@@ -214,21 +208,9 @@ const styles = StyleSheet.create({
   checkmarkContainer: {
     width: 140,
     height: 140,
-    borderRadius: 70,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: SPACING.xl,
-  },
-  checkmarkCircle: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  textContent: {
-    alignItems: 'center',
-    width: '100%',
   },
   title: {
     fontSize: TYPOGRAPHY.fontSize['2xl'],

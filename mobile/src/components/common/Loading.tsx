@@ -1,13 +1,13 @@
 import React from 'react';
 import {
   View,
-  ActivityIndicator,
   Text,
   StyleSheet,
   ViewStyle,
 } from 'react-native';
-import { useTheme } from '../../contexts/ThemeContext';
 import { NEUTRAL_COLORS, SPACING, TYPOGRAPHY } from '../../utils/constants';
+import LottieAnimation from './LottieAnimation';
+import { ShimmerSkeleton, ShimmerCardSkeleton, ShimmerListSkeleton } from './ShimmerSkeleton';
 
 interface LoadingProps {
   size?: 'small' | 'large';
@@ -22,22 +22,14 @@ const Loading: React.FC<LoadingProps> = ({
   fullScreen = false,
   style,
 }) => {
-  const { colors } = useTheme();
+  const lottieSize = size === 'small' ? 48 : 80;
 
   if (fullScreen) {
     return (
-      <View
-        style={[
-          styles.fullScreen,
-          { backgroundColor: NEUTRAL_COLORS.background },
-          style,
-        ]}
-      >
-        <ActivityIndicator size={size} color={colors.primary} />
+      <View style={[styles.fullScreen, { backgroundColor: NEUTRAL_COLORS.background }, style]}>
+        <LottieAnimation name="loading-spinner" size={lottieSize} loop autoPlay />
         {message && (
-          <Text style={[styles.message, { color: NEUTRAL_COLORS.darkGray }]}>
-            {message}
-          </Text>
+          <Text style={[styles.message, { color: NEUTRAL_COLORS.darkGray }]}>{message}</Text>
         )}
       </View>
     );
@@ -45,78 +37,18 @@ const Loading: React.FC<LoadingProps> = ({
 
   return (
     <View style={[styles.container, style]}>
-      <ActivityIndicator size={size} color={colors.primary} />
+      <LottieAnimation name="loading-spinner" size={lottieSize} loop autoPlay />
       {message && (
-        <Text style={[styles.message, { color: NEUTRAL_COLORS.darkGray }]}>
-          {message}
-        </Text>
+        <Text style={[styles.message, { color: NEUTRAL_COLORS.darkGray }]}>{message}</Text>
       )}
     </View>
   );
 };
 
-// Skeleton Loader Component
-interface SkeletonProps {
-  width?: number | string;
-  height?: number;
-  borderRadius?: number;
-  style?: ViewStyle;
-}
-
-export const Skeleton: React.FC<SkeletonProps> = ({
-  width = '100%',
-  height = 20,
-  borderRadius = 8,
-  style,
-}) => {
-
-  return (
-    <View
-      style={[
-        styles.skeleton,
-        {
-          width: width as any,
-          height,
-          borderRadius,
-          backgroundColor: NEUTRAL_COLORS.lightGray,
-        },
-        style,
-      ]}
-    />
-  );
-};
-
-// Card Skeleton for loading state
-export const CardSkeleton: React.FC<{ style?: ViewStyle }> = ({ style }) => {
-
-  return (
-    <View
-      style={[
-        styles.cardSkeleton,
-        { backgroundColor: NEUTRAL_COLORS.white },
-        style,
-      ]}
-    >
-      <Skeleton width={80} height={80} borderRadius={12} />
-      <View style={styles.cardSkeletonContent}>
-        <Skeleton width="70%" height={16} style={{ marginBottom: SPACING.sm }} />
-        <Skeleton width="50%" height={14} style={{ marginBottom: SPACING.sm }} />
-        <Skeleton width="30%" height={14} />
-      </View>
-    </View>
-  );
-};
-
-// List Skeleton
-export const ListSkeleton: React.FC<{ count?: number }> = ({ count = 3 }) => {
-  return (
-    <View style={styles.listSkeleton}>
-      {Array.from({ length: count }).map((_, index) => (
-        <CardSkeleton key={index} style={{ marginBottom: SPACING.md }} />
-      ))}
-    </View>
-  );
-};
+// Re-export shimmer-based skeletons for backward compatibility
+export { ShimmerSkeleton as Skeleton };
+export { ShimmerCardSkeleton as CardSkeleton };
+export { ShimmerListSkeleton as ListSkeleton };
 
 const styles = StyleSheet.create({
   container: {
@@ -133,23 +65,6 @@ const styles = StyleSheet.create({
     marginTop: SPACING.md,
     fontSize: TYPOGRAPHY.fontSize.sm,
     textAlign: 'center',
-  },
-  skeleton: {
-    opacity: 0.7,
-  },
-  cardSkeleton: {
-    flexDirection: 'row',
-    padding: SPACING.md,
-    borderRadius: 16,
-    marginBottom: SPACING.sm,
-  },
-  cardSkeletonContent: {
-    flex: 1,
-    marginLeft: SPACING.md,
-    justifyContent: 'center',
-  },
-  listSkeleton: {
-    padding: SPACING.md,
   },
 });
 

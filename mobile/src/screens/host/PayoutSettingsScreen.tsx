@@ -4,18 +4,18 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   Alert,
   Linking,
   RefreshControl,
   ActivityIndicator,
 } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useError } from '../../contexts/ErrorContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '../../utils/constants';
-import { Button, Card } from '../../components/common';
+import { Button, Card, AnimatedPressable } from '../../components/common';
 import { paymentApi } from '../../services/api';
 
 const PayoutSettingsScreen: React.FC = () => {
@@ -93,11 +93,11 @@ const PayoutSettingsScreen: React.FC = () => {
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
+          <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} tintColor={colors.primary} colors={[colors.primary]} />
         }
       >
         {/* Header */}
-        <View style={[styles.header, { backgroundColor: colors.lightest }]}>
+        <Animated.View entering={FadeInDown.delay(0).duration(500).springify()} style={[styles.header, { backgroundColor: colors.lightest }]}>
           <Icon
             name={isOnboarded ? 'check-decagram' : 'bank-outline'}
             size={48}
@@ -111,7 +111,7 @@ const PayoutSettingsScreen: React.FC = () => {
               ? 'Your bank account is connected and ready to receive payouts'
               : 'Connect your bank account to receive earnings from your parking spots'}
           </Text>
-        </View>
+        </Animated.View>
 
         {error && (
           <View style={styles.errorBanner}>
@@ -121,6 +121,7 @@ const PayoutSettingsScreen: React.FC = () => {
         )}
 
         {/* Status Card */}
+        <Animated.View entering={FadeInDown.delay(100).duration(500).springify()}>
         <Card style={styles.statusCard}>
           <View style={styles.statusHeader}>
             <View
@@ -139,6 +140,7 @@ const PayoutSettingsScreen: React.FC = () => {
               : 'You need to complete the payout setup to receive earnings from your listings. This only takes a few minutes.'}
           </Text>
         </Card>
+        </Animated.View>
 
         {/* Setup/Manage Button */}
         <View style={styles.actionSection}>
@@ -206,7 +208,7 @@ const PayoutSettingsScreen: React.FC = () => {
         <View style={styles.faqSection}>
           <Text style={styles.faqTitle}>Frequently Asked Questions</Text>
 
-          <TouchableOpacity style={styles.faqItem}>
+          <AnimatedPressable style={styles.faqItem}>
             <View style={styles.faqQuestion}>
               <Text style={styles.faqQuestionText}>What documents do I need?</Text>
               <Icon name="chevron-down" size={20} color={NEUTRAL_COLORS.gray} />
@@ -215,9 +217,9 @@ const PayoutSettingsScreen: React.FC = () => {
               Stripe may ask for your government ID and bank account details (IBAN/BIC) to verify
               your identity and set up payouts.
             </Text>
-          </TouchableOpacity>
+          </AnimatedPressable>
 
-          <TouchableOpacity style={styles.faqItem}>
+          <AnimatedPressable style={styles.faqItem}>
             <View style={styles.faqQuestion}>
               <Text style={styles.faqQuestionText}>When do I receive my earnings?</Text>
               <Icon name="chevron-down" size={20} color={NEUTRAL_COLORS.gray} />
@@ -226,9 +228,9 @@ const PayoutSettingsScreen: React.FC = () => {
               Earnings are transferred 2-3 business days after a booking completes. You'll receive
               80% of the booking amount (20% platform fee).
             </Text>
-          </TouchableOpacity>
+          </AnimatedPressable>
 
-          <TouchableOpacity style={styles.faqItem}>
+          <AnimatedPressable style={styles.faqItem}>
             <View style={styles.faqQuestion}>
               <Text style={styles.faqQuestionText}>Can I change my bank account later?</Text>
               <Icon name="chevron-down" size={20} color={NEUTRAL_COLORS.gray} />
@@ -237,7 +239,7 @@ const PayoutSettingsScreen: React.FC = () => {
               Yes, you can update your bank details anytime by tapping "Manage Payout Settings"
               above.
             </Text>
-          </TouchableOpacity>
+          </AnimatedPressable>
         </View>
       </ScrollView>
     </SafeAreaView>

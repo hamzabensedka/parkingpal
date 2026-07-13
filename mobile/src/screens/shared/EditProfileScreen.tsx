@@ -4,9 +4,9 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   Alert,
 } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
@@ -15,7 +15,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useError } from '../../contexts/ErrorContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
-import { Button, Input, Card, Avatar, PhoneVerificationModal } from '../../components/common';
+import { Button, Input, Card, Avatar, PhoneVerificationModal, AnimatedPressable } from '../../components/common';
 
 const EditProfileScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -83,8 +83,9 @@ const EditProfileScreen: React.FC = () => {
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         {/* Avatar Section */}
+        <Animated.View entering={FadeInDown.delay(0).duration(500).springify()}>
         <View style={styles.avatarSection}>
-          <TouchableOpacity onPress={handlePickAvatar}>
+          <AnimatedPressable onPress={handlePickAvatar} haptic>
             <Avatar
               name={firstName}
               imageUrl={avatar}
@@ -93,13 +94,15 @@ const EditProfileScreen: React.FC = () => {
             <View style={[styles.cameraIcon, { backgroundColor: colors.primary }]}>
               <Icon name="camera" size={18} color={NEUTRAL_COLORS.white} />
             </View>
-          </TouchableOpacity>
+          </AnimatedPressable>
           <Text style={[styles.changePhotoText, { color: colors.primary }]}>
             Change Photo
           </Text>
         </View>
+        </Animated.View>
 
         {/* Form */}
+        <Animated.View entering={FadeInDown.delay(100).duration(500).springify()}>
         <View style={styles.form}>
           <View style={styles.row}>
             <Input
@@ -153,8 +156,10 @@ const EditProfileScreen: React.FC = () => {
           />
           <Text style={styles.charCount}>{bio.length}/200</Text>
         </View>
+        </Animated.View>
 
         {/* Verification Section */}
+        <Animated.View entering={FadeInDown.delay(200).duration(500).springify()}>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Verification</Text>
           <Card style={styles.verificationCard}>
@@ -184,15 +189,15 @@ const EditProfileScreen: React.FC = () => {
               {user?.verified?.phone ? (
                 <Icon name="check-circle" size={20} color={NEUTRAL_COLORS.darkGray} />
               ) : (
-                <TouchableOpacity onPress={() => {
+                <AnimatedPressable onPress={() => {
                   if (!phone.trim()) {
                     showPopup({ title: 'Phone Required', message: 'Please enter your phone number first.', severity: 'info' });
                     return;
                   }
                   setShowPhoneVerification(true);
-                }}>
+                }} haptic>
                   <Text style={[styles.verifyLink, { color: colors.primary }]}>Verify</Text>
-                </TouchableOpacity>
+                </AnimatedPressable>
               )}
             </View>
 
@@ -213,13 +218,14 @@ const EditProfileScreen: React.FC = () => {
               {user?.verified?.id ? (
                 <Icon name="check-circle" size={20} color={NEUTRAL_COLORS.darkGray} />
               ) : (
-                <TouchableOpacity>
+                <AnimatedPressable haptic>
                   <Text style={[styles.verifyLink, { color: colors.primary }]}>Verify</Text>
-                </TouchableOpacity>
+                </AnimatedPressable>
               )}
             </View>
           </Card>
         </View>
+        </Animated.View>
       </ScrollView>
 
       {/* Save Button */}

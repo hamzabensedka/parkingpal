@@ -7,6 +7,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { NEUTRAL_COLORS } from '../utils/constants';
 import { useNotifications } from '../contexts/NotificationContext';
 import { RenterTabParamList, RenterStackParamList } from '../types';
+import CustomTabBar from '../components/navigation/CustomTabBar';
 
 // Renter screens
 import MapScreen from '../screens/renter/MapScreen';
@@ -123,22 +124,9 @@ const RenterNavigator: React.FC = () => {
       style={{ flex: 1, backgroundColor: NEUTRAL_COLORS.white }}
     >
       <Tab.Navigator
+        tabBar={(props) => <CustomTabBar {...props} />}
         screenOptions={({ route }) => ({
           headerShown: false,
-          tabBarActiveTintColor: theme.colors.primary,
-          tabBarInactiveTintColor: NEUTRAL_COLORS.gray,
-          tabBarStyle: {
-            backgroundColor: NEUTRAL_COLORS.white,
-            borderTopWidth: 1,
-            borderTopColor: NEUTRAL_COLORS.lightGray,
-            paddingTop: 8,
-            paddingBottom: 8,
-            height: 60,
-          },
-          tabBarLabelStyle: {
-            fontSize: 12,
-            fontWeight: '500',
-          },
           tabBarIcon: ({ color, size }) => {
             let iconName: string;
             switch (route.name) {

@@ -4,17 +4,17 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   Switch,
   Alert,
 } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
-import { Card } from '../../components/common';
+import { Card, AnimatedPressable } from '../../components/common';
 
 const SettingsScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -87,7 +87,7 @@ const SettingsScreen: React.FC = () => {
     onPress?: () => void,
     danger?: boolean
   ) => (
-    <TouchableOpacity style={styles.settingItem} onPress={onPress}>
+    <AnimatedPressable style={styles.settingItem} onPress={onPress} haptic>
       <View style={[styles.settingIcon, { backgroundColor: danger ? NEUTRAL_COLORS.lightGray : colors.lightest }]}>
         <Icon name={icon} size={20} color={danger ? NEUTRAL_COLORS.darkGray : colors.primary} />
       </View>
@@ -96,13 +96,14 @@ const SettingsScreen: React.FC = () => {
         {value && <Text style={styles.settingValue}>{value}</Text>}
       </View>
       {!danger && <Icon name="chevron-right" size={20} color={NEUTRAL_COLORS.gray} />}
-    </TouchableOpacity>
+    </AnimatedPressable>
   );
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Notifications */}
+        <Animated.View entering={FadeInDown.delay(0).duration(500).springify()}>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Notifications</Text>
           <Card style={styles.sectionCard}>
@@ -139,8 +140,10 @@ const SettingsScreen: React.FC = () => {
             )}
           </Card>
         </View>
+        </Animated.View>
 
         {/* Appearance */}
+        <Animated.View entering={FadeInDown.delay(100).duration(500).springify()}>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Appearance</Text>
           <Card style={styles.sectionCard}>
@@ -153,8 +156,10 @@ const SettingsScreen: React.FC = () => {
             )}
           </Card>
         </View>
+        </Animated.View>
 
         {/* Privacy & Security */}
+        <Animated.View entering={FadeInDown.delay(200).duration(500).springify()}>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Privacy & Security</Text>
           <Card style={styles.sectionCard}>
@@ -188,8 +193,10 @@ const SettingsScreen: React.FC = () => {
             )}
           </Card>
         </View>
+        </Animated.View>
 
         {/* General */}
+        <Animated.View entering={FadeInDown.delay(300).duration(500).springify()}>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>General</Text>
           <Card style={styles.sectionCard}>
@@ -215,6 +222,7 @@ const SettingsScreen: React.FC = () => {
             )}
           </Card>
         </View>
+        </Animated.View>
 
         {/* Legal */}
         <View style={styles.section}>

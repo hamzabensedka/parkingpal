@@ -4,18 +4,18 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  TouchableOpacity,
   Switch,
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useError } from '../../contexts/ErrorContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
-import { Card, Badge, EmptyState } from '../../components/common';
+import { Card, Badge, EmptyState, AnimatedPressable } from '../../components/common';
 import { spotApi } from '../../services/api';
 import type { SpotSummaryDTO, SpotStatusDTO } from '@parkingpal/shared-types';
 
@@ -141,14 +141,14 @@ const ListingItemCard: React.FC<ListingItemProps> = ({
           )}
 
           <View style={styles.actionButtons}>
-            <TouchableOpacity style={styles.editButton} onPress={onEdit}>
+            <AnimatedPressable style={styles.editButton} onPress={onEdit} haptic>
               <Icon name="pencil" size={18} color={colors.primary} />
               <Text style={[styles.editText, { color: colors.primary }]}>Edit</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.deleteButton} onPress={onDelete}>
+            </AnimatedPressable>
+            <AnimatedPressable style={styles.deleteButton} onPress={onDelete} haptic>
               <Icon name="delete" size={18} color={NEUTRAL_COLORS.error} />
               <Text style={[styles.deleteText, { color: NEUTRAL_COLORS.error }]}>Delete</Text>
-            </TouchableOpacity>
+            </AnimatedPressable>
           </View>
         </View>
       </View>
@@ -266,6 +266,7 @@ const ListingManagementScreen: React.FC = () => {
   const renderHeader = () => (
     <View style={styles.header}>
       {/* Stats */}
+      <Animated.View entering={FadeInDown.delay(0).duration(500).springify()}>
       <View style={styles.statsRow}>
         <Card style={styles.statCard}>
           <Icon name="home-check" size={24} color={colors.primary} />
@@ -283,15 +284,19 @@ const ListingManagementScreen: React.FC = () => {
           <Text style={styles.statLabel}>Paused</Text>
         </Card>
       </View>
+      </Animated.View>
 
       {/* Add Button */}
-      <TouchableOpacity
+      <Animated.View entering={FadeInDown.delay(100).duration(500).springify()}>
+      <AnimatedPressable
         style={[styles.addButton, { backgroundColor: colors.primary }]}
         onPress={handleAddListing}
+        haptic
       >
         <Icon name="plus" size={20} color={NEUTRAL_COLORS.white} />
         <Text style={styles.addButtonText}>Add New Listing</Text>
-      </TouchableOpacity>
+      </AnimatedPressable>
+      </Animated.View>
     </View>
   );
 
@@ -319,7 +324,8 @@ const ListingManagementScreen: React.FC = () => {
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <FlatList
         data={listings}
-        renderItem={({ item }) => (
+        renderItem={({ item, index }) => (
+          <Animated.View entering={FadeInDown.delay(200 + index * 100).duration(500).springify()}>
           <ListingItemCard
             listing={item}
             onToggleActive={handleToggleActive}
@@ -327,6 +333,7 @@ const ListingManagementScreen: React.FC = () => {
             onEdit={() => handleEditListing(item)}
             onDelete={() => handleDeleteListing(item)}
           />
+          </Animated.View>
         )}
         keyExtractor={(item) => item.id}
         ListHeaderComponent={renderHeader}

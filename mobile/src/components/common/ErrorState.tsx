@@ -1,9 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet, ViewStyle } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useTheme } from '../../contexts/ThemeContext';
+import Animated from 'react-native-reanimated';
 import { NEUTRAL_COLORS, SPACING, TYPOGRAPHY } from '../../utils/constants';
+import { useSlideUp, useFadeIn } from '../../utils/animations';
 import Button from './Button';
+import LottieAnimation from './LottieAnimation';
 
 interface ErrorStateProps {
   title?: string;
@@ -20,31 +21,29 @@ const ErrorState: React.FC<ErrorStateProps> = ({
   retryLabel = 'Try Again',
   style,
 }) => {
+  const iconAnimStyle = useSlideUp(0, 20);
+  const textAnimStyle = useFadeIn(300);
+  const buttonAnimStyle = useSlideUp(500, 15);
 
   return (
     <View style={[styles.container, style]}>
-      <View
-        style={[
-          styles.iconContainer,
-          { backgroundColor: NEUTRAL_COLORS.lightGray },
-        ]}
-      >
-        <Icon name="alert-circle-outline" size={48} color={NEUTRAL_COLORS.error} />
-      </View>
-      <Text style={[styles.title, { color: NEUTRAL_COLORS.black }]}>
-        {title}
-      </Text>
-      <Text style={[styles.description, { color: NEUTRAL_COLORS.darkGray }]}>
-        {description}
-      </Text>
+      <Animated.View style={iconAnimStyle}>
+        <LottieAnimation name="error-warning" size={120} autoPlay loop={false} />
+      </Animated.View>
+      <Animated.View style={[textAnimStyle, styles.textContainer]}>
+        <Text style={[styles.title, { color: NEUTRAL_COLORS.black }]}>{title}</Text>
+        <Text style={[styles.description, { color: NEUTRAL_COLORS.darkGray }]}>{description}</Text>
+      </Animated.View>
       {onRetry && (
-        <Button
-          title={retryLabel}
-          onPress={onRetry}
-          variant="primary"
-          icon="refresh"
-          style={styles.button}
-        />
+        <Animated.View style={buttonAnimStyle}>
+          <Button
+            title={retryLabel}
+            onPress={onRetry}
+            variant="primary"
+            icon="refresh"
+            style={styles.button}
+          />
+        </Animated.View>
       )}
     </View>
   );
@@ -57,13 +56,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: SPACING.xl,
   },
-  iconContainer: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
+  textContainer: {
     alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: SPACING.lg,
   },
   title: {
     fontSize: TYPOGRAPHY.fontSize.xl,

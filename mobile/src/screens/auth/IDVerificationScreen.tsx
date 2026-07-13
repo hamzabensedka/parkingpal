@@ -3,10 +3,10 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   Image,
   Alert,
 } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import * as ImagePicker from 'expo-image-picker';
@@ -17,7 +17,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { useError } from '../../contexts/ErrorContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '../../utils/constants';
 import { AuthStackParamList } from '../../types';
-import { Button } from '../../components/common';
+import { Button, AnimatedPressable } from '../../components/common';
 
 type IDVerificationScreenNavigationProp = NativeStackNavigationProp<AuthStackParamList, 'IDVerification'>;
 
@@ -121,35 +121,40 @@ const IDVerificationScreen: React.FC<IDVerificationScreenProps> = ({ navigation:
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
         {/* Back Button */}
-        <TouchableOpacity
+        <AnimatedPressable
+          haptic
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
           <Icon name="arrow-left" size={24} color={NEUTRAL_COLORS.black} />
-        </TouchableOpacity>
+        </AnimatedPressable>
 
         {/* Header */}
-        <View style={styles.header}>
-          <View style={[styles.iconContainer, { backgroundColor: colors.lightest }]}>
-            <Icon name="card-account-details-outline" size={40} color={colors.primary} />
+        <Animated.View entering={FadeInDown.delay(0).duration(500).springify()}>
+          <View style={styles.header}>
+            <View style={[styles.iconContainer, { backgroundColor: colors.lightest }]}>
+              <Icon name="card-account-details-outline" size={40} color={colors.primary} />
+            </View>
+            <Text style={styles.title}>Verify Your Identity</Text>
+            <Text style={styles.subtitle}>
+              ID verification helps build trust and keeps our community safe. Your information is encrypted and secure.
+            </Text>
           </View>
-          <Text style={styles.title}>Verify Your Identity</Text>
-          <Text style={styles.subtitle}>
-            ID verification helps build trust and keeps our community safe. Your information is encrypted and secure.
-          </Text>
-        </View>
+        </Animated.View>
 
         {/* ID Upload Area */}
+        <Animated.View entering={FadeInDown.delay(100).duration(500).springify()}>
         <View style={styles.uploadSection}>
           {idImage ? (
             <View style={styles.imageContainer}>
               <Image source={{ uri: idImage }} style={styles.idImage} />
-              <TouchableOpacity
+              <AnimatedPressable
+                haptic
                 style={styles.removeButton}
                 onPress={() => setIdImage(null)}
               >
                 <Icon name="close-circle" size={28} color={NEUTRAL_COLORS.error} />
-              </TouchableOpacity>
+              </AnimatedPressable>
             </View>
           ) : (
             <View style={[styles.uploadPlaceholder, { borderColor: colors.medium }]}>
@@ -163,7 +168,8 @@ const IDVerificationScreen: React.FC<IDVerificationScreenProps> = ({ navigation:
 
           {/* Upload Buttons */}
           <View style={styles.uploadButtons}>
-            <TouchableOpacity
+            <AnimatedPressable
+              haptic
               style={[styles.uploadButton, { borderColor: colors.primary }]}
               onPress={handleTakePhoto}
             >
@@ -171,9 +177,10 @@ const IDVerificationScreen: React.FC<IDVerificationScreenProps> = ({ navigation:
               <Text style={[styles.uploadButtonText, { color: colors.primary }]}>
                 Take Photo
               </Text>
-            </TouchableOpacity>
+            </AnimatedPressable>
 
-            <TouchableOpacity
+            <AnimatedPressable
+              haptic
               style={[styles.uploadButton, { borderColor: colors.primary }]}
               onPress={handleChooseFromLibrary}
             >
@@ -181,40 +188,45 @@ const IDVerificationScreen: React.FC<IDVerificationScreenProps> = ({ navigation:
               <Text style={[styles.uploadButtonText, { color: colors.primary }]}>
                 Choose from Gallery
               </Text>
-            </TouchableOpacity>
+            </AnimatedPressable>
           </View>
         </View>
+        </Animated.View>
 
         {/* Info Box */}
-        <View style={styles.infoBox}>
-          <Icon name="shield-check" size={20} color={NEUTRAL_COLORS.success} />
-          <View style={styles.infoContent}>
-            <Text style={styles.infoTitle}>Your privacy is protected</Text>
-            <Text style={styles.infoText}>
-              We use bank-level encryption to protect your data. Your ID is only used for verification and is never shared.
-            </Text>
+        <Animated.View entering={FadeInDown.delay(200).duration(500).springify()}>
+          <View style={styles.infoBox}>
+            <Icon name="shield-check" size={20} color={NEUTRAL_COLORS.success} />
+            <View style={styles.infoContent}>
+              <Text style={styles.infoTitle}>Your privacy is protected</Text>
+              <Text style={styles.infoText}>
+                We use bank-level encryption to protect your data. Your ID is only used for verification and is never shared.
+              </Text>
+            </View>
           </View>
-        </View>
+        </Animated.View>
 
         {/* Action Buttons */}
-        <View style={styles.footer}>
-          <Button
-            title="Verify ID"
-            onPress={handleVerify}
-            disabled={!idImage}
-            loading={isVerifying}
-            fullWidth
-            style={styles.verifyButton}
-          />
+        <Animated.View entering={FadeInDown.delay(300).duration(500).springify()}>
+          <View style={styles.footer}>
+            <Button
+              title="Verify ID"
+              onPress={handleVerify}
+              disabled={!idImage}
+              loading={isVerifying}
+              fullWidth
+              style={styles.verifyButton}
+            />
 
-          <TouchableOpacity onPress={handleSkip} style={styles.skipButton}>
-            <Text style={styles.skipText}>Skip for now</Text>
-          </TouchableOpacity>
+            <AnimatedPressable haptic onPress={handleSkip} style={styles.skipButton}>
+              <Text style={styles.skipText}>Skip for now</Text>
+            </AnimatedPressable>
 
-          <Text style={styles.skipNote}>
-            You can verify later from your profile settings
-          </Text>
-        </View>
+            <Text style={styles.skipNote}>
+              You can verify later from your profile settings
+            </Text>
+          </View>
+        </Animated.View>
       </View>
     </SafeAreaView>
   );

@@ -4,13 +4,13 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useStripe, CardField, CardFieldInput } from '@stripe/stripe-react-native';
+import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useBooking } from '../../contexts/BookingContext';
@@ -18,7 +18,7 @@ import { useError } from '../../contexts/ErrorContext';
 import { paymentApi } from '../../services/api';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
 import { RenterStackParamList, PaymentMethod } from '../../types';
-import { Button, Card, Input } from '../../components/common';
+import { Button, Card, Input, AnimatedPressable } from '../../components/common';
 import { format } from 'date-fns';
 
 type Props = NativeStackScreenProps<RenterStackParamList, 'PaymentReview'>;
@@ -215,216 +215,228 @@ const PaymentReviewScreen = ({ navigation, route }: Props) => {
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Booking Details */}
-        <Card style={styles.detailsCard}>
-          <Text style={styles.cardTitle}>Booking Details</Text>
+        <Animated.View entering={FadeInDown.delay(0).duration(500).springify()}>
+          <Card style={styles.detailsCard}>
+            <Text style={styles.cardTitle}>Booking Details</Text>
 
-          <View style={styles.detailRow}>
-            <Icon name="map-marker" size={20} color={colors.primary} />
-            <View style={styles.detailContent}>
-              <Text style={styles.detailLabel}>Location</Text>
-              <Text style={styles.detailValue}>{spotTitle}</Text>
+            <View style={styles.detailRow}>
+              <Icon name="map-marker" size={20} color={colors.primary} />
+              <View style={styles.detailContent}>
+                <Text style={styles.detailLabel}>Location</Text>
+                <Text style={styles.detailValue}>{spotTitle}</Text>
+              </View>
             </View>
-          </View>
 
-          <View style={styles.detailRow}>
-            <Icon name="calendar" size={20} color={colors.primary} />
-            <View style={styles.detailContent}>
-              <Text style={styles.detailLabel}>Date</Text>
-              <Text style={styles.detailValue}>
-                {format(startDate, 'EEEE, MMMM d, yyyy')}
-              </Text>
+            <View style={styles.detailRow}>
+              <Icon name="calendar" size={20} color={colors.primary} />
+              <View style={styles.detailContent}>
+                <Text style={styles.detailLabel}>Date</Text>
+                <Text style={styles.detailValue}>
+                  {format(startDate, 'EEEE, MMMM d, yyyy')}
+                </Text>
+              </View>
             </View>
-          </View>
 
-          <View style={styles.detailRow}>
-            <Icon name="clock-outline" size={20} color={colors.primary} />
-            <View style={styles.detailContent}>
-              <Text style={styles.detailLabel}>Time</Text>
-              <Text style={styles.detailValue}>
-                {format(startDate, 'HH:mm')} - {format(endDate, 'HH:mm')} ({duration}h)
-              </Text>
+            <View style={styles.detailRow}>
+              <Icon name="clock-outline" size={20} color={colors.primary} />
+              <View style={styles.detailContent}>
+                <Text style={styles.detailLabel}>Time</Text>
+                <Text style={styles.detailValue}>
+                  {format(startDate, 'HH:mm')} - {format(endDate, 'HH:mm')} ({duration}h)
+                </Text>
+              </View>
             </View>
-          </View>
 
-          <View style={styles.detailRow}>
-            <Icon name="car" size={20} color={colors.primary} />
-            <View style={styles.detailContent}>
-              <Text style={styles.detailLabel}>Vehicle</Text>
-              <Text style={styles.detailValue}>{vehicleName} • {vehiclePlate}</Text>
+            <View style={styles.detailRow}>
+              <Icon name="car" size={20} color={colors.primary} />
+              <View style={styles.detailContent}>
+                <Text style={styles.detailLabel}>Vehicle</Text>
+                <Text style={styles.detailValue}>{vehicleName} • {vehiclePlate}</Text>
+              </View>
             </View>
-          </View>
-        </Card>
+          </Card>
+        </Animated.View>
 
         {/* Payment Method */}
-        <Card style={styles.paymentCard}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.cardTitle}>Payment Method</Text>
+        <Animated.View entering={FadeInDown.delay(100).duration(500).springify()}>
+          <Card style={styles.paymentCard}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.cardTitle}>Payment Method</Text>
+              {paymentMethods.length > 0 && (
+                <AnimatedPressable onPress={handleAddPaymentMethod}>
+                  <Text style={[styles.addLink, { color: colors.primary }]}>+ Add New</Text>
+                </AnimatedPressable>
+              )}
+            </View>
+
+            {/* Saved Payment Methods */}
             {paymentMethods.length > 0 && (
-              <TouchableOpacity onPress={handleAddPaymentMethod}>
-                <Text style={[styles.addLink, { color: colors.primary }]}>+ Add New</Text>
-              </TouchableOpacity>
+              <View style={styles.paymentMethods}>
+                {paymentMethods.map((method) => {
+                  const isSelected = !useNewCard && selectedPaymentMethod?.id === method.id;
+
+                  return (
+                    <AnimatedPressable
+                      key={method.id}
+                      style={[
+                        styles.paymentMethodItem,
+                        isSelected && { borderColor: colors.primary, borderWidth: 2 },
+                      ]}
+                      onPress={() => handleSelectSavedCard(method)}
+                      haptic
+                    >
+                      <Icon
+                        name={getCardIcon(method.brand)}
+                        size={24}
+                        color={isSelected ? colors.primary : NEUTRAL_COLORS.gray}
+                      />
+                      <View style={styles.paymentMethodInfo}>
+                        <Text style={styles.paymentMethodName}>
+                          {method.brand ?? 'Card'} •••• {method.last4}
+                        </Text>
+                        <Text style={styles.paymentMethodExpiry}>
+                          Expires {method.expiryMonth ?? '—'}/{method.expiryYear ?? '—'}
+                        </Text>
+                      </View>
+                      {isSelected && (
+                        <Icon name="check-circle" size={20} color={colors.primary} />
+                      )}
+                    </AnimatedPressable>
+                  );
+                })}
+
+                {/* Use New Card Option */}
+                <AnimatedPressable
+                  style={[
+                    styles.paymentMethodItem,
+                    useNewCard && { borderColor: colors.primary, borderWidth: 2 },
+                  ]}
+                  onPress={handleUseNewCard}
+                  haptic
+                >
+                  <Icon
+                    name="credit-card-plus"
+                    size={24}
+                    color={useNewCard ? colors.primary : NEUTRAL_COLORS.gray}
+                  />
+                  <View style={styles.paymentMethodInfo}>
+                    <Text style={styles.paymentMethodName}>Use a new card</Text>
+                  </View>
+                  {useNewCard && (
+                    <Icon name="check-circle" size={20} color={colors.primary} />
+                  )}
+                </AnimatedPressable>
+              </View>
             )}
-          </View>
 
-          {/* Saved Payment Methods */}
-          {paymentMethods.length > 0 && (
-            <View style={styles.paymentMethods}>
-              {paymentMethods.map((method) => {
-                const isSelected = !useNewCard && selectedPaymentMethod?.id === method.id;
-
-                return (
-                  <TouchableOpacity
-                    key={method.id}
-                    style={[
-                      styles.paymentMethodItem,
-                      isSelected && { borderColor: colors.primary, borderWidth: 2 },
-                    ]}
-                    onPress={() => handleSelectSavedCard(method)}
-                  >
-                    <Icon
-                      name={getCardIcon(method.brand)}
-                      size={24}
-                      color={isSelected ? colors.primary : NEUTRAL_COLORS.gray}
-                    />
-                    <View style={styles.paymentMethodInfo}>
-                      <Text style={styles.paymentMethodName}>
-                        {method.brand ?? 'Card'} •••• {method.last4}
-                      </Text>
-                      <Text style={styles.paymentMethodExpiry}>
-                        Expires {method.expiryMonth ?? '—'}/{method.expiryYear ?? '—'}
-                      </Text>
-                    </View>
-                    {isSelected && (
-                      <Icon name="check-circle" size={20} color={colors.primary} />
-                    )}
-                  </TouchableOpacity>
-                );
-              })}
-
-              {/* Use New Card Option */}
-              <TouchableOpacity
-                style={[
-                  styles.paymentMethodItem,
-                  useNewCard && { borderColor: colors.primary, borderWidth: 2 },
-                ]}
-                onPress={handleUseNewCard}
-              >
-                <Icon
-                  name="credit-card-plus"
-                  size={24}
-                  color={useNewCard ? colors.primary : NEUTRAL_COLORS.gray}
+            {/* Stripe Card Field (for new card) */}
+            {(useNewCard || paymentMethods.length === 0) && (
+              <View style={styles.cardFieldContainer}>
+                <Text style={styles.cardFieldLabel}>Enter card details</Text>
+                <CardField
+                  postalCodeEnabled={false}
+                  placeholders={{
+                    number: '4242 4242 4242 4242',
+                  }}
+                  cardStyle={{
+                    backgroundColor: NEUTRAL_COLORS.background,
+                    textColor: NEUTRAL_COLORS.black,
+                    borderColor: NEUTRAL_COLORS.lightGray,
+                    borderWidth: 1,
+                    borderRadius: RADIUS.md,
+                    fontSize: 16,
+                    placeholderColor: NEUTRAL_COLORS.gray,
+                  }}
+                  style={styles.cardField}
+                  onCardChange={(details) => setCardDetails(details)}
                 />
-                <View style={styles.paymentMethodInfo}>
-                  <Text style={styles.paymentMethodName}>Use a new card</Text>
-                </View>
-                {useNewCard && (
-                  <Icon name="check-circle" size={20} color={colors.primary} />
-                )}
-              </TouchableOpacity>
-            </View>
-          )}
-
-          {/* Stripe Card Field (for new card) */}
-          {(useNewCard || paymentMethods.length === 0) && (
-            <View style={styles.cardFieldContainer}>
-              <Text style={styles.cardFieldLabel}>Enter card details</Text>
-              <CardField
-                postalCodeEnabled={false}
-                placeholders={{
-                  number: '4242 4242 4242 4242',
-                }}
-                cardStyle={{
-                  backgroundColor: NEUTRAL_COLORS.background,
-                  textColor: NEUTRAL_COLORS.black,
-                  borderColor: NEUTRAL_COLORS.lightGray,
-                  borderWidth: 1,
-                  borderRadius: RADIUS.md,
-                  fontSize: 16,
-                  placeholderColor: NEUTRAL_COLORS.gray,
-                }}
-                style={styles.cardField}
-                onCardChange={(details) => setCardDetails(details)}
-              />
-              <Text style={styles.cardFieldHint}>
-                Your card details are securely processed by Stripe
-              </Text>
-            </View>
-          )}
-        </Card>
+                <Text style={styles.cardFieldHint}>
+                  Your card details are securely processed by Stripe
+                </Text>
+              </View>
+            )}
+          </Card>
+        </Animated.View>
 
         {/* Promo Code */}
-        <Card style={styles.promoCard}>
-          <Text style={styles.cardTitle}>Promo Code</Text>
-          <View style={styles.promoRow}>
-            <Input
-              value={promoCode}
-              onChangeText={setPromoCode}
-              placeholder="Enter promo code"
-              containerStyle={styles.promoInput}
-              editable={!promoApplied}
-            />
-            <Button
-              title={promoApplied ? 'Applied' : 'Apply'}
-              onPress={handleApplyPromo}
-              variant={promoApplied ? 'secondary' : 'outline'}
-              disabled={!promoCode || promoApplied}
-              size="small"
-            />
-          </View>
-          {promoApplied && (
-            <View style={styles.promoSuccess}>
-              <Icon name="check-circle" size={16} color={NEUTRAL_COLORS.darkGray} />
-              <Text style={styles.promoSuccessText}>
-                Promo code "{promoCode}" applied - €{discount.toFixed(2)} off
-              </Text>
+        <Animated.View entering={FadeInDown.delay(200).duration(500).springify()}>
+          <Card style={styles.promoCard}>
+            <Text style={styles.cardTitle}>Promo Code</Text>
+            <View style={styles.promoRow}>
+              <Input
+                value={promoCode}
+                onChangeText={setPromoCode}
+                placeholder="Enter promo code"
+                containerStyle={styles.promoInput}
+                editable={!promoApplied}
+              />
+              <Button
+                title={promoApplied ? 'Applied' : 'Apply'}
+                onPress={handleApplyPromo}
+                variant={promoApplied ? 'secondary' : 'outline'}
+                disabled={!promoCode || promoApplied}
+                size="small"
+              />
             </View>
-          )}
-        </Card>
+            {promoApplied && (
+              <View style={styles.promoSuccess}>
+                <Icon name="check-circle" size={16} color={NEUTRAL_COLORS.darkGray} />
+                <Text style={styles.promoSuccessText}>
+                  Promo code "{promoCode}" applied - €{discount.toFixed(2)} off
+                </Text>
+              </View>
+            )}
+          </Card>
+        </Animated.View>
 
         {/* Price Breakdown */}
-        <Card style={styles.priceCard}>
-          <Text style={styles.cardTitle}>Price Breakdown</Text>
+        <Animated.View entering={FadeInDown.delay(300).duration(500).springify()}>
+          <Card style={styles.priceCard}>
+            <Text style={styles.cardTitle}>Price Breakdown</Text>
 
-          <View style={styles.priceRow}>
-            <Text style={styles.priceLabel}>
-              €{hourlyRate}/hour × {duration} hours
-            </Text>
-            <Text style={styles.priceValue}>€{total.toFixed(2)}</Text>
-          </View>
-
-          <View style={styles.priceRow}>
-            <Text style={styles.priceLabel}>Service Fee</Text>
-            <Text style={styles.priceValue}>€{serviceFee.toFixed(2)}</Text>
-          </View>
-
-          {discount > 0 && (
             <View style={styles.priceRow}>
-              <Text style={[styles.priceLabel, { color: NEUTRAL_COLORS.darkGray }]}>Discount</Text>
-              <Text style={[styles.priceValue, { color: NEUTRAL_COLORS.darkGray }]}>
-                -€{discount.toFixed(2)}
+              <Text style={styles.priceLabel}>
+                €{hourlyRate}/hour × {duration} hours
+              </Text>
+              <Text style={styles.priceValue}>€{total.toFixed(2)}</Text>
+            </View>
+
+            <View style={styles.priceRow}>
+              <Text style={styles.priceLabel}>Service Fee</Text>
+              <Text style={styles.priceValue}>€{serviceFee.toFixed(2)}</Text>
+            </View>
+
+            {discount > 0 && (
+              <View style={styles.priceRow}>
+                <Text style={[styles.priceLabel, { color: NEUTRAL_COLORS.darkGray }]}>Discount</Text>
+                <Text style={[styles.priceValue, { color: NEUTRAL_COLORS.darkGray }]}>
+                  -€{discount.toFixed(2)}
+                </Text>
+              </View>
+            )}
+
+            <View style={styles.priceDivider} />
+
+            <View style={styles.priceRow}>
+              <Text style={styles.totalLabel}>Total</Text>
+              <Text style={[styles.totalValue, { color: colors.primary }]}>
+                €{finalTotal.toFixed(2)}
               </Text>
             </View>
-          )}
-
-          <View style={styles.priceDivider} />
-
-          <View style={styles.priceRow}>
-            <Text style={styles.totalLabel}>Total</Text>
-            <Text style={[styles.totalValue, { color: colors.primary }]}>
-              €{finalTotal.toFixed(2)}
-            </Text>
-          </View>
-        </Card>
+          </Card>
+        </Animated.View>
 
         {/* Terms */}
-        <Text style={styles.termsText}>
-          By confirming, you agree to our Terms of Service and Cancellation Policy.
-          You can cancel up to 1 hour before the booking starts for a full refund.
-        </Text>
+        <Animated.View entering={FadeInDown.delay(400).duration(500).springify()}>
+          <Text style={styles.termsText}>
+            By confirming, you agree to our Terms of Service and Cancellation Policy.
+            You can cancel up to 1 hour before the booking starts for a full refund.
+          </Text>
+        </Animated.View>
       </ScrollView>
 
       {/* Confirm Button */}
-      <View style={styles.footer}>
+      <Animated.View entering={FadeInUp.delay(400).duration(500).springify()} style={styles.footer}>
         <View style={styles.footerPrice}>
           <Text style={styles.footerLabel}>Total</Text>
           <Text style={[styles.footerTotal, { color: colors.primary }]}>
@@ -438,7 +450,7 @@ const PaymentReviewScreen = ({ navigation, route }: Props) => {
           loading={isLoading}
           style={styles.confirmButton}
         />
-      </View>
+      </Animated.View>
     </SafeAreaView>
   );
 };

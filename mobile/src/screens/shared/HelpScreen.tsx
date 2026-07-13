@@ -4,15 +4,15 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   Linking,
 } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
-import { Card, Input } from '../../components/common';
+import { Card, Input, AnimatedPressable } from '../../components/common';
 
 interface FAQItem {
   id: string;
@@ -91,7 +91,7 @@ const HelpScreen: React.FC = () => {
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Search */}
-        <View style={styles.searchSection}>
+        <Animated.View entering={FadeInDown.delay(0).duration(500).springify()} style={styles.searchSection}>
           <Text style={styles.title}>How can we help?</Text>
           <Input
             value={searchQuery}
@@ -99,10 +99,10 @@ const HelpScreen: React.FC = () => {
             placeholder="Search for help..."
             leftIcon="magnify"
           />
-        </View>
+        </Animated.View>
 
         {/* Quick Actions */}
-        <View style={styles.quickActions}>
+        <Animated.View entering={FadeInDown.delay(100).duration(500).springify()} style={styles.quickActions}>
           <Card style={styles.actionCard} onPress={handleContactSupport}>
             <View style={[styles.actionIcon, { backgroundColor: colors.lightest }]}>
               <Icon name="email" size={24} color={colors.primary} />
@@ -123,7 +123,7 @@ const HelpScreen: React.FC = () => {
             </View>
             <Text style={styles.actionLabel}>Live Chat</Text>
           </Card>
-        </View>
+        </Animated.View>
 
         {/* FAQ Section */}
         <View style={styles.faqSection}>
@@ -140,9 +140,10 @@ const HelpScreen: React.FC = () => {
                   const isExpanded = expandedFAQ === faq.id;
                   return (
                     <Card key={faq.id} style={styles.faqCard}>
-                      <TouchableOpacity
+                      <AnimatedPressable
                         style={styles.faqHeader}
                         onPress={() => handleToggleFAQ(faq.id)}
+                        haptic
                       >
                         <Text style={styles.faqQuestion}>{faq.question}</Text>
                         <Icon
@@ -150,7 +151,7 @@ const HelpScreen: React.FC = () => {
                           size={20}
                           color={NEUTRAL_COLORS.gray}
                         />
-                      </TouchableOpacity>
+                      </AnimatedPressable>
                       {isExpanded && (
                         <View style={styles.faqAnswer}>
                           <Text style={styles.faqAnswerText}>{faq.answer}</Text>
@@ -184,12 +185,13 @@ const HelpScreen: React.FC = () => {
               Our support team is available 24/7 to assist you.
             </Text>
           </View>
-          <TouchableOpacity
+          <AnimatedPressable
             style={[styles.contactButton, { backgroundColor: colors.primary }]}
             onPress={handleContactSupport}
+            haptic
           >
             <Text style={styles.contactButtonText}>Contact Us</Text>
-          </TouchableOpacity>
+          </AnimatedPressable>
         </Card>
       </ScrollView>
     </SafeAreaView>

@@ -3,11 +3,11 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
 } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -15,7 +15,7 @@ import { RouteProp } from '@react-navigation/native';
 import { RENTER_COLORS, NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
 import { useError } from '../../contexts/ErrorContext';
 import { AuthStackParamList } from '../../types';
-import { Button, Input } from '../../components/common';
+import { Button, Input, AnimatedPressable } from '../../components/common';
 import { authApi } from '../../services/api';
 import * as yup from 'yup';
 
@@ -122,25 +122,29 @@ const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ navigation, r
           keyboardShouldPersistTaps="handled"
         >
           {/* Back Button */}
-          <TouchableOpacity
+          <AnimatedPressable
+            haptic
             style={styles.backButtonHeader}
             onPress={() => navigation.goBack()}
           >
             <Icon name="arrow-left" size={24} color={NEUTRAL_COLORS.black} />
-          </TouchableOpacity>
+          </AnimatedPressable>
 
           {/* Header */}
-          <View style={styles.header}>
-            <View style={styles.iconContainer}>
-              <Icon name="lock-check-outline" size={48} color={RENTER_COLORS.primary} />
+          <Animated.View entering={FadeInDown.delay(0).duration(500).springify()}>
+            <View style={styles.header}>
+              <View style={styles.iconContainer}>
+                <Icon name="lock-check-outline" size={48} color={RENTER_COLORS.primary} />
+              </View>
+              <Text style={styles.title}>Create New Password</Text>
+              <Text style={styles.subtitle}>
+                Your new password must be different from previously used passwords.
+              </Text>
             </View>
-            <Text style={styles.title}>Create New Password</Text>
-            <Text style={styles.subtitle}>
-              Your new password must be different from previously used passwords.
-            </Text>
-          </View>
+          </Animated.View>
 
           {/* Form */}
+          <Animated.View entering={FadeInDown.delay(100).duration(500).springify()}>
           <View style={styles.form}>
             <Input
               label="New Password"
@@ -236,6 +240,7 @@ const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ navigation, r
               style={styles.submitButton}
             />
           </View>
+          </Animated.View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

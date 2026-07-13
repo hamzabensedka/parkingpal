@@ -4,16 +4,16 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   Switch,
 } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme } from '../../contexts/ThemeContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
 import { HostStackParamList, SpotAvailability } from '../../types';
-import { Button, Card } from '../../components/common';
+import { Button, Card, AnimatedPressable } from '../../components/common';
 
 type Props = NativeStackScreenProps<HostStackParamList, 'AddListingAvailability'>;
 
@@ -63,12 +63,12 @@ const AddListingAvailabilityScreen = ({ navigation, route }: Props) => {
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Header */}
-        <View style={styles.header}>
+        <Animated.View entering={FadeInDown.delay(0).duration(500).springify()} style={styles.header}>
           <Text style={styles.title}>Availability</Text>
           <Text style={styles.subtitle}>
             When is your parking spot available for rent?
           </Text>
-        </View>
+        </Animated.View>
 
         {/* 24/7 Toggle */}
         <Card style={styles.toggleCard}>
@@ -108,13 +108,14 @@ const AddListingAvailabilityScreen = ({ navigation, route }: Props) => {
               {DAYS_OF_WEEK.map((day) => {
                 const isAvailable = availability[day]?.available;
                 return (
-                  <TouchableOpacity
+                  <AnimatedPressable
                     key={day}
                     style={[
                       styles.dayItem,
                       isAvailable && { borderColor: colors.primary, backgroundColor: colors.lightest },
                     ]}
                     onPress={() => toggleDay(day)}
+                    haptic
                   >
                     <Text style={[
                       styles.dayLabel,
@@ -125,7 +126,7 @@ const AddListingAvailabilityScreen = ({ navigation, route }: Props) => {
                     {isAvailable && (
                       <Icon name="check-circle" size={20} color={colors.primary} />
                     )}
-                  </TouchableOpacity>
+                  </AnimatedPressable>
                 );
               })}
             </View>

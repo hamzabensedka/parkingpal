@@ -3,18 +3,18 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RENTER_COLORS, NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
 import { AuthStackParamList } from '../../types';
-import { Button, Input } from '../../components/common';
+import { Button, Input, AnimatedPressable } from '../../components/common';
 import { authApi } from '../../services/api';
 import * as yup from 'yup';
 
@@ -75,31 +75,40 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation 
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.successContainer}>
-          <View style={styles.successIconContainer}>
-            <Icon name="email-check-outline" size={64} color={RENTER_COLORS.primary} />
-          </View>
-          <Text style={styles.successTitle}>Check Your Email</Text>
-          <Text style={styles.successMessage}>
-            If an account exists for {email}, you will receive a password reset link shortly.
-          </Text>
-          <Text style={styles.successNote}>
-            Don't forget to check your spam folder.
-          </Text>
+          <Animated.View entering={FadeInDown.delay(0).duration(500).springify()}>
+            <View style={styles.successIconContainer}>
+              <Icon name="email-check-outline" size={64} color={RENTER_COLORS.primary} />
+            </View>
+          </Animated.View>
+          <Animated.View entering={FadeInDown.delay(100).duration(500).springify()}>
+            <Text style={styles.successTitle}>Check Your Email</Text>
+          </Animated.View>
+          <Animated.View entering={FadeInDown.delay(200).duration(500).springify()}>
+            <Text style={styles.successMessage}>
+              If an account exists for {email}, you will receive a password reset link shortly.
+            </Text>
+            <Text style={styles.successNote}>
+              Don't forget to check your spam folder.
+            </Text>
+          </Animated.View>
 
-          <Button
-            title="Back to Login"
-            onPress={() => navigation.navigate('Login')}
-            fullWidth
-            style={styles.backButton}
-          />
+          <Animated.View entering={FadeInUp.delay(300).duration(500).springify()}>
+            <Button
+              title="Back to Login"
+              onPress={() => navigation.navigate('Login')}
+              fullWidth
+              style={styles.backButton}
+            />
 
-          <TouchableOpacity
-            style={styles.resendLink}
-            onPress={() => setEmailSent(false)}
-          >
-            <Text style={styles.resendText}>Didn't receive the email? </Text>
-            <Text style={styles.resendLinkText}>Try again</Text>
-          </TouchableOpacity>
+            <AnimatedPressable
+              style={styles.resendLink}
+              onPress={() => setEmailSent(false)}
+              haptic
+            >
+              <Text style={styles.resendText}>Didn't receive the email? </Text>
+              <Text style={styles.resendLinkText}>Try again</Text>
+            </AnimatedPressable>
+          </Animated.View>
         </View>
       </SafeAreaView>
     );
@@ -117,53 +126,61 @@ const ForgotPasswordScreen: React.FC<ForgotPasswordScreenProps> = ({ navigation 
           keyboardShouldPersistTaps="handled"
         >
           {/* Back Button */}
-          <TouchableOpacity
-            style={styles.backButtonHeader}
-            onPress={() => navigation.goBack()}
-          >
-            <Icon name="arrow-left" size={24} color={NEUTRAL_COLORS.black} />
-          </TouchableOpacity>
+          <Animated.View entering={FadeInDown.delay(0).duration(500).springify()}>
+            <AnimatedPressable
+              style={styles.backButtonHeader}
+              onPress={() => navigation.goBack()}
+            >
+              <Icon name="arrow-left" size={24} color={NEUTRAL_COLORS.black} />
+            </AnimatedPressable>
+          </Animated.View>
 
           {/* Header */}
-          <View style={styles.header}>
-            <View style={styles.iconContainer}>
-              <Icon name="lock-reset" size={48} color={RENTER_COLORS.primary} />
+          <Animated.View entering={FadeInDown.delay(100).duration(500).springify()}>
+            <View style={styles.header}>
+              <View style={styles.iconContainer}>
+                <Icon name="lock-reset" size={48} color={RENTER_COLORS.primary} />
+              </View>
+              <Text style={styles.title}>Forgot Password?</Text>
+              <Text style={styles.subtitle}>
+                No worries! Enter your email address and we'll send you a link to reset your password.
+              </Text>
             </View>
-            <Text style={styles.title}>Forgot Password?</Text>
-            <Text style={styles.subtitle}>
-              No worries! Enter your email address and we'll send you a link to reset your password.
-            </Text>
-          </View>
+          </Animated.View>
 
           {/* Form */}
-          <View style={styles.form}>
-            <Input
-              label="Email"
-              value={email}
-              onChangeText={setEmail}
-              placeholder="Enter your email"
-              type="email"
-              leftIcon="email-outline"
-              error={errors.email}
-              autoFocus
-            />
+          <Animated.View entering={FadeInDown.delay(200).duration(500).springify()}>
+            <View style={styles.form}>
+              <Input
+                label="Email"
+                value={email}
+                onChangeText={setEmail}
+                placeholder="Enter your email"
+                type="email"
+                leftIcon="email-outline"
+                error={errors.email}
+                autoFocus
+              />
 
-            <Button
-              title="Send Reset Link"
-              onPress={handleSubmit}
-              loading={isLoading}
-              fullWidth
-              style={styles.submitButton}
-            />
-          </View>
+              <Button
+                title="Send Reset Link"
+                onPress={handleSubmit}
+                loading={isLoading}
+                fullWidth
+                style={styles.submitButton}
+              />
+            </View>
+          </Animated.View>
 
           {/* Back to Login */}
-          <View style={styles.loginContainer}>
-            <Text style={styles.loginText}>Remember your password? </Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-              <Text style={styles.loginLink}>Sign In</Text>
-            </TouchableOpacity>
-          </View>
+          <Animated.View entering={FadeInUp.delay(300).duration(500).springify()}>
+            <View style={styles.loginContainer}>
+              <Text style={styles.loginText}>Remember your password? </Text>
+              <AnimatedPressable onPress={() => navigation.navigate('Login')} haptic>
+                <Text style={styles.loginLink}>Sign In</Text>
+              </AnimatedPressable>
+            </View>
+          </Animated.View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
