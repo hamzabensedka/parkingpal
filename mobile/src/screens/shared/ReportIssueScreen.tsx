@@ -4,17 +4,17 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   Image,
   Alert,
 } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useError } from '../../contexts/ErrorContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
-import { Button, Input, Card } from '../../components/common';
+import { Button, Input, Card, AnimatedPressable } from '../../components/common';
 
 type IssueType =
   | 'spot_not_available'
@@ -93,32 +93,36 @@ const ReportIssueScreen: React.FC<any> = ({ navigation, route }) => {
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         {/* Info Banner */}
-        <View style={[styles.infoBanner, { backgroundColor: colors.lightest }]}>
-          <Icon name="shield-check" size={24} color={colors.primary} />
-          <View style={styles.infoContent}>
-            <Text style={[styles.infoTitle, { color: colors.dark }]}>
-              We're Here to Help
-            </Text>
-            <Text style={styles.infoText}>
-              Report any issues and our team will investigate and resolve them promptly.
-            </Text>
+        <Animated.View entering={FadeInDown.delay(0).duration(500).springify()}>
+          <View style={[styles.infoBanner, { backgroundColor: colors.lightest }]}>
+            <Icon name="shield-check" size={24} color={colors.primary} />
+            <View style={styles.infoContent}>
+              <Text style={[styles.infoTitle, { color: colors.dark }]}>
+                We're Here to Help
+              </Text>
+              <Text style={styles.infoText}>
+                Report any issues and our team will investigate and resolve them promptly.
+              </Text>
+            </View>
           </View>
-        </View>
+        </Animated.View>
 
         {/* Issue Type Selection */}
+        <Animated.View entering={FadeInDown.delay(100).duration(500).springify()}>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>What's the issue?</Text>
           <View style={styles.issueGrid}>
             {ISSUE_TYPES.map((issue) => {
               const isSelected = selectedIssue === issue.value;
               return (
-                <TouchableOpacity
+                <AnimatedPressable
                   key={issue.value}
                   style={[
                     styles.issueItem,
                     isSelected && { borderColor: colors.primary, backgroundColor: colors.lightest },
                   ]}
                   onPress={() => setSelectedIssue(issue.value)}
+                  haptic
                 >
                   <Icon
                     name={issue.icon}
@@ -131,27 +135,31 @@ const ReportIssueScreen: React.FC<any> = ({ navigation, route }) => {
                   ]}>
                     {issue.label}
                   </Text>
-                </TouchableOpacity>
+                </AnimatedPressable>
               );
             })}
           </View>
         </View>
+        </Animated.View>
 
         {/* Description */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Describe the issue</Text>
-          <Input
-            value={description}
-            onChangeText={setDescription}
-            placeholder="Please provide as much detail as possible about the issue you're experiencing..."
-            multiline
-            numberOfLines={6}
-            maxLength={1000}
-          />
-          <Text style={styles.charCount}>{description.length}/1000</Text>
-        </View>
+        <Animated.View entering={FadeInDown.delay(200).duration(500).springify()}>
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Describe the issue</Text>
+            <Input
+              value={description}
+              onChangeText={setDescription}
+              placeholder="Please provide as much detail as possible about the issue you're experiencing..."
+              multiline
+              numberOfLines={6}
+              maxLength={1000}
+            />
+            <Text style={styles.charCount}>{description.length}/1000</Text>
+          </View>
+        </Animated.View>
 
         {/* Photos */}
+        <Animated.View entering={FadeInDown.delay(300).duration(500).springify()}>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Add Photos (Optional)</Text>
           <Text style={styles.sectionSubtitle}>
@@ -161,33 +169,37 @@ const ReportIssueScreen: React.FC<any> = ({ navigation, route }) => {
             {photos.map((photo, index) => (
               <View key={index} style={styles.photoItem}>
                 <Image source={{ uri: photo }} style={styles.photoImage} />
-                <TouchableOpacity
+                <AnimatedPressable
                   style={styles.photoRemove}
                   onPress={() => handleRemovePhoto(index)}
+                  haptic
                 >
                   <Icon name="close-circle" size={22} color={NEUTRAL_COLORS.darkGray} />
-                </TouchableOpacity>
+                </AnimatedPressable>
               </View>
             ))}
             {photos.length < 5 && (
-              <TouchableOpacity
+              <AnimatedPressable
                 style={[styles.addPhotoButton, { borderColor: colors.primary }]}
                 onPress={handleAddPhoto}
+                haptic
               >
                 <Icon name="camera-plus" size={24} color={colors.primary} />
                 <Text style={[styles.addPhotoText, { color: colors.primary }]}>
                   Add Photo
                 </Text>
-              </TouchableOpacity>
+              </AnimatedPressable>
             )}
           </View>
         </View>
+        </Animated.View>
 
         {/* Urgency Toggle */}
         <Card style={styles.urgencyCard}>
-          <TouchableOpacity
+          <AnimatedPressable
             style={styles.urgencyRow}
             onPress={() => setIsUrgent(!isUrgent)}
+            haptic
           >
             <Icon
               name="alert-circle"
@@ -209,7 +221,7 @@ const ReportIssueScreen: React.FC<any> = ({ navigation, route }) => {
                 isUrgent && styles.toggleKnobActive,
               ]} />
             </View>
-          </TouchableOpacity>
+          </AnimatedPressable>
         </Card>
 
         {/* Booking Reference */}

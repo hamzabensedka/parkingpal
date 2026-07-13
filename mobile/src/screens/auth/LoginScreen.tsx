@@ -3,19 +3,19 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuth } from '../../contexts/AuthContext';
 import { useError } from '../../contexts/ErrorContext';
 import { RENTER_COLORS, NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '../../utils/constants';
 import { AuthStackParamList } from '../../types';
-import { Button, Input } from '../../components/common';
+import { Button, Input, AnimatedPressable } from '../../components/common';
 import { loginSchema } from '../../utils/validation';
 
 type LoginScreenNavigationProp = NativeStackNavigationProp<AuthStackParamList, 'Login'>;
@@ -51,10 +51,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   const handleLogin = async () => {
     const isValid = await validateForm();
     if (!isValid) return;
-
     try {
       await login({ email, password });
-      // Navigation will be handled by AppNavigator
     } catch (error) {
       showError(error, handleLogin);
     }
@@ -87,17 +85,17 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Header */}
-          <View style={styles.header}>
+          {/* Header — staggered entrance */}
+          <Animated.View entering={FadeInDown.delay(0).duration(500).springify()} style={styles.header}>
             <View style={styles.logoContainer}>
               <Icon name="parking" size={48} color={RENTER_COLORS.primary} />
             </View>
             <Text style={styles.title}>Welcome Back!</Text>
             <Text style={styles.subtitle}>Sign in to continue to ParkingPal</Text>
-          </View>
+          </Animated.View>
 
-          {/* Form */}
-          <View style={styles.form}>
+          {/* Form — staggered entrance */}
+          <Animated.View entering={FadeInDown.delay(150).duration(500).springify()} style={styles.form}>
             <Input
               label="Email"
               value={email}
@@ -119,12 +117,12 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
               error={errors.password}
             />
 
-            <TouchableOpacity
+            <AnimatedPressable
               style={styles.forgotPassword}
               onPress={() => navigation.navigate('ForgotPassword')}
             >
               <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-            </TouchableOpacity>
+            </AnimatedPressable>
 
             <Button
               title="Sign In"
@@ -133,45 +131,47 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
               fullWidth
               style={styles.signInButton}
             />
-          </View>
+          </Animated.View>
 
           {/* Divider */}
-          <View style={styles.divider}>
+          <Animated.View entering={FadeInDown.delay(300).duration(500).springify()} style={styles.divider}>
             <View style={styles.dividerLine} />
             <Text style={styles.dividerText}>or continue with</Text>
             <View style={styles.dividerLine} />
-          </View>
+          </Animated.View>
 
-          {/* Social Login */}
-          <View style={styles.socialButtons}>
-            <TouchableOpacity
+          {/* Social Login — staggered */}
+          <Animated.View entering={FadeInDown.delay(400).duration(500).springify()} style={styles.socialButtons}>
+            <AnimatedPressable
               style={styles.socialButton}
               onPress={handleGoogleLogin}
               disabled={isLoading}
+              haptic
             >
               <Icon name="google" size={24} color="#DB4437" />
               <Text style={styles.socialButtonText}>Google</Text>
-            </TouchableOpacity>
+            </AnimatedPressable>
 
             {Platform.OS === 'ios' && (
-              <TouchableOpacity
+              <AnimatedPressable
                 style={styles.socialButton}
                 onPress={handleAppleLogin}
                 disabled={isLoading}
+                haptic
               >
                 <Icon name="apple" size={24} color={NEUTRAL_COLORS.black} />
                 <Text style={styles.socialButtonText}>Apple</Text>
-              </TouchableOpacity>
+              </AnimatedPressable>
             )}
-          </View>
+          </Animated.View>
 
           {/* Sign Up Link */}
-          <View style={styles.signUpContainer}>
+          <Animated.View entering={FadeInDown.delay(500).duration(500).springify()} style={styles.signUpContainer}>
             <Text style={styles.signUpText}>Don't have an account? </Text>
-            <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
+            <AnimatedPressable onPress={() => navigation.navigate('SignUp')}>
               <Text style={styles.signUpLink}>Sign Up</Text>
-            </TouchableOpacity>
-          </View>
+            </AnimatedPressable>
+          </Animated.View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

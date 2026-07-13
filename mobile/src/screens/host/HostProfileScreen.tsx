@@ -4,16 +4,16 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   Alert,
 } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation, CommonActions } from '@react-navigation/native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
-import { Card, Avatar, Badge } from '../../components/common';
+import { Card, Avatar, Badge, AnimatedPressable } from '../../components/common';
 
 interface MenuItemProps {
   icon: string;
@@ -35,7 +35,7 @@ const MenuItem: React.FC<MenuItemProps> = ({
   const { colors } = useTheme();
 
   return (
-    <TouchableOpacity style={styles.menuItem} onPress={onPress}>
+    <AnimatedPressable style={styles.menuItem} onPress={onPress} haptic>
       <View style={[styles.menuIcon, { backgroundColor: danger ? '#fef2f2' : colors.lightest }]}>
         <Icon name={icon} size={20} color={danger ? '#ef4444' : colors.primary} />
       </View>
@@ -46,7 +46,7 @@ const MenuItem: React.FC<MenuItemProps> = ({
       {showChevron && (
         <Icon name="chevron-right" size={20} color={NEUTRAL_COLORS.gray} />
       )}
-    </TouchableOpacity>
+    </AnimatedPressable>
   );
 };
 
@@ -82,8 +82,9 @@ const HostProfileScreen: React.FC = () => {
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Profile Header */}
+        <Animated.View entering={FadeInDown.delay(0).duration(500).springify()}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={handleEditProfile}>
+          <AnimatedPressable onPress={handleEditProfile} haptic>
             <Avatar
               name={user?.firstName}
               imageUrl={user?.avatar}
@@ -92,7 +93,7 @@ const HostProfileScreen: React.FC = () => {
             <View style={[styles.editBadge, { backgroundColor: colors.primary }]}>
               <Icon name="pencil" size={14} color={NEUTRAL_COLORS.white} />
             </View>
-          </TouchableOpacity>
+          </AnimatedPressable>
 
           <Text style={styles.userName}>
             {user?.firstName} {user?.lastName}
@@ -104,8 +105,10 @@ const HostProfileScreen: React.FC = () => {
             <Text style={[styles.hostBadgeText, { color: colors.primary }]}>Host</Text>
           </View>
         </View>
+        </Animated.View>
 
         {/* Host Stats */}
+        <Animated.View entering={FadeInDown.delay(100).duration(500).springify()}>
         <Card style={styles.statsCard}>
           <View style={styles.statItem}>
             <Text style={[styles.statNumber, { color: colors.primary }]}>
@@ -128,8 +131,10 @@ const HostProfileScreen: React.FC = () => {
             <Text style={styles.statLabel}>Rating</Text>
           </View>
         </Card>
+        </Animated.View>
 
         {/* Host Tools */}
+        <Animated.View entering={FadeInDown.delay(200).duration(500).springify()}>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Host Tools</Text>
           <Card style={styles.menuCard}>
@@ -156,8 +161,10 @@ const HostProfileScreen: React.FC = () => {
             />
           </Card>
         </View>
+        </Animated.View>
 
         {/* Switch Mode - All hosts can switch to renter view */}
+        <Animated.View entering={FadeInDown.delay(300).duration(500).springify()}>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Switch Mode</Text>
           <Card style={styles.switchCard} onPress={handleSwitchToRenter}>
@@ -173,6 +180,7 @@ const HostProfileScreen: React.FC = () => {
             <Icon name="chevron-right" size={24} color={colors.primary} />
           </Card>
         </View>
+        </Animated.View>
 
         {/* Account Section */}
         <View style={styles.section}>

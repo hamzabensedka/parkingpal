@@ -4,11 +4,11 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  TouchableOpacity,
   Alert,
   RefreshControl,
   Image,
 } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -16,7 +16,7 @@ import { useError } from '../../contexts/ErrorContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
 import { safetyApi } from '../../services/api';
 import type { UserBlock } from '../../services/api/safetyApi';
-import { Card, Loading, EmptyState } from '../../components/common';
+import { Card, Loading, EmptyState, AnimatedPressable } from '../../components/common';
 
 const BlockedUsersScreen: React.FC = () => {
   const { colors } = useTheme();
@@ -100,37 +100,40 @@ const BlockedUsersScreen: React.FC = () => {
     });
   };
 
-  const renderBlockItem = ({ item }: { item: UserBlock }) => (
-    <Card style={styles.blockCard}>
-      <View style={styles.blockContent}>
-        <View style={styles.userInfo}>
-          {item.blocked.profilePhoto ? (
-            <Image
-              source={{ uri: item.blocked.profilePhoto }}
-              style={styles.avatar}
-            />
-          ) : (
-            <View style={[styles.avatar, styles.avatarPlaceholder]}>
-              <Icon name="account" size={24} color={NEUTRAL_COLORS.gray} />
+  const renderBlockItem = ({ item, index }: { item: UserBlock; index: number }) => (
+    <Animated.View entering={FadeInDown.delay(100 + index * 100).duration(500).springify()}>
+      <Card style={styles.blockCard}>
+        <View style={styles.blockContent}>
+          <View style={styles.userInfo}>
+            {item.blocked.profilePhoto ? (
+              <Image
+                source={{ uri: item.blocked.profilePhoto }}
+                style={styles.avatar}
+              />
+            ) : (
+              <View style={[styles.avatar, styles.avatarPlaceholder]}>
+                <Icon name="account" size={24} color={NEUTRAL_COLORS.gray} />
+              </View>
+            )}
+            <View style={styles.userDetails}>
+              <Text style={styles.userName}>
+                {item.blocked.firstName} {item.blocked.lastName}
+              </Text>
+              <Text style={styles.blockDate}>
+                Blocked on {formatDate(item.createdAt)}
+              </Text>
             </View>
-          )}
-          <View style={styles.userDetails}>
-            <Text style={styles.userName}>
-              {item.blocked.firstName} {item.blocked.lastName}
-            </Text>
-            <Text style={styles.blockDate}>
-              Blocked on {formatDate(item.createdAt)}
-            </Text>
           </View>
+          <AnimatedPressable
+            style={styles.unblockButton}
+            onPress={() => handleUnblock(item)}
+            haptic
+          >
+            <Text style={[styles.unblockText, { color: colors.primary }]}>Unblock</Text>
+          </AnimatedPressable>
         </View>
-        <TouchableOpacity
-          style={styles.unblockButton}
-          onPress={() => handleUnblock(item)}
-        >
-          <Text style={[styles.unblockText, { color: colors.primary }]}>Unblock</Text>
-        </TouchableOpacity>
-      </View>
-    </Card>
+      </Card>
+    </Animated.View>
   );
 
   if (isLoading && blocks.length === 0) {
@@ -158,19 +161,23 @@ const BlockedUsersScreen: React.FC = () => {
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.5}
         ListEmptyComponent={
-          <EmptyState
-            icon="account-check"
-            title="No Blocked Users"
-            description="You haven't blocked any users. Blocked users won't be able to contact you or see your listings."
-          />
+          <Animated.View entering={FadeInDown.delay(0).duration(500).springify()}>
+            <EmptyState
+              icon="account-check"
+              title="No Blocked Users"
+              description="You haven't blocked any users. Blocked users won't be able to contact you or see your listings."
+            />
+          </Animated.View>
         }
         ListHeaderComponent={
           blocks.length > 0 ? (
-            <View style={styles.header}>
-              <Text style={styles.headerText}>
-                Blocked users cannot contact you or see your listings.
-              </Text>
-            </View>
+            <Animated.View entering={FadeInDown.delay(0).duration(500).springify()}>
+              <View style={styles.header}>
+                <Text style={styles.headerText}>
+                  Blocked users cannot contact you or see your listings.
+                </Text>
+              </View>
+            </Animated.View>
           ) : null
         }
       />

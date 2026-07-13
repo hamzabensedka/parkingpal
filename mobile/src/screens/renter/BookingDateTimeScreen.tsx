@@ -4,15 +4,15 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useTheme } from '../../contexts/ThemeContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
 import { RenterStackParamList } from '../../types';
-import { Button, Card } from '../../components/common';
+import { Button, Card, AnimatedPressable } from '../../components/common';
 import { format, addDays, addHours, startOfHour, isBefore, isAfter } from 'date-fns';
 import { getSpotById } from '../../data/mockSpots';
 
@@ -21,7 +21,7 @@ type Props = NativeStackScreenProps<RenterStackParamList, 'BookingDateTime'>;
 const BookingDateTimeScreen = ({ navigation, route }: Props) => {
   const { spotId, spotTitle: passedTitle, hourlyRate: passedRate } = route.params;
   const { colors } = useTheme();
-  
+
   // Get spot data as fallback if params are missing
   const spot = useMemo(() => getSpotById(spotId), [spotId]);
   const spotTitle = passedTitle || spot?.title || 'Parking Spot';
@@ -91,158 +91,170 @@ const BookingDateTimeScreen = ({ navigation, route }: Props) => {
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Spot Info */}
-        <Card style={styles.spotCard}>
-          <Text style={styles.spotTitle}>{spotTitle}</Text>
-          <Text style={styles.spotRate}>€{hourlyRate}/hour</Text>
-        </Card>
+        <Animated.View entering={FadeInDown.delay(0).duration(500).springify()}>
+          <Card style={styles.spotCard}>
+            <Text style={styles.spotTitle}>{spotTitle}</Text>
+            <Text style={styles.spotRate}>{'\u20AC'}{hourlyRate}/hour</Text>
+          </Card>
+        </Animated.View>
 
         {/* Date Selection */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Select Date</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.dateContainer}
-          >
-            {dates.map((date, index) => {
-              const isSelected = date.toDateString() === selectedDate.toDateString();
-              const isToday = date.toDateString() === new Date().toDateString();
+        <Animated.View entering={FadeInDown.delay(100).duration(500).springify()}>
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Select Date</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.dateContainer}
+            >
+              {dates.map((date, index) => {
+                const isSelected = date.toDateString() === selectedDate.toDateString();
+                const isToday = date.toDateString() === new Date().toDateString();
 
-              return (
-                <TouchableOpacity
-                  key={index}
-                  style={[
-                    styles.dateItem,
-                    isSelected && { backgroundColor: colors.primary, borderColor: colors.primary },
-                  ]}
-                  onPress={() => {
-                    setSelectedDate(date);
-                    setStartTime(null);
-                    setEndTime(null);
-                  }}
-                >
-                  <Text style={[
-                    styles.dateDay,
-                    isSelected && styles.dateTextSelected,
-                  ]}>
-                    {isToday ? 'Today' : format(date, 'EEE')}
-                  </Text>
-                  <Text style={[
-                    styles.dateNumber,
-                    isSelected && styles.dateTextSelected,
-                  ]}>
-                    {format(date, 'd')}
-                  </Text>
-                  <Text style={[
-                    styles.dateMonth,
-                    isSelected && styles.dateTextSelected,
-                  ]}>
-                    {format(date, 'MMM')}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
-        </View>
+                return (
+                  <AnimatedPressable
+                    key={index}
+                    style={[
+                      styles.dateItem,
+                      isSelected && { backgroundColor: colors.primary, borderColor: colors.primary },
+                    ]}
+                    haptic
+                    onPress={() => {
+                      setSelectedDate(date);
+                      setStartTime(null);
+                      setEndTime(null);
+                    }}
+                  >
+                    <Text style={[
+                      styles.dateDay,
+                      isSelected && styles.dateTextSelected,
+                    ]}>
+                      {isToday ? 'Today' : format(date, 'EEE')}
+                    </Text>
+                    <Text style={[
+                      styles.dateNumber,
+                      isSelected && styles.dateTextSelected,
+                    ]}>
+                      {format(date, 'd')}
+                    </Text>
+                    <Text style={[
+                      styles.dateMonth,
+                      isSelected && styles.dateTextSelected,
+                    ]}>
+                      {format(date, 'MMM')}
+                    </Text>
+                  </AnimatedPressable>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </Animated.View>
 
         {/* Time Selection */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Start Time</Text>
-          <View style={styles.timeGrid}>
-            {timeSlots.map((slot, index) => {
-              const isSelected = startTime && slot.getTime() === startTime.getTime();
+        <Animated.View entering={FadeInDown.delay(200).duration(500).springify()}>
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Start Time</Text>
+            <View style={styles.timeGrid}>
+              {timeSlots.map((slot, index) => {
+                const isSelected = startTime && slot.getTime() === startTime.getTime();
 
-              return (
-                <TouchableOpacity
-                  key={index}
-                  style={[
-                    styles.timeSlot,
-                    isSelected && { backgroundColor: colors.primary, borderColor: colors.primary },
-                  ]}
-                  onPress={() => handleStartTimeSelect(slot)}
-                >
-                  <Text style={[
-                    styles.timeText,
-                    isSelected && styles.timeTextSelected,
-                  ]}>
-                    {format(slot, 'HH:mm')}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
+                return (
+                  <AnimatedPressable
+                    key={index}
+                    style={[
+                      styles.timeSlot,
+                      isSelected && { backgroundColor: colors.primary, borderColor: colors.primary },
+                    ]}
+                    onPress={() => handleStartTimeSelect(slot)}
+                  >
+                    <Text style={[
+                      styles.timeText,
+                      isSelected && styles.timeTextSelected,
+                    ]}>
+                      {format(slot, 'HH:mm')}
+                    </Text>
+                  </AnimatedPressable>
+                );
+              })}
+            </View>
           </View>
-        </View>
+        </Animated.View>
 
         {/* Duration Selection */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Duration</Text>
-          <View style={styles.durationGrid}>
-            {durationOptions.map((hours) => {
-              const isSelected = duration === hours;
+        <Animated.View entering={FadeInDown.delay(300).duration(500).springify()}>
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Duration</Text>
+            <View style={styles.durationGrid}>
+              {durationOptions.map((hours) => {
+                const isSelected = duration === hours;
 
-              return (
-                <TouchableOpacity
-                  key={hours}
-                  style={[
-                    styles.durationItem,
-                    isSelected && { backgroundColor: colors.primary, borderColor: colors.primary },
-                  ]}
-                  onPress={() => handleDurationSelect(hours)}
-                >
-                  <Text style={[
-                    styles.durationText,
-                    isSelected && styles.durationTextSelected,
-                  ]}>
-                    {hours}h
-                  </Text>
-                  <Text style={[
-                    styles.durationPrice,
-                    isSelected && styles.durationTextSelected,
-                  ]}>
-                    €{(hourlyRate * hours).toFixed(0)}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
+                return (
+                  <AnimatedPressable
+                    key={hours}
+                    style={[
+                      styles.durationItem,
+                      isSelected && { backgroundColor: colors.primary, borderColor: colors.primary },
+                    ]}
+                    haptic
+                    onPress={() => handleDurationSelect(hours)}
+                  >
+                    <Text style={[
+                      styles.durationText,
+                      isSelected && styles.durationTextSelected,
+                    ]}>
+                      {hours}h
+                    </Text>
+                    <Text style={[
+                      styles.durationPrice,
+                      isSelected && styles.durationTextSelected,
+                    ]}>
+                      {'\u20AC'}{(hourlyRate * hours).toFixed(0)}
+                    </Text>
+                  </AnimatedPressable>
+                );
+              })}
+            </View>
           </View>
-        </View>
+        </Animated.View>
 
         {/* Summary */}
         {startTime && endTime && (
-          <Card style={styles.summaryCard}>
-            <Text style={styles.summaryTitle}>Booking Summary</Text>
-            <View style={styles.summaryRow}>
-              <Icon name="calendar" size={20} color={colors.primary} />
-              <Text style={styles.summaryText}>
-                {format(startTime, 'EEE, MMM d, yyyy')}
-              </Text>
-            </View>
-            <View style={styles.summaryRow}>
-              <Icon name="clock-outline" size={20} color={colors.primary} />
-              <Text style={styles.summaryText}>
-                {format(startTime, 'HH:mm')} - {format(endTime, 'HH:mm')} ({duration}h)
-              </Text>
-            </View>
-            <View style={styles.summaryDivider} />
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Total</Text>
-              <Text style={[styles.summaryTotal, { color: colors.primary }]}>
-                €{calculateTotal()}
-              </Text>
-            </View>
-          </Card>
+          <Animated.View entering={FadeInDown.delay(400).duration(500).springify()}>
+            <Card style={styles.summaryCard}>
+              <Text style={styles.summaryTitle}>Booking Summary</Text>
+              <View style={styles.summaryRow}>
+                <Icon name="calendar" size={20} color={colors.primary} />
+                <Text style={styles.summaryText}>
+                  {format(startTime, 'EEE, MMM d, yyyy')}
+                </Text>
+              </View>
+              <View style={styles.summaryRow}>
+                <Icon name="clock-outline" size={20} color={colors.primary} />
+                <Text style={styles.summaryText}>
+                  {format(startTime, 'HH:mm')} - {format(endTime, 'HH:mm')} ({duration}h)
+                </Text>
+              </View>
+              <View style={styles.summaryDivider} />
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>Total</Text>
+                <Text style={[styles.summaryTotal, { color: colors.primary }]}>
+                  {'\u20AC'}{calculateTotal()}
+                </Text>
+              </View>
+            </Card>
+          </Animated.View>
         )}
       </ScrollView>
 
       {/* Continue Button */}
-      <View style={styles.footer}>
+      <Animated.View entering={FadeInUp.delay(400).duration(500).springify()} style={styles.footer}>
         <Button
           title="Continue"
           onPress={handleContinue}
           disabled={!startTime || !endTime}
           fullWidth
         />
-      </View>
+      </Animated.View>
     </SafeAreaView>
   );
 };

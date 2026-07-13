@@ -1,5 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import { AnimatedPressable } from '../../components/common';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -78,13 +80,15 @@ const LegalScreen: React.FC<LegalScreenProps> = ({ route }) => {
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
+      <Animated.View entering={FadeInDown.delay(0).duration(500).springify()}>
       <View style={styles.tabRow}>
-        <TouchableOpacity
+        <AnimatedPressable
           style={[
             styles.tab,
             activeSection === 'terms' && { borderBottomColor: colors.primary, borderBottomWidth: 2 },
           ]}
           onPress={() => setActiveSection('terms')}
+          haptic
         >
           <Icon
             name="file-document-outline"
@@ -99,13 +103,14 @@ const LegalScreen: React.FC<LegalScreenProps> = ({ route }) => {
           >
             Terms of Service
           </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
+        </AnimatedPressable>
+        <AnimatedPressable
           style={[
             styles.tab,
             activeSection === 'privacy' && { borderBottomColor: colors.primary, borderBottomWidth: 2 },
           ]}
           onPress={() => setActiveSection('privacy')}
+          haptic
         >
           <Icon
             name="shield-check-outline"
@@ -120,7 +125,7 @@ const LegalScreen: React.FC<LegalScreenProps> = ({ route }) => {
           >
             Privacy Policy
           </Text>
-        </TouchableOpacity>
+        </AnimatedPressable>
       </View>
       <ScrollView
         style={styles.scrollView}

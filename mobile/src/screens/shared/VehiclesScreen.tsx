@@ -4,9 +4,9 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  TouchableOpacity,
   Alert,
 } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
@@ -14,7 +14,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
 import type { VehicleDTO } from '@parkingpal/shared-types';
-import { Card, Badge, EmptyState, Button } from '../../components/common';
+import { Card, Badge, EmptyState, Button, AnimatedPressable } from '../../components/common';
 
 const VehiclesScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -59,7 +59,8 @@ const VehiclesScreen: React.FC = () => {
     setDefaultVehicle(vehicleId);
   }, [setDefaultVehicle]);
 
-  const renderVehicle = ({ item }: { item: VehicleDTO }) => (
+  const renderVehicle = ({ item, index }: { item: VehicleDTO; index: number }) => (
+    <Animated.View entering={FadeInDown.delay(index * 100).duration(500).springify()}>
     <Card style={styles.vehicleCard}>
       <View style={styles.vehicleHeader}>
         <View style={[styles.vehicleIconContainer, { backgroundColor: colors.lightest }]}>
@@ -80,30 +81,34 @@ const VehiclesScreen: React.FC = () => {
 
       <View style={styles.vehicleActions}>
         {!item.isDefault && (
-          <TouchableOpacity
+          <AnimatedPressable
             style={styles.actionButton}
             onPress={() => handleSetDefault(item.id)}
+            haptic
           >
             <Icon name="star-outline" size={18} color={colors.primary} />
             <Text style={[styles.actionText, { color: colors.primary }]}>Set Default</Text>
-          </TouchableOpacity>
+          </AnimatedPressable>
         )}
-        <TouchableOpacity
+        <AnimatedPressable
           style={styles.actionButton}
           onPress={() => handleEditVehicle(item)}
+          haptic
         >
           <Icon name="pencil" size={18} color={NEUTRAL_COLORS.gray} />
           <Text style={styles.actionText}>Edit</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
+        </AnimatedPressable>
+        <AnimatedPressable
           style={styles.actionButton}
           onPress={() => handleDeleteVehicle(item.id)}
+          haptic
         >
           <Icon name="trash-can-outline" size={18} color={NEUTRAL_COLORS.darkGray} />
           <Text style={[styles.actionText, { color: NEUTRAL_COLORS.darkGray }]}>Delete</Text>
-        </TouchableOpacity>
+        </AnimatedPressable>
       </View>
     </Card>
+    </Animated.View>
   );
 
   return (

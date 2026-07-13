@@ -4,17 +4,17 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  TouchableOpacity,
   RefreshControl,
   ActivityIndicator,
 } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useNotifications } from '../../contexts/NotificationContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING } from '../../utils/constants';
-import { Card, EmptyState } from '../../components/common';
+import { Card, EmptyState, AnimatedPressable } from '../../components/common';
 import { format, isToday, isYesterday } from 'date-fns';
 import { Notification } from '../../types';
 
@@ -122,13 +122,14 @@ const NotificationsScreen: React.FC = () => {
     const iconColor = getNotificationColor(notification.type);
 
     return (
-      <TouchableOpacity
+      <AnimatedPressable
         key={notification.id}
         style={[
           styles.notificationItem,
           !notification.read && { backgroundColor: colors.lightest },
         ]}
         onPress={() => handleNotificationPress(notification)}
+        haptic
       >
         <View style={[styles.iconContainer, { backgroundColor: `${iconColor}20` }]}>
           <Icon name={getNotificationIcon(notification.type)} size={22} color={iconColor} />
@@ -150,7 +151,7 @@ const NotificationsScreen: React.FC = () => {
         {!notification.read && (
           <View style={[styles.unreadDot, { backgroundColor: colors.primary }]} />
         )}
-      </TouchableOpacity>
+      </AnimatedPressable>
     );
   };
 
@@ -183,36 +184,42 @@ const NotificationsScreen: React.FC = () => {
     <SafeAreaView style={styles.container} edges={['bottom']}>
       {/* Header Actions */}
       {unreadCount > 0 && (
-        <View style={styles.headerActions}>
-          <Text style={styles.unreadText}>{unreadCount} unread</Text>
-          <TouchableOpacity onPress={handleMarkAllRead}>
-            <Text style={[styles.markAllRead, { color: colors.primary }]}>Mark all as read</Text>
-          </TouchableOpacity>
-        </View>
+        <Animated.View entering={FadeInDown.delay(0).duration(500).springify()}>
+          <View style={styles.headerActions}>
+            <Text style={styles.unreadText}>{unreadCount} unread</Text>
+            <AnimatedPressable onPress={handleMarkAllRead} haptic>
+              <Text style={[styles.markAllRead, { color: colors.primary }]}>Mark all as read</Text>
+            </AnimatedPressable>
+          </View>
+        </Animated.View>
       )}
 
       {notifications.length === 0 ? (
-        <EmptyState
-          icon="bell-off"
-          title="No notifications"
-          description="You're all caught up! New notifications will appear here."
-        />
+        <Animated.View entering={FadeInDown.delay(100).duration(500).springify()}>
+          <EmptyState
+            icon="bell-off"
+            title="No notifications"
+            description="You're all caught up! New notifications will appear here."
+          />
+        </Animated.View>
       ) : (
         <FlatList
           data={sections}
           keyExtractor={([label]) => label}
-          renderItem={({ item: [label, items] }) => (
-            <View style={styles.section}>
-              <Text style={styles.sectionLabel}>{label}</Text>
-              <Card style={styles.sectionCard}>
-                {items.map((notification, index) => (
-                  <View key={notification.id}>
-                    {renderNotification(notification)}
-                    {index < items.length - 1 && <View style={styles.divider} />}
-                  </View>
-                ))}
-              </Card>
-            </View>
+          renderItem={({ item: [label, items], index: sectionIndex }) => (
+            <Animated.View entering={FadeInDown.delay(200 + sectionIndex * 100).duration(500).springify()}>
+              <View style={styles.section}>
+                <Text style={styles.sectionLabel}>{label}</Text>
+                <Card style={styles.sectionCard}>
+                  {items.map((notification, index) => (
+                    <View key={notification.id}>
+                      {renderNotification(notification)}
+                      {index < items.length - 1 && <View style={styles.divider} />}
+                    </View>
+                  ))}
+                </Card>
+              </View>
+            </Animated.View>
           )}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}

@@ -3,9 +3,9 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   Platform,
 } from 'react-native';
+import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MapLibreGL from '@maplibre/maplibre-react-native';
 import * as Location from 'expo-location';
@@ -15,7 +15,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { useError } from '../../contexts/ErrorContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS, MAPLIBRE_STYLE } from '../../utils/constants';
 import { HostStackParamList } from '../../types';
-import { Button, Input, Card } from '../../components/common';
+import { Button, Input, Card, AnimatedPressable } from '../../components/common';
 import { geocode, reverseGeocode } from '../../services/osmService';
 
 type Props = NativeStackScreenProps<HostStackParamList, 'AddListingLocation'>;
@@ -148,25 +148,28 @@ const AddListingLocationScreen = ({ navigation }: Props) => {
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
       {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <Input
-          value={address}
-          onChangeText={setAddress}
-          placeholder="Enter parking spot address"
-          leftIcon="magnify"
-          containerStyle={styles.searchInput}
-          onSubmitEditing={handleSearchAddress}
-        />
-        <TouchableOpacity
-          style={[styles.locationButton, { backgroundColor: colors.primary }]}
-          onPress={handleCurrentLocation}
-        >
-          <Icon name="crosshairs-gps" size={24} color={NEUTRAL_COLORS.white} />
-        </TouchableOpacity>
-      </View>
+      <Animated.View entering={FadeInDown.delay(0).duration(500).springify()}>
+        <View style={styles.searchContainer}>
+          <Input
+            value={address}
+            onChangeText={setAddress}
+            placeholder="Enter parking spot address"
+            leftIcon="magnify"
+            containerStyle={styles.searchInput}
+            onSubmitEditing={handleSearchAddress}
+          />
+          <AnimatedPressable
+            style={[styles.locationButton, { backgroundColor: colors.primary }]}
+            onPress={handleCurrentLocation}
+            haptic
+          >
+            <Icon name="crosshairs-gps" size={24} color={NEUTRAL_COLORS.white} />
+          </AnimatedPressable>
+        </View>
+      </Animated.View>
 
       {/* Map */}
-      <View style={styles.mapContainer}>
+      <Animated.View entering={FadeInDown.delay(100).duration(500).springify()} style={styles.mapContainer}>
         <MapLibreGL.MapView
           style={styles.map}
           mapStyle={MAPLIBRE_STYLE}
@@ -208,52 +211,56 @@ const AddListingLocationScreen = ({ navigation }: Props) => {
         <View style={styles.attribution}>
           <Text style={styles.attributionText}>&copy; OpenStreetMap contributors</Text>
         </View>
-      </View>
+      </Animated.View>
 
       {/* Selected Location Details */}
       {selectedLocation && (
-        <Card style={styles.locationCard}>
-          <View style={styles.locationHeader}>
-            <Icon name="map-marker" size={24} color={colors.primary} />
-            <Text style={styles.locationTitle}>
-              {isGeocoding ? 'Loading address...' : 'Selected Location'}
-            </Text>
-          </View>
-          <Text style={styles.locationAddress}>{address || 'Selected location'}</Text>
-          <View style={styles.coordinatesRow}>
-            <Text style={styles.coordinatesText}>
-              {selectedLocation.latitude.toFixed(6)}, {selectedLocation.longitude.toFixed(6)}
-            </Text>
-          </View>
-        </Card>
+        <Animated.View entering={FadeInDown.delay(200).duration(500).springify()}>
+          <Card style={styles.locationCard}>
+            <View style={styles.locationHeader}>
+              <Icon name="map-marker" size={24} color={colors.primary} />
+              <Text style={styles.locationTitle}>
+                {isGeocoding ? 'Loading address...' : 'Selected Location'}
+              </Text>
+            </View>
+            <Text style={styles.locationAddress}>{address || 'Selected location'}</Text>
+            <View style={styles.coordinatesRow}>
+              <Text style={styles.coordinatesText}>
+                {selectedLocation.latitude.toFixed(6)}, {selectedLocation.longitude.toFixed(6)}
+              </Text>
+            </View>
+          </Card>
+        </Animated.View>
       )}
 
       {/* Continue Button */}
-      <View style={styles.footer}>
-        <View style={styles.progressContainer}>
-          <View style={[styles.progressStep, { backgroundColor: colors.primary }]}>
-            <Text style={styles.progressNumber}>1</Text>
+      <Animated.View entering={FadeInUp.delay(300).duration(500).springify()}>
+        <View style={styles.footer}>
+          <View style={styles.progressContainer}>
+            <View style={[styles.progressStep, { backgroundColor: colors.primary }]}>
+              <Text style={styles.progressNumber}>1</Text>
+            </View>
+            <View style={styles.progressLine} />
+            <View style={styles.progressStep}>
+              <Text style={styles.progressNumber}>2</Text>
+            </View>
+            <View style={styles.progressLine} />
+            <View style={styles.progressStep}>
+              <Text style={styles.progressNumber}>3</Text>
+            </View>
+            <View style={styles.progressLine} />
+            <View style={styles.progressStep}>
+              <Text style={styles.progressNumber}>4</Text>
+            </View>
           </View>
-          <View style={styles.progressLine} />
-          <View style={styles.progressStep}>
-            <Text style={styles.progressNumber}>2</Text>
-          </View>
-          <View style={styles.progressLine} />
-          <View style={styles.progressStep}>
-            <Text style={styles.progressNumber}>3</Text>
-          </View>
-          <View style={styles.progressLine} />
-          <View style={styles.progressStep}>
-            <Text style={styles.progressNumber}>4</Text>
-          </View>
+          <Button
+            title="Continue"
+            onPress={handleContinue}
+            disabled={!selectedLocation}
+            fullWidth
+          />
         </View>
-        <Button
-          title="Continue"
-          onPress={handleContinue}
-          disabled={!selectedLocation}
-          fullWidth
-        />
-      </View>
+      </Animated.View>
     </SafeAreaView>
   );
 };

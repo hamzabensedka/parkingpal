@@ -4,15 +4,15 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
 } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme } from '../../contexts/ThemeContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS, ACCESS_TYPES } from '../../utils/constants';
 import { HostStackParamList, AccessType } from '../../types';
-import { Button, Input } from '../../components/common';
+import { Button, Input, AnimatedPressable } from '../../components/common';
 
 type Props = NativeStackScreenProps<HostStackParamList, 'AddListingAccess'>;
 
@@ -53,21 +53,25 @@ const AddListingAccessScreen = ({ navigation, route }: Props) => {
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>Access Instructions</Text>
-          <Text style={styles.subtitle}>
-            How will renters access your parking spot?
-          </Text>
-        </View>
+        <Animated.View entering={FadeInDown.delay(0).duration(500).springify()}>
+          <View style={styles.header}>
+            <Text style={styles.title}>Access Instructions</Text>
+            <Text style={styles.subtitle}>
+              How will renters access your parking spot?
+            </Text>
+          </View>
+        </Animated.View>
 
         {/* Access Type */}
+        <Animated.View entering={FadeInDown.delay(100).duration(500).springify()}>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Access Method</Text>
           <View style={styles.accessTypeList}>
             {accessTypeOptions.map((option) => {
               const isSelected = accessType === option.type;
               return (
-                <TouchableOpacity
+                <AnimatedPressable
+                  haptic
                   key={option.type}
                   style={[
                     styles.accessTypeItem,
@@ -99,39 +103,44 @@ const AddListingAccessScreen = ({ navigation, route }: Props) => {
                     </View>
                     <Text style={styles.accessTypeDesc}>{option.description}</Text>
                   </View>
-                </TouchableOpacity>
+                </AnimatedPressable>
               );
             })}
           </View>
         </View>
+        </Animated.View>
 
         {/* Instructions */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Detailed Instructions</Text>
-          <Text style={styles.sectionSubtitle}>
-            Provide step-by-step instructions for renters to access your spot
-          </Text>
-          <Input
-            value={accessInstructions}
-            onChangeText={setAccessInstructions}
-            placeholder="e.g., Enter code #1234 at the gate. The parking spot is on the left side, marked with number 5."
-            multiline
-            numberOfLines={6}
-            maxLength={500}
-          />
-          <Text style={styles.charCount}>{accessInstructions.length}/500</Text>
-        </View>
+        <Animated.View entering={FadeInDown.delay(200).duration(500).springify()}>
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Detailed Instructions</Text>
+            <Text style={styles.sectionSubtitle}>
+              Provide step-by-step instructions for renters to access your spot
+            </Text>
+            <Input
+              value={accessInstructions}
+              onChangeText={setAccessInstructions}
+              placeholder="e.g., Enter code #1234 at the gate. The parking spot is on the left side, marked with number 5."
+              multiline
+              numberOfLines={6}
+              maxLength={500}
+            />
+            <Text style={styles.charCount}>{accessInstructions.length}/500</Text>
+          </View>
+        </Animated.View>
 
         {/* Tips */}
-        <View style={[styles.tipBox, { backgroundColor: colors.lightest }]}>
-          <Icon name="lightbulb-on-outline" size={24} color={colors.primary} />
-          <View style={styles.tipContent}>
-            <Text style={[styles.tipTitle, { color: colors.dark }]}>Tip</Text>
-            <Text style={styles.tipText}>
-              Clear instructions help renters find your spot quickly and reduce support requests.
-            </Text>
+        <Animated.View entering={FadeInDown.delay(300).duration(500).springify()}>
+          <View style={[styles.tipBox, { backgroundColor: colors.lightest }]}>
+            <Icon name="lightbulb-on-outline" size={24} color={colors.primary} />
+            <View style={styles.tipContent}>
+              <Text style={[styles.tipTitle, { color: colors.dark }]}>Tip</Text>
+              <Text style={styles.tipText}>
+                Clear instructions help renters find your spot quickly and reduce support requests.
+              </Text>
+            </View>
           </View>
-        </View>
+        </Animated.View>
       </ScrollView>
 
       {/* Footer */}

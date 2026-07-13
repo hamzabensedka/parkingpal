@@ -4,10 +4,10 @@ import {
   Text,
   StyleSheet,
   TextInput,
-  TouchableOpacity,
   FlatList,
   ActivityIndicator,
 } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -15,6 +15,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
 import { searchPlaces, Place } from '../../services/osmService';
+import { AnimatedPressable } from '../../components/common';
 
 interface SearchSuggestion {
   id: string;
@@ -111,9 +112,10 @@ const SearchScreen: React.FC = () => {
   }, []);
 
   const renderSuggestion = ({ item }: { item: SearchSuggestion }) => (
-    <TouchableOpacity
+    <AnimatedPressable
       style={styles.suggestionItem}
       onPress={() => handleSelectSuggestion(item)}
+      haptic
     >
       <View style={[styles.suggestionIcon, { backgroundColor: colors.lightest }]}>
         <Icon
@@ -127,7 +129,7 @@ const SearchScreen: React.FC = () => {
         <Text style={styles.suggestionSubtitle}>{item.subtitle}</Text>
       </View>
       <Icon name="arrow-top-left" size={20} color={NEUTRAL_COLORS.gray} />
-    </TouchableOpacity>
+    </AnimatedPressable>
   );
 
   const showAutocompleteResults = searchQuery.length >= 3 && (searchResults.length > 0 || isSearching);
@@ -135,27 +137,29 @@ const SearchScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Search Input */}
-      <View style={styles.searchContainer}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Icon name="arrow-left" size={24} color={NEUTRAL_COLORS.black} />
-        </TouchableOpacity>
-        <View style={styles.inputContainer}>
-          <Icon name="magnify" size={20} color={NEUTRAL_COLORS.gray} />
-          <TextInput
-            style={styles.input}
-            value={searchQuery}
-            onChangeText={handleSearch}
-            placeholder="Search for a place or address"
-            placeholderTextColor={NEUTRAL_COLORS.gray}
-            autoFocus
-          />
-          {searchQuery.length > 0 && (
-            <TouchableOpacity onPress={handleClear}>
-              <Icon name="close-circle" size={20} color={NEUTRAL_COLORS.gray} />
-            </TouchableOpacity>
-          )}
+      <Animated.View entering={FadeInDown.delay(0).duration(500).springify()}>
+        <View style={styles.searchContainer}>
+          <AnimatedPressable onPress={() => navigation.goBack()}>
+            <Icon name="arrow-left" size={24} color={NEUTRAL_COLORS.black} />
+          </AnimatedPressable>
+          <View style={styles.inputContainer}>
+            <Icon name="magnify" size={20} color={NEUTRAL_COLORS.gray} />
+            <TextInput
+              style={styles.input}
+              value={searchQuery}
+              onChangeText={handleSearch}
+              placeholder="Search for a place or address"
+              placeholderTextColor={NEUTRAL_COLORS.gray}
+              autoFocus
+            />
+            {searchQuery.length > 0 && (
+              <AnimatedPressable onPress={handleClear}>
+                <Icon name="close-circle" size={20} color={NEUTRAL_COLORS.gray} />
+              </AnimatedPressable>
+            )}
+          </View>
         </View>
-      </View>
+      </Animated.View>
 
       {/* Loading indicator */}
       {isSearching && (
@@ -180,33 +184,37 @@ const SearchScreen: React.FC = () => {
 
       {/* Recent Searches (shown when no active search) */}
       {!showAutocompleteResults && !isSearching && recentSearches.length > 0 && (
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Recent Searches</Text>
-            <TouchableOpacity>
-              <Text style={[styles.clearLink, { color: colors.primary }]}>Clear</Text>
-            </TouchableOpacity>
+        <Animated.View entering={FadeInDown.delay(100).duration(500).springify()}>
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Recent Searches</Text>
+              <AnimatedPressable>
+                <Text style={[styles.clearLink, { color: colors.primary }]}>Clear</Text>
+              </AnimatedPressable>
+            </View>
+            <FlatList
+              data={recentSearches}
+              renderItem={renderSuggestion}
+              keyExtractor={(item) => item.id}
+              scrollEnabled={false}
+            />
           </View>
-          <FlatList
-            data={recentSearches}
-            renderItem={renderSuggestion}
-            keyExtractor={(item) => item.id}
-            scrollEnabled={false}
-          />
-        </View>
+        </Animated.View>
       )}
 
       {/* Popular Places (shown when no active search) */}
       {!showAutocompleteResults && !isSearching && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Popular Places</Text>
-          <FlatList
-            data={popularPlaces}
-            renderItem={renderSuggestion}
-            keyExtractor={(item) => item.id}
-            scrollEnabled={false}
-          />
-        </View>
+        <Animated.View entering={FadeInDown.delay(200).duration(500).springify()}>
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Popular Places</Text>
+            <FlatList
+              data={popularPlaces}
+              renderItem={renderSuggestion}
+              keyExtractor={(item) => item.id}
+              scrollEnabled={false}
+            />
+          </View>
+        </Animated.View>
       )}
     </SafeAreaView>
   );

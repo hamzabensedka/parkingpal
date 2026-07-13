@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useBooking } from '../../contexts/BookingContext';
@@ -154,140 +155,154 @@ const ActiveBookingScreen = ({ navigation, route }: Props) => {
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Timer Card */}
-        <Card style={[styles.timerCard, { borderColor: colors.primary }]}>
-          <View style={styles.timerHeader}>
-            <View style={[styles.statusDot, { backgroundColor: NEUTRAL_COLORS.darkGray }]} />
-            <Text style={styles.statusText}>Active Session</Text>
-          </View>
+        <Animated.View entering={FadeInDown.delay(0).duration(500).springify()}>
+          <Card style={[styles.timerCard, { borderColor: colors.primary }]}>
+            <View style={styles.timerHeader}>
+              <View style={[styles.statusDot, { backgroundColor: NEUTRAL_COLORS.darkGray }]} />
+              <Text style={styles.statusText}>Active Session</Text>
+            </View>
 
-          <Text style={[styles.timeRemaining, { color: colors.primary }]}>
-            {timeRemaining}
-          </Text>
+            <Text style={[styles.timeRemaining, { color: colors.primary }]}>
+              {timeRemaining}
+            </Text>
 
-          <View style={styles.progressContainer}>
-            <View style={styles.progressBar}>
-              <View
-                style={[
-                  styles.progressFill,
-                  { width: `${progress}%`, backgroundColor: colors.primary },
-                ]}
-              />
+            <View style={styles.progressContainer}>
+              <View style={styles.progressBar}>
+                <View
+                  style={[
+                    styles.progressFill,
+                    { width: `${progress}%`, backgroundColor: colors.primary },
+                  ]}
+                />
+              </View>
+              <View style={styles.progressLabels}>
+                <Text style={styles.progressTime}>{format(startDate, 'HH:mm')}</Text>
+                <Text style={styles.progressTime}>{format(endDate, 'HH:mm')}</Text>
+              </View>
             </View>
-            <View style={styles.progressLabels}>
-              <Text style={styles.progressTime}>{format(startDate, 'HH:mm')}</Text>
-              <Text style={styles.progressTime}>{format(endDate, 'HH:mm')}</Text>
-            </View>
-          </View>
 
-          <View style={styles.timeDetails}>
-            <View style={styles.timeItem}>
-              <Text style={styles.timeLabel}>Check In</Text>
-              <Text style={styles.timeValue}>{format(startDate, 'HH:mm')}</Text>
+            <View style={styles.timeDetails}>
+              <View style={styles.timeItem}>
+                <Text style={styles.timeLabel}>Check In</Text>
+                <Text style={styles.timeValue}>{format(startDate, 'HH:mm')}</Text>
+              </View>
+              <View style={styles.timeDivider} />
+              <View style={styles.timeItem}>
+                <Text style={styles.timeLabel}>Check Out</Text>
+                <Text style={styles.timeValue}>{format(endDate, 'HH:mm')}</Text>
+              </View>
             </View>
-            <View style={styles.timeDivider} />
-            <View style={styles.timeItem}>
-              <Text style={styles.timeLabel}>Check Out</Text>
-              <Text style={styles.timeValue}>{format(endDate, 'HH:mm')}</Text>
-            </View>
-          </View>
-        </Card>
+          </Card>
+        </Animated.View>
 
         {/* Spot Info */}
-        <Card style={styles.spotCard}>
-          <Text style={styles.cardTitle}>Parking Location</Text>
-          <Text style={styles.spotTitle}>{booking.spot?.title}</Text>
-          <Text style={styles.spotAddress}>{booking.spot?.address}</Text>
+        <Animated.View entering={FadeInDown.delay(100).duration(500).springify()}>
+          <Card style={styles.spotCard}>
+            <Text style={styles.cardTitle}>Parking Location</Text>
+            <Text style={styles.spotTitle}>{booking.spot?.title}</Text>
+            <Text style={styles.spotAddress}>{booking.spot?.address}</Text>
 
-          <Button
-            title="Get Directions"
-            onPress={handleGetDirections}
-            variant="outline"
-            icon="navigation"
-            fullWidth
-            style={styles.directionsButton}
-          />
-        </Card>
+            <Button
+              title="Get Directions"
+              onPress={handleGetDirections}
+              variant="outline"
+              icon="navigation"
+              fullWidth
+              style={styles.directionsButton}
+            />
+          </Card>
+        </Animated.View>
 
         {/* Access Info */}
-        <Card style={styles.accessCard}>
-          <Text style={styles.cardTitle}>Access Information</Text>
+        <Animated.View entering={FadeInDown.delay(200).duration(500).springify()}>
+          <Card style={styles.accessCard}>
+            <Text style={styles.cardTitle}>Access Information</Text>
 
-          {booking.spot?.accessInstructions && (
-            <View style={styles.accessRow}>
-              <Icon name="key" size={20} color={colors.primary} />
-              <Text style={styles.accessText}>{booking.spot.accessInstructions}</Text>
-            </View>
-          )}
+            {booking.spot?.accessInstructions && (
+              <View style={styles.accessRow}>
+                <Icon name="key" size={20} color={colors.primary} />
+                <Text style={styles.accessText}>{booking.spot.accessInstructions}</Text>
+              </View>
+            )}
 
-          {booking.spot?.accessCode && (
-            <View style={[styles.accessCodeContainer, { backgroundColor: colors.lightest }]}>
-              <Text style={styles.accessCodeLabel}>Gate Code</Text>
-              <Text style={[styles.accessCode, { color: colors.primary }]}>
-                {booking.spot.accessCode}
-              </Text>
-            </View>
-          )}
-        </Card>
+            {booking.spot?.accessCode && (
+              <View style={[styles.accessCodeContainer, { backgroundColor: colors.lightest }]}>
+                <Text style={styles.accessCodeLabel}>Gate Code</Text>
+                <Text style={[styles.accessCode, { color: colors.primary }]}>
+                  {booking.spot.accessCode}
+                </Text>
+              </View>
+            )}
+          </Card>
+        </Animated.View>
 
         {/* Vehicle Info */}
-        <Card style={styles.vehicleCard}>
-          <Text style={styles.cardTitle}>Your Vehicle</Text>
-          <View style={styles.vehicleRow}>
-            <Icon name="car" size={24} color={NEUTRAL_COLORS.gray} />
-            <View style={styles.vehicleInfo}>
-              <Text style={styles.vehicleName}>
-                {booking.vehicle.make} {booking.vehicle.model}
-              </Text>
-              <Text style={styles.vehiclePlate}>{booking.vehicle.licensePlate}</Text>
+        <Animated.View entering={FadeInDown.delay(300).duration(500).springify()}>
+          <Card style={styles.vehicleCard}>
+            <Text style={styles.cardTitle}>Your Vehicle</Text>
+            <View style={styles.vehicleRow}>
+              <Icon name="car" size={24} color={NEUTRAL_COLORS.gray} />
+              <View style={styles.vehicleInfo}>
+                <Text style={styles.vehicleName}>
+                  {booking.vehicle.make} {booking.vehicle.model}
+                </Text>
+                <Text style={styles.vehiclePlate}>{booking.vehicle.licensePlate}</Text>
+              </View>
             </View>
-          </View>
-        </Card>
+          </Card>
+        </Animated.View>
 
         {/* Quick Actions */}
-        <View style={styles.quickActions}>
-          <Card style={styles.actionCard} onPress={handleContactHost}>
-            <Icon name="message-text" size={24} color={colors.primary} />
-            <Text style={styles.actionText}>Contact Host</Text>
-          </Card>
+        <Animated.View entering={FadeInDown.delay(400).duration(500).springify()}>
+          <View style={styles.quickActions}>
+            <Card style={styles.actionCard} onPress={handleContactHost}>
+              <Icon name="message-text" size={24} color={colors.primary} />
+              <Text style={styles.actionText}>Contact Host</Text>
+            </Card>
 
-          <Card style={styles.actionCard} onPress={handleReportIssue}>
-            <Icon name="alert-circle" size={24} color={NEUTRAL_COLORS.darkGray} />
-            <Text style={styles.actionText}>Report Issue</Text>
-          </Card>
-        </View>
+            <Card style={styles.actionCard} onPress={handleReportIssue}>
+              <Icon name="alert-circle" size={24} color={NEUTRAL_COLORS.darkGray} />
+              <Text style={styles.actionText}>Report Issue</Text>
+            </Card>
+          </View>
+        </Animated.View>
 
         {/* Extend Booking */}
-        <Card style={styles.extendCard}>
-          <Text style={styles.cardTitle}>Need More Time?</Text>
-          <Text style={styles.extendDescription}>
-            Extend your booking if you need to stay longer.
-          </Text>
-          <View style={styles.extendOptions}>
-            {[1, 2, 3].map((hours) => (
-              <Button
-                key={hours}
-                title={`+${hours}h`}
-                onPress={() => handleExtend(hours)}
-                variant="outline"
-                size="small"
-                loading={isExtending}
-                style={styles.extendButton}
-              />
-            ))}
-          </View>
-        </Card>
+        <Animated.View entering={FadeInDown.delay(500).duration(500).springify()}>
+          <Card style={styles.extendCard}>
+            <Text style={styles.cardTitle}>Need More Time?</Text>
+            <Text style={styles.extendDescription}>
+              Extend your booking if you need to stay longer.
+            </Text>
+            <View style={styles.extendOptions}>
+              {[1, 2, 3].map((hours) => (
+                <Button
+                  key={hours}
+                  title={`+${hours}h`}
+                  onPress={() => handleExtend(hours)}
+                  variant="outline"
+                  size="small"
+                  loading={isExtending}
+                  style={styles.extendButton}
+                />
+              ))}
+            </View>
+          </Card>
+        </Animated.View>
       </ScrollView>
 
       {/* End Booking Button */}
-      <View style={styles.footer}>
-        <Button
-          title="End Booking Early"
-          onPress={handleEndEarly}
-          variant="danger"
-          loading={isEnding}
-          fullWidth
-        />
-      </View>
+      <Animated.View entering={FadeInUp.delay(300).duration(500).springify()}>
+        <View style={styles.footer}>
+          <Button
+            title="End Booking Early"
+            onPress={handleEndEarly}
+            variant="danger"
+            loading={isEnding}
+            fullWidth
+          />
+        </View>
+      </Animated.View>
     </SafeAreaView>
   );
 };

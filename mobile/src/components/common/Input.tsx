@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
   View,
   TextInput,
@@ -8,6 +8,13 @@ import {
   TextInputProps,
   ViewStyle,
 } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withSequence,
+  interpolateColor,
+} from 'react-native-reanimated';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useTheme } from '../../contexts/ThemeContext';
 import { SPACING, RADIUS, TYPOGRAPHY, NEUTRAL_COLORS } from '../../utils/constants';
@@ -30,6 +37,8 @@ interface InputProps extends Omit<TextInputProps, 'onChangeText'> {
   required?: boolean;
 }
 
+const AnimatedView = Animated.createAnimatedComponent(View);
+
 const Input: React.FC<InputProps> = ({
   label,
   value,
@@ -51,82 +60,89 @@ const Input: React.FC<InputProps> = ({
   const [showPassword, setShowPassword] = useState(false);
   const inputRef = useRef<TextInput>(null);
 
+  // Animated border color transition
+  const borderProgress = useSharedValue(0); // 0 = idle, 1 = focused, 2 = error
+  const shakeX = useSharedValue(0);
+
+  useEffect(() => {
+    if (error) {
+      borderProgress.value = withTiming(2, { duration: 200 });
+      // Trigger shake
+      shakeX.value = withSequence(
+        withTiming(-6, { duration: 50 }),
+        withTiming(6, { duration: 50 }),
+        withTiming(-4, { duration: 50 }),
+        withTiming(4, { duration: 50 }),
+        withTiming(0, { duration: 50 })
+      );
+    } else if (isFocused) {
+      borderProgress.value = withTiming(1, { duration: 200 });
+    } else {
+      borderProgress.value = withTiming(0, { duration: 200 });
+    }
+  }, [error, isFocused]);
+
+  const animatedBorderStyle = useAnimatedStyle(() => {
+    const borderColor = interpolateColor(
+      borderProgress.value,
+      [0, 1, 2],
+      [NEUTRAL_COLORS.lightGray, colors.primary, '#000000']
+    );
+    return { borderColor };
+  });
+
+  const animatedShakeStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: shakeX.value }],
+  }));
+
   const getKeyboardType = useCallback((): TextInputProps['keyboardType'] => {
     switch (type) {
-      case 'email':
-        return 'email-address';
-      case 'phone':
-        return 'phone-pad';
-      case 'number':
-        return 'numeric';
-      default:
-        return 'default';
+      case 'email': return 'email-address';
+      case 'phone': return 'phone-pad';
+      case 'number': return 'numeric';
+      default: return 'default';
     }
   }, [type]);
 
   const getAutoCapitalize = useCallback((): TextInputProps['autoCapitalize'] => {
     switch (type) {
       case 'email':
-        return 'none';
-      case 'password':
-        return 'none';
-      default:
-        return 'sentences';
+      case 'password': return 'none';
+      default: return 'sentences';
     }
   }, [type]);
 
-  const handleFocus = useCallback(() => {
-    setIsFocused(true);
-  }, []);
-
-  const handleBlur = useCallback(() => {
-    setIsFocused(false);
-  }, []);
+  const handleFocus = useCallback(() => setIsFocused(true), []);
+  const handleBlur = useCallback(() => setIsFocused(false), []);
 
   const handleTogglePassword = useCallback(() => {
     setShowPassword(prev => !prev);
-    // Refocus the input after toggling password visibility
     setTimeout(() => inputRef.current?.focus(), 0);
   }, []);
 
   const isPassword = type === 'password';
   const secureTextEntry = isPassword && !showPassword;
-
-  const borderColor = error
-    ? NEUTRAL_COLORS.error
-    : isFocused
-    ? colors.primary
-    : NEUTRAL_COLORS.lightGray;
-
   const backgroundColor = !editable ? NEUTRAL_COLORS.background : NEUTRAL_COLORS.white;
   const iconColor = isFocused ? colors.primary : NEUTRAL_COLORS.gray;
 
   return (
-    <View style={[styles.container, containerStyle]}>
+    <AnimatedView style={[styles.container, animatedShakeStyle, containerStyle]}>
       {label && (
         <Text style={[styles.label, { color: NEUTRAL_COLORS.black }]}>
           {label}
           {required && <Text style={{ color: NEUTRAL_COLORS.error }}> *</Text>}
         </Text>
       )}
-      <View
+      <AnimatedView
         style={[
           styles.inputContainer,
-          {
-            borderColor,
-            backgroundColor,
-          },
+          { backgroundColor },
           multiline && styles.multilineContainer,
-          error && styles.errorContainer,
+          animatedBorderStyle,
         ]}
       >
         {leftIcon && (
-          <Icon
-            name={leftIcon}
-            size={20}
-            color={iconColor}
-            style={styles.leftIcon}
-          />
+          <Icon name={leftIcon} size={20} color={iconColor} style={styles.leftIcon} />
         )}
         <TextInput
           ref={inputRef}
@@ -159,11 +175,7 @@ const Input: React.FC<InputProps> = ({
             style={styles.rightIcon}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           >
-            <Icon
-              name={showPassword ? 'eye-off' : 'eye'}
-              size={20}
-              color={NEUTRAL_COLORS.gray}
-            />
+            <Icon name={showPassword ? 'eye-off' : 'eye'} size={20} color={NEUTRAL_COLORS.gray} />
           </TouchableOpacity>
         )}
         {!isPassword && rightIcon && (
@@ -176,16 +188,14 @@ const Input: React.FC<InputProps> = ({
             <Icon name={rightIcon} size={20} color={NEUTRAL_COLORS.gray} />
           </TouchableOpacity>
         )}
-      </View>
+      </AnimatedView>
       {error && (
         <View style={styles.errorRow}>
           <Icon name="alert-circle" size={14} color={NEUTRAL_COLORS.error} />
-          <Text style={[styles.errorText, { color: NEUTRAL_COLORS.error }]}>
-            {error}
-          </Text>
+          <Text style={[styles.errorText, { color: NEUTRAL_COLORS.error }]}>{error}</Text>
         </View>
       )}
-    </View>
+    </AnimatedView>
   );
 };
 
@@ -210,9 +220,6 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     minHeight: 100,
     paddingVertical: SPACING.sm,
-  },
-  errorContainer: {
-    // Error styling is handled via borderColor
   },
   input: {
     flex: 1,

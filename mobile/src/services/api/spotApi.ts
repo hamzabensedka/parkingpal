@@ -226,6 +226,41 @@ export function createSpotApi(client: AxiosInstance) {
         throw new Error(data.error ?? 'Failed to delete listing');
       }
     },
+
+    /**
+     * Fetch parking spots inside a map viewport bounding box.
+     * @param params north/south/east/west bounds + optional zoom
+     */
+    async searchViewport(params: {
+      north: number;
+      south: number;
+      east: number;
+      west: number;
+      zoom?: number;
+    }): Promise<{ spots: SpotSummaryDTO[]; total: number }> {
+      const queryString = toQueryString({
+        north: params.north,
+        south: params.south,
+        east: params.east,
+        west: params.west,
+        zoom: params.zoom,
+      });
+
+      const { data } = await withTimeout(
+        () =>
+          client.get<SpotApiResponse<{ spots: SpotSummaryDTO[]; total: number }>>(
+            `/api/spots/viewport?${queryString}`,
+            { timeout: 12000 },
+          ),
+        13000,
+        'Viewport request timed out',
+      );
+
+      if (!data.success || !data.data) {
+        throw new Error(data.error ?? 'Failed to fetch spots in viewport');
+      }
+      return data.data;
+    },
   };
 }
 

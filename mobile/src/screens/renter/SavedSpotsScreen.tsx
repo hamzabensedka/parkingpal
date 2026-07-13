@@ -4,19 +4,20 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  TouchableOpacity,
   Alert,
   Animated,
   PanResponder,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
+import ReAnimated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
 import { Spot } from '../../types';
-import { Card, Badge, EmptyState } from '../../components/common';
+import { Card, Badge, EmptyState, AnimatedPressable } from '../../components/common';
 import { favoriteApi } from '../../services/api';
 import { useError } from '../../contexts/ErrorContext';
 import { mapSpotSummaryToSpot } from '../../utils/spotMappers';
@@ -64,15 +65,17 @@ const SwipeableSpotCard: React.FC<SwipeableSpotCardProps> = ({
   ).current;
 
   return (
+    <ReAnimated.View entering={FadeInDown.delay(100).duration(500).springify()}>
     <View style={styles.swipeableContainer}>
       <View style={styles.deleteAction}>
-        <TouchableOpacity
+        <AnimatedPressable
+          haptic
           style={styles.deleteButton}
           onPress={() => onRemove(item.id)}
         >
           <Icon name="trash-can-outline" size={24} color={NEUTRAL_COLORS.white} />
           <Text style={styles.deleteText}>Remove</Text>
-        </TouchableOpacity>
+        </AnimatedPressable>
       </View>
 
       <Animated.View
@@ -127,6 +130,7 @@ const SwipeableSpotCard: React.FC<SwipeableSpotCardProps> = ({
         </Card>
       </Animated.View>
     </View>
+    </ReAnimated.View>
   );
 };
 
@@ -223,12 +227,13 @@ const SavedSpotsScreen: React.FC = () => {
           <Icon name="alert-circle" size={48} color={NEUTRAL_COLORS.error} />
           <Text style={styles.errorTitle}>Failed to load saved spots</Text>
           <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity
+          <AnimatedPressable
+            haptic
             style={[styles.retryButton, { backgroundColor: colors.primary }]}
             onPress={fetchFavorites}
           >
             <Text style={styles.retryButtonText}>Retry</Text>
-          </TouchableOpacity>
+          </AnimatedPressable>
         </View>
       );
     }
@@ -246,17 +251,19 @@ const SavedSpotsScreen: React.FC = () => {
 
   const renderListHeader = () =>
     savedSpots.length > 0 ? (
-      <View style={styles.statsContainer}>
-        <View style={[styles.statCard, { backgroundColor: colors.lightest }]}>
-          <Icon name="heart" size={24} color={colors.primary} />
-          <Text style={styles.statNumber}>{savedSpots.length}</Text>
-          <Text style={styles.statLabel}>Saved Spots</Text>
+      <ReAnimated.View entering={FadeInDown.delay(0).duration(500).springify()}>
+        <View style={styles.statsContainer}>
+          <View style={[styles.statCard, { backgroundColor: colors.lightest }]}>
+            <Icon name="heart" size={24} color={colors.primary} />
+            <Text style={styles.statNumber}>{savedSpots.length}</Text>
+            <Text style={styles.statLabel}>Saved Spots</Text>
+          </View>
+          <Text style={styles.swipeHint}>
+            <Icon name="gesture-swipe-left" size={14} color={NEUTRAL_COLORS.gray} />{' '}
+            Swipe left to remove
+          </Text>
         </View>
-        <Text style={styles.swipeHint}>
-          <Icon name="gesture-swipe-left" size={14} color={NEUTRAL_COLORS.gray} />{' '}
-          Swipe left to remove
-        </Text>
-      </View>
+      </ReAnimated.View>
     ) : null;
 
   return (
@@ -269,8 +276,9 @@ const SavedSpotsScreen: React.FC = () => {
         ListHeaderComponent={!loading && !error ? renderListHeader : undefined}
         ListEmptyComponent={renderEmptyState}
         showsVerticalScrollIndicator={false}
-        refreshing={refreshing}
-        onRefresh={handleRefresh}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.primary} colors={[colors.primary]} />
+        }
       />
     </SafeAreaView>
   );

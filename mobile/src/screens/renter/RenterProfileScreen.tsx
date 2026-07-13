@@ -4,16 +4,16 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useNavigation, CommonActions } from '@react-navigation/native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
-import { Card, Avatar, Badge } from '../../components/common';
+import { Card, Avatar, Badge, AnimatedPressable } from '../../components/common';
 
 interface MenuItemProps {
   icon: string;
@@ -24,6 +24,7 @@ interface MenuItemProps {
   onPress: () => void;
   showChevron?: boolean;
   danger?: boolean;
+  haptic?: boolean;
 }
 
 const MenuItem: React.FC<MenuItemProps> = ({
@@ -35,11 +36,12 @@ const MenuItem: React.FC<MenuItemProps> = ({
   onPress,
   showChevron = true,
   danger = false,
+  haptic = false,
 }) => {
   const { colors, NEUTRAL_COLORS } = useTheme();
 
   return (
-    <TouchableOpacity style={styles.menuItem} onPress={onPress}>
+    <AnimatedPressable style={styles.menuItem} onPress={onPress} haptic={haptic}>
       <View style={[styles.menuIcon, { backgroundColor: danger ? NEUTRAL_COLORS.lightGray : colors.lightest }]}>
         <Icon name={icon} size={20} color={danger ? NEUTRAL_COLORS.darkGray : colors.primary} />
       </View>
@@ -53,7 +55,7 @@ const MenuItem: React.FC<MenuItemProps> = ({
       {showChevron && (
         <Icon name="chevron-right" size={20} color={NEUTRAL_COLORS.gray} />
       )}
-    </TouchableOpacity>
+    </AnimatedPressable>
   );
 };
 
@@ -137,8 +139,11 @@ const RenterProfileScreen: React.FC = () => {
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Profile Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={handleEditProfile}>
+        <Animated.View
+          entering={FadeInDown.delay(0).duration(500).springify()}
+          style={styles.header}
+        >
+          <AnimatedPressable onPress={handleEditProfile} haptic>
             <Avatar
               name={user?.firstName}
               imageUrl={user?.avatar ?? user?.profilePhoto ?? undefined}
@@ -147,7 +152,7 @@ const RenterProfileScreen: React.FC = () => {
             <View style={[styles.editBadge, { backgroundColor: colors.primary }]}>
               <Icon name="pencil" size={14} color={NEUTRAL_COLORS.white} />
             </View>
-          </TouchableOpacity>
+          </AnimatedPressable>
 
           <Text style={styles.userName}>
             {user?.firstName} {user?.lastName}
@@ -174,64 +179,70 @@ const RenterProfileScreen: React.FC = () => {
               </View>
             )}
           </View>
-        </View>
+        </Animated.View>
 
         {/* Stats Card */}
-        <Card style={styles.statsCard}>
-          <View style={styles.statItem}>
-            <Text style={[styles.statNumber, { color: colors.primary }]}>
-              {user?.stats?.totalBookings ?? 0}
-            </Text>
-            <Text style={styles.statLabel}>Bookings</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={[styles.statNumber, { color: colors.primary }]}>
-              €{(user?.stats?.totalSpent ?? 0).toFixed(0)}
-            </Text>
-            <Text style={styles.statLabel}>Total Spent</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={[styles.statNumber, { color: colors.primary }]}>
-              {user?.rating?.toFixed(1) || 'N/A'}
-            </Text>
-            <Text style={styles.statLabel}>Rating</Text>
-          </View>
-        </Card>
+        <Animated.View entering={FadeInDown.delay(100).duration(500).springify()}>
+          <Card style={styles.statsCard}>
+            <View style={styles.statItem}>
+              <Text style={[styles.statNumber, { color: colors.primary }]}>
+                {user?.stats?.totalBookings ?? 0}
+              </Text>
+              <Text style={styles.statLabel}>Bookings</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statItem}>
+              <Text style={[styles.statNumber, { color: colors.primary }]}>
+                €{(user?.stats?.totalSpent ?? 0).toFixed(0)}
+              </Text>
+              <Text style={styles.statLabel}>Total Spent</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.statItem}>
+              <Text style={[styles.statNumber, { color: colors.primary }]}>
+                {user?.rating?.toFixed(1) || 'N/A'}
+              </Text>
+              <Text style={styles.statLabel}>Rating</Text>
+            </View>
+          </Card>
+        </Animated.View>
 
         {/* Account Section */}
-        <View style={styles.section}>
+        <Animated.View entering={FadeInDown.delay(200).duration(500).springify()} style={styles.section}>
           <Text style={styles.sectionTitle}>Account</Text>
           <Card style={styles.menuCard}>
             <MenuItem
               icon="account-edit"
               label="Edit Profile"
               onPress={handleEditProfile}
+              haptic
             />
             <MenuItem
               icon="car"
               label="My Vehicles"
               value={`${vehicleCount} vehicle${vehicleCount !== 1 ? 's' : ''}`}
               onPress={handleVehicles}
+              haptic
             />
             <MenuItem
               icon="credit-card"
               label="Payment Methods"
               value={`${paymentMethodCount} card${paymentMethodCount !== 1 ? 's' : ''}`}
               onPress={handlePaymentMethods}
+              haptic
             />
             <MenuItem
               icon="heart"
               label="Saved Spots"
               onPress={handleSavedSpots}
+              haptic
             />
           </Card>
-        </View>
+        </Animated.View>
 
         {/* Host Section - Only show for renters */}
         {user?.userType === 'renter' && (
-          <View style={styles.section}>
+          <Animated.View entering={FadeInDown.delay(300).duration(500).springify()} style={styles.section}>
             <Text style={styles.sectionTitle}>Become a Host</Text>
             <Card style={styles.hostCard} onPress={handleSwitchToHost}>
               <View style={[styles.hostIcon, { backgroundColor: colors.lightest }]}>
@@ -245,12 +256,12 @@ const RenterProfileScreen: React.FC = () => {
               </View>
               <Icon name="chevron-right" size={24} color={colors.primary} />
             </Card>
-          </View>
+          </Animated.View>
         )}
 
         {/* Go to Dashboard - Show for hosts and superhosts */}
         {(user?.userType === 'host' || user?.userType === 'superhost') && (
-          <View style={styles.section}>
+          <Animated.View entering={FadeInDown.delay(300).duration(500).springify()} style={styles.section}>
             <Text style={styles.sectionTitle}>Host Dashboard</Text>
             <Card style={styles.hostCard} onPress={handleSwitchToHost}>
               <View style={[styles.hostIcon, { backgroundColor: colors.lightest }]}>
@@ -266,33 +277,36 @@ const RenterProfileScreen: React.FC = () => {
               </View>
               <Icon name="chevron-right" size={24} color={colors.primary} />
             </Card>
-          </View>
+          </Animated.View>
         )}
 
         {/* Support Section */}
-        <View style={styles.section}>
+        <Animated.View entering={FadeInDown.delay(400).duration(500).springify()} style={styles.section}>
           <Text style={styles.sectionTitle}>Support</Text>
           <Card style={styles.menuCard}>
             <MenuItem
               icon="cog"
               label="Settings"
               onPress={handleSettings}
+              haptic
             />
             <MenuItem
               icon="help-circle"
               label="Help & Support"
               onPress={handleHelp}
+              haptic
             />
             <MenuItem
               icon="file-document"
               label="Terms & Privacy"
               onPress={() => navigation.navigate('Legal')}
+              haptic
             />
           </Card>
-        </View>
+        </Animated.View>
 
         {/* Logout */}
-        <View style={styles.section}>
+        <Animated.View entering={FadeInDown.delay(500).duration(500).springify()} style={styles.section}>
           <Card style={styles.menuCard}>
             <MenuItem
               icon="logout"
@@ -300,12 +314,15 @@ const RenterProfileScreen: React.FC = () => {
               onPress={handleLogout}
               showChevron={false}
               danger
+              haptic
             />
           </Card>
-        </View>
+        </Animated.View>
 
         {/* App Version */}
-        <Text style={styles.versionText}>ParkingPal v1.0.0</Text>
+        <Animated.View entering={FadeInDown.delay(600).duration(500).springify()}>
+          <Text style={styles.versionText}>ParkingPal v1.0.0</Text>
+        </Animated.View>
       </ScrollView>
     </SafeAreaView>
   );

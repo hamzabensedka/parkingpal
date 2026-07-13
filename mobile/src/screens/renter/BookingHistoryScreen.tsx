@@ -4,17 +4,18 @@ import {
   Text,
   StyleSheet,
   FlatList,
-  TouchableOpacity,
+  RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useBooking } from '../../contexts/BookingContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS, BOOKING_STATUS } from '../../utils/constants';
 import { formatBookingDateRange, formatCurrency } from '../../utils/formatting';
 import { Booking } from '../../types';
-import { Card, Badge, EmptyState } from '../../components/common';
+import { Card, Badge, EmptyState, AnimatedPressable } from '../../components/common';
 
 type TabType = 'upcoming' | 'active' | 'past';
 
@@ -23,6 +24,13 @@ const BookingHistoryScreen: React.FC = () => {
   const { colors, NEUTRAL_COLORS } = useTheme();
   const { upcomingBookings, activeBookings, pastBookings, isLoading } = useBooking();
   const [activeTab, setActiveTab] = useState<TabType>('upcoming');
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await new Promise(resolve => setTimeout(resolve, 800));
+    setRefreshing(false);
+  }, []);
 
   const getTabData = (): Booking[] => {
     switch (activeTab) {
@@ -125,27 +133,30 @@ const BookingHistoryScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
       {/* Tabs */}
-      <View style={styles.tabsContainer}>
-        {(['upcoming', 'active', 'past'] as TabType[]).map((tab) => (
-          <TouchableOpacity
-            key={tab}
-            style={[
-              styles.tab,
-              activeTab === tab && { borderBottomColor: colors.primary },
-            ]}
-            onPress={() => setActiveTab(tab)}
-          >
-            <Text
+      <Animated.View entering={FadeInDown.delay(0).duration(500).springify()}>
+        <View style={styles.tabsContainer}>
+          {(['upcoming', 'active', 'past'] as TabType[]).map((tab) => (
+            <AnimatedPressable
+              key={tab}
               style={[
-                styles.tabText,
-                activeTab === tab && { color: colors.primary, fontWeight: '600' },
+                styles.tab,
+                activeTab === tab && { borderBottomColor: colors.primary },
               ]}
+              onPress={() => setActiveTab(tab)}
+              haptic
             >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+              <Text
+                style={[
+                  styles.tabText,
+                  activeTab === tab && { color: colors.primary, fontWeight: '600' },
+                ]}
+              >
+                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              </Text>
+            </AnimatedPressable>
+          ))}
+        </View>
+      </Animated.View>
 
       {/* Bookings List */}
       <FlatList
@@ -154,6 +165,9 @@ const BookingHistoryScreen: React.FC = () => {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={renderEmptyState}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.primary} colors={[colors.primary]} />
+        }
         showsVerticalScrollIndicator={false}
       />
     </SafeAreaView>

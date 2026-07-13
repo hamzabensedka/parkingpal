@@ -3,10 +3,9 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
-  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as Haptics from 'expo-haptics';
@@ -14,7 +13,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { RENTER_COLORS, HOST_COLORS, NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS, SHADOWS } from '../../utils/constants';
 import { AuthStackParamList, UserType } from '../../types';
-import { Button } from '../../components/common';
+import { Button, AnimatedPressable } from '../../components/common';
 
 type UserTypeScreenNavigationProp = NativeStackNavigationProp<AuthStackParamList, 'UserType'>;
 
@@ -86,70 +85,74 @@ const UserTypeScreen: React.FC<UserTypeScreenProps> = ({ navigation }) => {
     }
   };
 
-  const renderOption = (option: UserTypeOption) => {
+  const renderOption = (option: UserTypeOption, index: number) => {
     const isSelected = selectedType === option.type;
     const borderColor = isSelected ? option.colors.primary : NEUTRAL_COLORS.lightGray;
     const backgroundColor = isSelected ? option.colors.lightest : NEUTRAL_COLORS.white;
 
     return (
-      <TouchableOpacity
+      <Animated.View
         key={option.type}
-        style={[
-          styles.optionCard,
-          {
-            borderColor,
-            backgroundColor,
-          },
-          isSelected && SHADOWS.medium,
-        ]}
-        onPress={() => handleSelectType(option.type)}
-        activeOpacity={0.9}
+        entering={FadeInDown.delay(200 + index * 100).duration(500).springify()}
       >
-        <View style={styles.optionHeader}>
-          <View
-            style={[
-              styles.iconContainer,
-              { backgroundColor: option.colors.light },
-            ]}
-          >
-            <Icon name={option.icon} size={32} color={option.colors.dark} />
-          </View>
-          <View style={styles.optionTitleContainer}>
-            <Text style={styles.optionTitle}>{option.title}</Text>
-            <Text style={styles.optionDescription}>{option.description}</Text>
-          </View>
-          <View
-            style={[
-              styles.radioOuter,
-              { borderColor: isSelected ? option.colors.primary : NEUTRAL_COLORS.gray },
-            ]}
-          >
-            {isSelected && (
-              <View
-                style={[
-                  styles.radioInner,
-                  { backgroundColor: option.colors.primary },
-                ]}
-              />
-            )}
-          </View>
-        </View>
-
-        {isSelected && (
-          <View style={styles.benefitsList}>
-            {option.benefits.map((benefit, index) => (
-              <View key={index} style={styles.benefitItem}>
-                <Icon
-                  name="check-circle"
-                  size={16}
-                  color={option.colors.primary}
+        <AnimatedPressable
+          style={[
+            styles.optionCard,
+            {
+              borderColor,
+              backgroundColor,
+            },
+            isSelected && SHADOWS.medium,
+          ]}
+          onPress={() => handleSelectType(option.type)}
+          haptic
+        >
+          <View style={styles.optionHeader}>
+            <View
+              style={[
+                styles.iconContainer,
+                { backgroundColor: option.colors.light },
+              ]}
+            >
+              <Icon name={option.icon} size={32} color={option.colors.dark} />
+            </View>
+            <View style={styles.optionTitleContainer}>
+              <Text style={styles.optionTitle}>{option.title}</Text>
+              <Text style={styles.optionDescription}>{option.description}</Text>
+            </View>
+            <View
+              style={[
+                styles.radioOuter,
+                { borderColor: isSelected ? option.colors.primary : NEUTRAL_COLORS.gray },
+              ]}
+            >
+              {isSelected && (
+                <View
+                  style={[
+                    styles.radioInner,
+                    { backgroundColor: option.colors.primary },
+                  ]}
                 />
-                <Text style={styles.benefitText}>{benefit}</Text>
-              </View>
-            ))}
+              )}
+            </View>
           </View>
-        )}
-      </TouchableOpacity>
+
+          {isSelected && (
+            <View style={styles.benefitsList}>
+              {option.benefits.map((benefit, benefitIndex) => (
+                <View key={benefitIndex} style={styles.benefitItem}>
+                  <Icon
+                    name="check-circle"
+                    size={16}
+                    color={option.colors.primary}
+                  />
+                  <Text style={styles.benefitText}>{benefit}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+        </AnimatedPressable>
+      </Animated.View>
     );
   };
 
@@ -157,44 +160,52 @@ const UserTypeScreen: React.FC<UserTypeScreenProps> = ({ navigation }) => {
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
         {/* Back Button */}
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Icon name="arrow-left" size={24} color={NEUTRAL_COLORS.black} />
-        </TouchableOpacity>
+        <Animated.View entering={FadeInDown.delay(0).duration(500).springify()}>
+          <AnimatedPressable
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Icon name="arrow-left" size={24} color={NEUTRAL_COLORS.black} />
+          </AnimatedPressable>
+        </Animated.View>
 
         {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>How will you use ParkingPal?</Text>
-          <Text style={styles.subtitle}>
-            Start as a renter and become a host when you list your first spot
-          </Text>
-        </View>
+        <Animated.View entering={FadeInDown.delay(100).duration(500).springify()}>
+          <View style={styles.header}>
+            <Text style={styles.title}>How will you use ParkingPal?</Text>
+            <Text style={styles.subtitle}>
+              Start as a renter and become a host when you list your first spot
+            </Text>
+          </View>
+        </Animated.View>
 
         {/* Options */}
         <View style={styles.options}>
-          {userTypeOptions.map(renderOption)}
+          {userTypeOptions.map((option, index) => renderOption(option, index))}
         </View>
 
         {/* Note about becoming a host */}
-        <View style={styles.noteContainer}>
-          <Icon name="information-outline" size={20} color={NEUTRAL_COLORS.gray} />
-          <Text style={styles.noteText}>
-            You can list your parking space anytime to become a host
-          </Text>
-        </View>
+        <Animated.View entering={FadeInDown.delay(400).duration(500).springify()}>
+          <View style={styles.noteContainer}>
+            <Icon name="information-outline" size={20} color={NEUTRAL_COLORS.gray} />
+            <Text style={styles.noteText}>
+              You can list your parking space anytime to become a host
+            </Text>
+          </View>
+        </Animated.View>
 
         {/* Continue Button */}
-        <View style={styles.footer}>
-          <Button
-            title="Continue"
-            onPress={handleContinue}
-            disabled={!selectedType}
-            loading={isLoading}
-            fullWidth
-          />
-        </View>
+        <Animated.View entering={FadeInUp.delay(500).duration(500).springify()}>
+          <View style={styles.footer}>
+            <Button
+              title="Continue"
+              onPress={handleContinue}
+              disabled={!selectedType}
+              loading={isLoading}
+              fullWidth
+            />
+          </View>
+        </Animated.View>
       </View>
     </SafeAreaView>
   );

@@ -4,15 +4,15 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
 } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme } from '../../contexts/ThemeContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS, SPOT_TYPES, VEHICLE_SIZES, AMENITIES } from '../../utils/constants';
 import { HostStackParamList, SpotType, VehicleSize } from '../../types';
-import { Button, Input, Card, Chip } from '../../components/common';
+import { Button, Input, Card, Chip, AnimatedPressable } from '../../components/common';
 
 type Props = NativeStackScreenProps<HostStackParamList, 'AddListingDetails'>;
 
@@ -115,13 +115,14 @@ const AddListingDetailsScreen = ({ navigation, route }: Props) => {
             {spotTypeOptions.map((option) => {
               const isSelected = spotType === option.type;
               return (
-                <TouchableOpacity
+                <AnimatedPressable
                   key={option.type}
                   style={[
                     styles.optionCard,
                     isSelected && { borderColor: colors.primary, backgroundColor: colors.lightest },
                   ]}
                   onPress={() => setSpotType(option.type)}
+                  haptic
                 >
                   <Icon
                     name={option.icon}
@@ -134,7 +135,7 @@ const AddListingDetailsScreen = ({ navigation, route }: Props) => {
                   ]}>
                     {option.label}
                   </Text>
-                </TouchableOpacity>
+                </AnimatedPressable>
               );
             })}
           </View>
@@ -147,13 +148,14 @@ const AddListingDetailsScreen = ({ navigation, route }: Props) => {
             {vehicleSizeOptions.map((option) => {
               const isSelected = vehicleSize === option.size;
               return (
-                <TouchableOpacity
+                <AnimatedPressable
                   key={option.size}
                   style={[
                     styles.vehicleSizeItem,
                     isSelected && { borderColor: colors.primary, backgroundColor: colors.lightest },
                   ]}
                   onPress={() => setVehicleSize(option.size)}
+                  haptic
                 >
                   <View style={[
                     styles.radioOuter,
@@ -172,7 +174,7 @@ const AddListingDetailsScreen = ({ navigation, route }: Props) => {
                     </Text>
                     <Text style={styles.vehicleSizeDesc}>{option.description}</Text>
                   </View>
-                </TouchableOpacity>
+                </AnimatedPressable>
               );
             })}
           </View>
@@ -182,21 +184,21 @@ const AddListingDetailsScreen = ({ navigation, route }: Props) => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Number of Parking Spots</Text>
           <View style={styles.numberPicker}>
-            <TouchableOpacity
+            <AnimatedPressable
               style={styles.numberButton}
               onPress={() => setNumberOfSpots(prev => Math.max(1, parseInt(prev, 10) - 1).toString())}
-              disabled={numberOfSpots === '1'}
+              haptic
             >
               <Icon name="minus" size={24} color={numberOfSpots === '1' ? NEUTRAL_COLORS.lightGray : colors.primary} />
-            </TouchableOpacity>
+            </AnimatedPressable>
             <Text style={styles.numberValue}>{numberOfSpots}</Text>
-            <TouchableOpacity
+            <AnimatedPressable
               style={styles.numberButton}
               onPress={() => setNumberOfSpots(prev => Math.min(10, parseInt(prev, 10) + 1).toString())}
-              disabled={numberOfSpots === '10'}
+              haptic
             >
               <Icon name="plus" size={24} color={numberOfSpots === '10' ? NEUTRAL_COLORS.lightGray : colors.primary} />
-            </TouchableOpacity>
+            </AnimatedPressable>
           </View>
         </View>
 
@@ -208,13 +210,14 @@ const AddListingDetailsScreen = ({ navigation, route }: Props) => {
             {amenityOptions.map((amenity) => {
               const isSelected = selectedAmenities.includes(amenity.id);
               return (
-                <TouchableOpacity
+                <AnimatedPressable
                   key={amenity.id}
                   style={[
                     styles.amenityItem,
                     isSelected && { borderColor: colors.primary, backgroundColor: colors.lightest },
                   ]}
                   onPress={() => toggleAmenity(amenity.id)}
+                  haptic
                 >
                   <Icon
                     name={amenity.icon}
@@ -230,7 +233,7 @@ const AddListingDetailsScreen = ({ navigation, route }: Props) => {
                   {isSelected && (
                     <Icon name="check-circle" size={16} color={colors.primary} style={styles.amenityCheck} />
                   )}
-                </TouchableOpacity>
+                </AnimatedPressable>
               );
             })}
           </View>

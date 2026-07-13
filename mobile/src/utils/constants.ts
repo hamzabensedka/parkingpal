@@ -130,6 +130,37 @@ export const ANIMATION = {
   slow: 500,
 } as const;
 
+// Animation Spring Presets (for react-native-reanimated)
+export const ANIMATION_SPRING = {
+  gentle: { damping: 15, stiffness: 150 },
+  snappy: { damping: 12, stiffness: 200 },
+  bouncy: { damping: 8, stiffness: 120 },
+  default: { damping: 10, stiffness: 100 },
+} as const;
+
+// Font Weight Map
+export const FONT_WEIGHT = {
+  regular: '400' as const,
+  medium: '500' as const,
+  semiBold: '600' as const,
+  bold: '700' as const,
+  extraBold: '800' as const,
+};
+
+// Text Style Presets (Airbnb-style)
+export const TEXT_STYLES = {
+  heroTitle: { fontSize: 32, fontWeight: '700' as const, lineHeight: 38 },
+  screenTitle: { fontSize: 28, fontWeight: '800' as const, lineHeight: 34 },
+  sectionTitle: { fontSize: 18, fontWeight: '600' as const, lineHeight: 24 },
+  body: { fontSize: 16, fontWeight: '400' as const, lineHeight: 24 },
+  bodyBold: { fontSize: 16, fontWeight: '600' as const, lineHeight: 24 },
+  caption: { fontSize: 14, fontWeight: '400' as const, lineHeight: 20 },
+  captionBold: { fontSize: 14, fontWeight: '600' as const, lineHeight: 20 },
+  label: { fontSize: 12, fontWeight: '500' as const, lineHeight: 16 },
+  price: { fontSize: 20, fontWeight: '700' as const, lineHeight: 26 },
+  menuItem: { fontSize: 16, fontWeight: '400' as const, lineHeight: 22 },
+} as const;
+
 // Map Constants (Toulouse)
 export const MAP_DEFAULTS = {
   center: [1.4442, 43.6047] as [number, number], // [lng, lat] GeoJSON order

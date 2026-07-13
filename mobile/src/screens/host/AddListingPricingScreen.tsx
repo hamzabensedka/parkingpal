@@ -4,8 +4,8 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
 } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -13,7 +13,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { useError } from '../../contexts/ErrorContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
 import { HostStackParamList } from '../../types';
-import { Button, Input, Card } from '../../components/common';
+import { Button, Input, Card, AnimatedPressable } from '../../components/common';
 
 type Props = NativeStackScreenProps<HostStackParamList, 'AddListingPricing'>;
 
@@ -88,22 +88,25 @@ const AddListingPricingScreen = ({ navigation, route }: Props) => {
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         {/* Pricing Info */}
-        <View style={styles.infoSection}>
-          <Text style={styles.title}>Set Your Pricing</Text>
-          <Text style={styles.subtitle}>
-            Competitive pricing helps you get more bookings. You can adjust prices anytime.
-          </Text>
-        </View>
+        <Animated.View entering={FadeInDown.delay(0).duration(500).springify()}>
+          <View style={styles.infoSection}>
+            <Text style={styles.title}>Set Your Pricing</Text>
+            <Text style={styles.subtitle}>
+              Competitive pricing helps you get more bookings. You can adjust prices anytime.
+            </Text>
+          </View>
+        </Animated.View>
 
         {/* Hourly Rate */}
+        <Animated.View entering={FadeInDown.delay(100).duration(500).springify()}>
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Hourly Rate (Required)</Text>
-            <TouchableOpacity onPress={() => handleApplySuggested('hourly')}>
+            <AnimatedPressable haptic onPress={() => handleApplySuggested('hourly')}>
               <Text style={[styles.suggestedLink, { color: colors.primary }]}>
                 Use Suggested €{suggestedPrices.hourly.suggested}
               </Text>
-            </TouchableOpacity>
+            </AnimatedPressable>
           </View>
           <View style={styles.priceInputRow}>
             <Text style={styles.currencySymbol}>€</Text>
@@ -128,16 +131,17 @@ const AddListingPricingScreen = ({ navigation, route }: Props) => {
             Similar spots: €{suggestedPrices.hourly.min} - €{suggestedPrices.hourly.max}/hour
           </Text>
         </View>
+        </Animated.View>
 
         {/* Daily Rate */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Daily Rate (Optional)</Text>
-            <TouchableOpacity onPress={() => handleApplySuggested('daily')}>
+            <AnimatedPressable haptic onPress={() => handleApplySuggested('daily')}>
               <Text style={[styles.suggestedLink, { color: colors.primary }]}>
                 Use Suggested €{suggestedPrices.daily.suggested}
               </Text>
-            </TouchableOpacity>
+            </AnimatedPressable>
           </View>
           <View style={styles.priceInputRow}>
             <Text style={styles.currencySymbol}>€</Text>
@@ -159,11 +163,11 @@ const AddListingPricingScreen = ({ navigation, route }: Props) => {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Weekly Rate (Optional)</Text>
-            <TouchableOpacity onPress={() => handleApplySuggested('weekly')}>
+            <AnimatedPressable haptic onPress={() => handleApplySuggested('weekly')}>
               <Text style={[styles.suggestedLink, { color: colors.primary }]}>
                 Use Suggested €{suggestedPrices.weekly.suggested}
               </Text>
-            </TouchableOpacity>
+            </AnimatedPressable>
           </View>
           <View style={styles.priceInputRow}>
             <Text style={styles.currencySymbol}>€</Text>
@@ -182,11 +186,11 @@ const AddListingPricingScreen = ({ navigation, route }: Props) => {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Monthly Rate (Optional)</Text>
-            <TouchableOpacity onPress={() => handleApplySuggested('monthly')}>
+            <AnimatedPressable haptic onPress={() => handleApplySuggested('monthly')}>
               <Text style={[styles.suggestedLink, { color: colors.primary }]}>
                 Use Suggested €{suggestedPrices.monthly.suggested}
               </Text>
-            </TouchableOpacity>
+            </AnimatedPressable>
           </View>
           <View style={styles.priceInputRow}>
             <Text style={styles.currencySymbol}>€</Text>
@@ -202,11 +206,13 @@ const AddListingPricingScreen = ({ navigation, route }: Props) => {
         </View>
 
         {/* Booking Options */}
+        <Animated.View entering={FadeInDown.delay(200).duration(500).springify()}>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Booking Options</Text>
 
           {/* Instant Book Toggle */}
-          <TouchableOpacity
+          <AnimatedPressable
+            haptic
             style={styles.toggleRow}
             onPress={() => setIsInstantBook(!isInstantBook)}
           >
@@ -228,14 +234,15 @@ const AddListingPricingScreen = ({ navigation, route }: Props) => {
                 isInstantBook && styles.toggleKnobActive,
               ]} />
             </View>
-          </TouchableOpacity>
+          </AnimatedPressable>
 
           {/* Minimum Booking */}
           <View style={styles.minimumBookingRow}>
             <Text style={styles.minimumLabel}>Minimum Booking Duration</Text>
             <View style={styles.minimumPicker}>
               {['1', '2', '3', '4'].map((hours) => (
-                <TouchableOpacity
+                <AnimatedPressable
+                  haptic
                   key={hours}
                   style={[
                     styles.minimumOption,
@@ -252,13 +259,15 @@ const AddListingPricingScreen = ({ navigation, route }: Props) => {
                   ]}>
                     {hours}h
                   </Text>
-                </TouchableOpacity>
+                </AnimatedPressable>
               ))}
             </View>
           </View>
         </View>
+        </Animated.View>
 
         {/* Earnings Estimate */}
+        <Animated.View entering={FadeInDown.delay(300).duration(500).springify()}>
         <Card style={[styles.estimateCard, { backgroundColor: colors.lightest }]}>
           <Icon name="chart-line" size={24} color={colors.primary} />
           <View style={styles.estimateContent}>
@@ -273,6 +282,7 @@ const AddListingPricingScreen = ({ navigation, route }: Props) => {
             </Text>
           </View>
         </Card>
+        </Animated.View>
 
         {/* Fee Info */}
         <View style={styles.feeInfo}>

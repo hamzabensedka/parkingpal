@@ -4,18 +4,18 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useBooking } from '../../contexts/BookingContext';
 import { useError } from '../../contexts/ErrorContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
 import { RenterStackParamList } from '../../types';
-import { Button, Card, Input } from '../../components/common';
+import { Button, Card, Input, AnimatedPressable } from '../../components/common';
 import { format, differenceInHours } from 'date-fns';
 
 type Props = NativeStackScreenProps<RenterStackParamList, 'CancelBooking'>;
@@ -112,154 +112,165 @@ const CancelBookingScreen = ({ navigation, route }: Props) => {
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Warning Banner */}
-        <View style={[styles.warningBanner, {
-          backgroundColor: isFreeCancellation ? colors.lightest : NEUTRAL_COLORS.lightGray
-        }]}>
-          <Icon
-            name={isFreeCancellation ? 'check-circle' : 'alert'}
-            size={24}
-            color={isFreeCancellation ? colors.primary : NEUTRAL_COLORS.darkGray}
-          />
-          <View style={styles.warningContent}>
-            <Text style={[styles.warningTitle, {
-              color: isFreeCancellation ? colors.dark : NEUTRAL_COLORS.darkGray
-            }]}>
-              {isFreeCancellation ? 'Free Cancellation' : 'Partial Refund'}
-            </Text>
-            <Text style={[styles.warningText, {
-              color: isFreeCancellation ? colors.primary : NEUTRAL_COLORS.black
-            }]}>
-              {isFreeCancellation
-                ? 'You can cancel for free up to 24 hours before your booking.'
-                : `Cancelling now will result in a ${refundPercentage}% refund.`}
-            </Text>
+        <Animated.View entering={FadeInDown.delay(0).duration(500).springify()}>
+          <View style={[styles.warningBanner, {
+            backgroundColor: isFreeCancellation ? colors.lightest : NEUTRAL_COLORS.lightGray
+          }]}>
+            <Icon
+              name={isFreeCancellation ? 'check-circle' : 'alert'}
+              size={24}
+              color={isFreeCancellation ? colors.primary : NEUTRAL_COLORS.darkGray}
+            />
+            <View style={styles.warningContent}>
+              <Text style={[styles.warningTitle, {
+                color: isFreeCancellation ? colors.dark : NEUTRAL_COLORS.darkGray
+              }]}>
+                {isFreeCancellation ? 'Free Cancellation' : 'Partial Refund'}
+              </Text>
+              <Text style={[styles.warningText, {
+                color: isFreeCancellation ? colors.primary : NEUTRAL_COLORS.black
+              }]}>
+                {isFreeCancellation
+                  ? 'You can cancel for free up to 24 hours before your booking.'
+                  : `Cancelling now will result in a ${refundPercentage}% refund.`}
+              </Text>
+            </View>
           </View>
-        </View>
+        </Animated.View>
 
         {/* Booking Summary */}
-        <Card style={styles.summaryCard}>
-          <Text style={styles.cardTitle}>Booking Details</Text>
+        <Animated.View entering={FadeInDown.delay(100).duration(500).springify()}>
+          <Card style={styles.summaryCard}>
+            <Text style={styles.cardTitle}>Booking Details</Text>
 
-          <View style={styles.detailRow}>
-            <Icon name="map-marker" size={20} color={colors.primary} />
-            <Text style={styles.detailText}>{booking.spot?.title}</Text>
-          </View>
+            <View style={styles.detailRow}>
+              <Icon name="map-marker" size={20} color={colors.primary} />
+              <Text style={styles.detailText}>{booking.spot?.title}</Text>
+            </View>
 
-          <View style={styles.detailRow}>
-            <Icon name="calendar" size={20} color={colors.primary} />
-            <Text style={styles.detailText}>
-              {format(startDate, 'EEEE, MMMM d, yyyy')}
-            </Text>
-          </View>
+            <View style={styles.detailRow}>
+              <Icon name="calendar" size={20} color={colors.primary} />
+              <Text style={styles.detailText}>
+                {format(startDate, 'EEEE, MMMM d, yyyy')}
+              </Text>
+            </View>
 
-          <View style={styles.detailRow}>
-            <Icon name="clock-outline" size={20} color={colors.primary} />
-            <Text style={styles.detailText}>
-              {format(startDate, 'HH:mm')} - {format(new Date(booking.endTime), 'HH:mm')}
-            </Text>
-          </View>
+            <View style={styles.detailRow}>
+              <Icon name="clock-outline" size={20} color={colors.primary} />
+              <Text style={styles.detailText}>
+                {format(startDate, 'HH:mm')} - {format(new Date(booking.endTime), 'HH:mm')}
+              </Text>
+            </View>
 
-          <View style={styles.divider} />
+            <View style={styles.divider} />
 
-          <View style={styles.priceRow}>
-            <Text style={styles.priceLabel}>Original Amount</Text>
-            <Text style={styles.priceValue}>€{booking.pricing.total.toFixed(2)}</Text>
-          </View>
+            <View style={styles.priceRow}>
+              <Text style={styles.priceLabel}>Original Amount</Text>
+              <Text style={styles.priceValue}>€{booking.pricing.total.toFixed(2)}</Text>
+            </View>
 
-          <View style={styles.priceRow}>
-            <Text style={styles.priceLabel}>Refund ({refundPercentage}%)</Text>
-            <Text style={[styles.priceValue, { color: '#22c55e' }]}>
-              €{refundAmount.toFixed(2)}
-            </Text>
-          </View>
-        </Card>
+            <View style={styles.priceRow}>
+              <Text style={styles.priceLabel}>Refund ({refundPercentage}%)</Text>
+              <Text style={[styles.priceValue, { color: '#22c55e' }]}>
+                €{refundAmount.toFixed(2)}
+              </Text>
+            </View>
+          </Card>
+        </Animated.View>
 
         {/* Cancellation Reason */}
-        <Card style={styles.reasonCard}>
-          <Text style={styles.cardTitle}>Reason for Cancellation</Text>
-          <Text style={styles.reasonSubtitle}>
-            Please let us know why you're cancelling
-          </Text>
+        <Animated.View entering={FadeInDown.delay(200).duration(500).springify()}>
+          <Card style={styles.reasonCard}>
+            <Text style={styles.cardTitle}>Reason for Cancellation</Text>
+            <Text style={styles.reasonSubtitle}>
+              Please let us know why you're cancelling
+            </Text>
 
-          <View style={styles.reasonsList}>
-            {CANCELLATION_REASONS.map((reason) => {
-              const isSelected = selectedReason === reason.value;
+            <View style={styles.reasonsList}>
+              {CANCELLATION_REASONS.map((reason) => {
+                const isSelected = selectedReason === reason.value;
 
-              return (
-                <TouchableOpacity
-                  key={reason.value}
-                  style={[
-                    styles.reasonItem,
-                    isSelected && { borderColor: colors.primary, backgroundColor: colors.lightest },
-                  ]}
-                  onPress={() => setSelectedReason(reason.value)}
-                >
-                  <View style={[
-                    styles.radioOuter,
-                    isSelected && { borderColor: colors.primary },
-                  ]}>
-                    {isSelected && (
-                      <View style={[styles.radioInner, { backgroundColor: colors.primary }]} />
-                    )}
-                  </View>
-                  <Text style={[
-                    styles.reasonText,
-                    isSelected && { color: colors.primary, fontWeight: '600' },
-                  ]}>
-                    {reason.label}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
+                return (
+                  <AnimatedPressable
+                    key={reason.value}
+                    style={[
+                      styles.reasonItem,
+                      isSelected && { borderColor: colors.primary, backgroundColor: colors.lightest },
+                    ]}
+                    onPress={() => setSelectedReason(reason.value)}
+                    haptic
+                  >
+                    <View style={[
+                      styles.radioOuter,
+                      isSelected && { borderColor: colors.primary },
+                    ]}>
+                      {isSelected && (
+                        <View style={[styles.radioInner, { backgroundColor: colors.primary }]} />
+                      )}
+                    </View>
+                    <Text style={[
+                      styles.reasonText,
+                      isSelected && { color: colors.primary, fontWeight: '600' },
+                    ]}>
+                      {reason.label}
+                    </Text>
+                  </AnimatedPressable>
+                );
+              })}
+            </View>
 
-          {selectedReason === 'other' && (
-            <Input
-              value={additionalNotes}
-              onChangeText={setAdditionalNotes}
-              placeholder="Please describe your reason..."
-              multiline
-              numberOfLines={4}
-              containerStyle={styles.notesInput}
-            />
-          )}
-        </Card>
+            {selectedReason === 'other' && (
+              <Input
+                value={additionalNotes}
+                onChangeText={setAdditionalNotes}
+                placeholder="Please describe your reason..."
+                multiline
+                numberOfLines={4}
+                containerStyle={styles.notesInput}
+              />
+            )}
+          </Card>
+        </Animated.View>
 
         {/* Cancellation Policy */}
-        <Card style={styles.policyCard}>
-          <Text style={styles.cardTitle}>Cancellation Policy</Text>
-          <View style={styles.policyItem}>
-            <Icon name="check-circle" size={16} color={NEUTRAL_COLORS.darkGray} />
-            <Text style={styles.policyText}>Free cancellation up to 24 hours before booking</Text>
-          </View>
-          <View style={styles.policyItem}>
-            <Icon name="alert-circle" size={16} color={NEUTRAL_COLORS.darkGray} />
-            <Text style={styles.policyText}>50% refund if cancelled 1-24 hours before</Text>
-          </View>
-          <View style={styles.policyItem}>
-            <Icon name="close-circle" size={16} color={NEUTRAL_COLORS.darkGray} />
-            <Text style={styles.policyText}>No refund for cancellations less than 1 hour before</Text>
-          </View>
-        </Card>
+        <Animated.View entering={FadeInDown.delay(300).duration(500).springify()}>
+          <Card style={styles.policyCard}>
+            <Text style={styles.cardTitle}>Cancellation Policy</Text>
+            <View style={styles.policyItem}>
+              <Icon name="check-circle" size={16} color={NEUTRAL_COLORS.darkGray} />
+              <Text style={styles.policyText}>Free cancellation up to 24 hours before booking</Text>
+            </View>
+            <View style={styles.policyItem}>
+              <Icon name="alert-circle" size={16} color={NEUTRAL_COLORS.darkGray} />
+              <Text style={styles.policyText}>50% refund if cancelled 1-24 hours before</Text>
+            </View>
+            <View style={styles.policyItem}>
+              <Icon name="close-circle" size={16} color={NEUTRAL_COLORS.darkGray} />
+              <Text style={styles.policyText}>No refund for cancellations less than 1 hour before</Text>
+            </View>
+          </Card>
+        </Animated.View>
       </ScrollView>
 
       {/* Cancel Button */}
-      <View style={styles.footer}>
-        <Button
-          title="Keep My Booking"
-          onPress={() => navigation.goBack()}
-          variant="outline"
-          style={styles.keepButton}
-        />
-        <Button
-          title="Cancel Booking"
-          onPress={handleCancel}
-          variant="danger"
-          loading={isLoading}
-          disabled={!selectedReason}
-          style={styles.cancelButton}
-        />
-      </View>
+      <Animated.View entering={FadeInUp.delay(400).duration(500).springify()}>
+        <View style={styles.footer}>
+          <Button
+            title="Keep My Booking"
+            onPress={() => navigation.goBack()}
+            variant="outline"
+            style={styles.keepButton}
+          />
+          <Button
+            title="Cancel Booking"
+            onPress={handleCancel}
+            variant="danger"
+            loading={isLoading}
+            disabled={!selectedReason}
+            style={styles.cancelButton}
+          />
+        </View>
+      </Animated.View>
     </SafeAreaView>
   );
 };

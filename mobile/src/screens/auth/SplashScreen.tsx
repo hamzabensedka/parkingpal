@@ -3,15 +3,21 @@ import {
   View,
   Text,
   StyleSheet,
-  Animated,
-  Easing,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withDelay,
+  withTiming,
+} from 'react-native-reanimated';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useAuth } from '../../contexts/AuthContext';
 import { RENTER_COLORS, TYPOGRAPHY, SPACING } from '../../utils/constants';
+import { SPRING } from '../../utils/animations';
 import { AuthStackParamList } from '../../types';
+import LottieAnimation from '../../components/common/LottieAnimation';
 
 type SplashScreenNavigationProp = NativeStackNavigationProp<AuthStackParamList, 'Splash'>;
 
@@ -21,55 +27,54 @@ interface SplashScreenProps {
 
 const SplashScreen: React.FC<SplashScreenProps> = ({ navigation }) => {
   const { isAuthenticated, isOnboardingComplete, isLoading } = useAuth();
-  const logoScale = new Animated.Value(0.5);
-  const logoOpacity = new Animated.Value(0);
-  const textOpacity = new Animated.Value(0);
+
+  const logoScale = useSharedValue(0.3);
+  const logoOpacity = useSharedValue(0);
+  const textOpacity = useSharedValue(0);
+  const textTranslateY = useSharedValue(20);
+  const loaderOpacity = useSharedValue(0);
 
   useEffect(() => {
-    // Animate logo
-    Animated.parallel([
-      Animated.timing(logoScale, {
-        toValue: 1,
-        duration: 800,
-        easing: Easing.out(Easing.back(1.5)),
-        useNativeDriver: true,
-      }),
-      Animated.timing(logoOpacity, {
-        toValue: 1,
-        duration: 600,
-        useNativeDriver: true,
-      }),
-    ]).start();
+    // Logo bounces in
+    logoScale.value = withSpring(1, SPRING.bouncy);
+    logoOpacity.value = withTiming(1, { duration: 500 });
 
-    // Animate text with delay
-    setTimeout(() => {
-      Animated.timing(textOpacity, {
-        toValue: 1,
-        duration: 500,
-        useNativeDriver: true,
-      }).start();
-    }, 400);
+    // Text slides up with delay
+    textOpacity.value = withDelay(500, withTiming(1, { duration: 400 }));
+    textTranslateY.value = withDelay(500, withSpring(0, SPRING.gentle));
+
+    // Loader fades in
+    loaderOpacity.value = withDelay(800, withTiming(1, { duration: 300 }));
   }, []);
 
   useEffect(() => {
     if (!isLoading) {
-      // Navigate after splash animation
       const timer = setTimeout(() => {
         if (isAuthenticated) {
-          // User is logged in, navigate to main app
-          // This will be handled by AppNavigator
+          // Handled by AppNavigator
         } else if (isOnboardingComplete) {
-          // User has seen onboarding, go to login
           navigation.replace('Login');
         } else {
-          // First time user, show onboarding
           navigation.replace('Onboarding');
         }
       }, 2000);
-
       return () => clearTimeout(timer);
     }
   }, [isLoading, isAuthenticated, isOnboardingComplete, navigation]);
+
+  const logoAnimStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: logoScale.value }],
+    opacity: logoOpacity.value,
+  }));
+
+  const textAnimStyle = useAnimatedStyle(() => ({
+    opacity: textOpacity.value,
+    transform: [{ translateY: textTranslateY.value }],
+  }));
+
+  const loaderAnimStyle = useAnimatedStyle(() => ({
+    opacity: loaderOpacity.value,
+  }));
 
   return (
     <LinearGradient
@@ -79,32 +84,20 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ navigation }) => {
       end={{ x: 1, y: 1 }}
     >
       <View style={styles.content}>
-        <Animated.View
-          style={[
-            styles.logoContainer,
-            {
-              transform: [{ scale: logoScale }],
-              opacity: logoOpacity,
-            },
-          ]}
-        >
+        <Animated.View style={[styles.logoContainer, logoAnimStyle]}>
           <View style={styles.logoCircle}>
-            <Icon name="parking" size={64} color={RENTER_COLORS.primary} />
+            <LottieAnimation name="splash-parking" size={80} autoPlay loop={false} />
           </View>
         </Animated.View>
 
-        <Animated.View style={{ opacity: textOpacity }}>
+        <Animated.View style={textAnimStyle}>
           <Text style={styles.title}>ParkingPal</Text>
           <Text style={styles.subtitle}>Find your spot, anywhere</Text>
         </Animated.View>
       </View>
 
-      <Animated.View style={[styles.footer, { opacity: textOpacity }]}>
-        <View style={styles.loadingDots}>
-          <View style={styles.dot} />
-          <View style={[styles.dot, styles.dotMiddle]} />
-          <View style={styles.dot} />
-        </View>
+      <Animated.View style={[styles.footer, loaderAnimStyle]}>
+        <LottieAnimation name="loading-spinner" size={40} loop autoPlay />
       </Animated.View>
     </LinearGradient>
   );
@@ -150,21 +143,6 @@ const styles = StyleSheet.create({
   footer: {
     paddingBottom: SPACING['3xl'],
     alignItems: 'center',
-  },
-  loadingDots: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
-    marginHorizontal: 4,
-  },
-  dotMiddle: {
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    transform: [{ scale: 1.2 }],
   },
 });
 

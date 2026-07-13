@@ -5,18 +5,18 @@ import {
   StyleSheet,
   ScrollView,
   TextInput,
-  TouchableOpacity,
   ActivityIndicator,
   Alert,
   Switch,
 } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useError } from '../../contexts/ErrorContext';
 import { NEUTRAL_COLORS, TYPOGRAPHY, SPACING, RADIUS } from '../../utils/constants';
-import { Card, Button } from '../../components/common';
+import { Card, Button, AnimatedPressable } from '../../components/common';
 import { spotApi } from '../../services/api';
 import type { SpotDTO, UpdateSpotRequest } from '@parkingpal/shared-types';
 
@@ -149,6 +149,7 @@ const EditListingScreen: React.FC = () => {
         showsVerticalScrollIndicator={false}
       >
         {/* Basic Information */}
+        <Animated.View entering={FadeInDown.delay(0).duration(500).springify()}>
         <Card style={styles.section}>
           <View style={styles.sectionHeader}>
             <Icon name="information-outline" size={20} color={colors.primary} />
@@ -176,8 +177,10 @@ const EditListingScreen: React.FC = () => {
             textAlignVertical="top"
           />
         </Card>
+        </Animated.View>
 
         {/* Pricing */}
+        <Animated.View entering={FadeInDown.delay(100).duration(500).springify()}>
         <Card style={styles.section}>
           <View style={styles.sectionHeader}>
             <Icon name="cash" size={20} color={colors.primary} />
@@ -236,8 +239,10 @@ const EditListingScreen: React.FC = () => {
             </View>
           </View>
         </Card>
+        </Animated.View>
 
         {/* Access & Location */}
+        <Animated.View entering={FadeInDown.delay(200).duration(500).springify()}>
         <Card style={styles.section}>
           <View style={styles.sectionHeader}>
             <Icon name="map-marker" size={20} color={colors.primary} />
@@ -265,8 +270,10 @@ const EditListingScreen: React.FC = () => {
             placeholderTextColor={NEUTRAL_COLORS.gray}
           />
         </Card>
+        </Animated.View>
 
         {/* Rules & Policies */}
+        <Animated.View entering={FadeInDown.delay(300).duration(500).springify()}>
         <Card style={styles.section}>
           <View style={styles.sectionHeader}>
             <Icon name="clipboard-list" size={20} color={colors.primary} />
@@ -298,6 +305,7 @@ const EditListingScreen: React.FC = () => {
             />
           </View>
         </Card>
+        </Animated.View>
 
         {/* Info Note */}
         <View style={styles.infoBox}>

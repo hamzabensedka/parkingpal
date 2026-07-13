@@ -1,13 +1,12 @@
 import React from 'react';
 import {
   View,
-  TouchableOpacity,
   StyleSheet,
   ViewStyle,
   StyleProp,
 } from 'react-native';
-import { useTheme } from '../../contexts/ThemeContext';
 import { SPACING, RADIUS, SHADOWS, BORDER_WIDTH, NEUTRAL_COLORS } from '../../utils/constants';
+import AnimatedPressable from './AnimatedPressable';
 
 type ElevationType = 'none' | 'small' | 'medium' | 'large';
 
@@ -31,25 +30,17 @@ const Card: React.FC<CardProps> = ({
 
   const getShadow = (): ViewStyle => {
     switch (elevation) {
-      case 'none':
-        return {};
-      case 'small':
-        return SHADOWS.small;
-      case 'medium':
-        return SHADOWS.medium;
-      case 'large':
-        return SHADOWS.large;
-      default:
-        return SHADOWS.small;
+      case 'none': return {};
+      case 'small': return SHADOWS.small;
+      case 'medium': return SHADOWS.medium;
+      case 'large': return SHADOWS.large;
+      default: return SHADOWS.small;
     }
   };
 
   const cardStyles: ViewStyle[] = [
     styles.card,
-    {
-      backgroundColor: NEUTRAL_COLORS.white,
-      borderColor: noBorder ? 'transparent' : NEUTRAL_COLORS.lightGray,
-    },
+    { backgroundColor: NEUTRAL_COLORS.white, borderColor: noBorder ? 'transparent' : NEUTRAL_COLORS.lightGray },
     getShadow(),
     padding ? styles.padding : undefined,
     style as ViewStyle,
@@ -57,13 +48,9 @@ const Card: React.FC<CardProps> = ({
 
   if (onPress) {
     return (
-      <TouchableOpacity
-        style={cardStyles}
-        onPress={onPress}
-        activeOpacity={0.9}
-      >
+      <AnimatedPressable onPress={onPress} style={cardStyles} scaleTo={0.98}>
         {children}
-      </TouchableOpacity>
+      </AnimatedPressable>
     );
   }
 

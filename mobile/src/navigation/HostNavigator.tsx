@@ -10,6 +10,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { NEUTRAL_COLORS } from '../utils/constants';
 import { useNotifications } from '../contexts/NotificationContext';
 import { HostTabParamList, HostStackParamList } from '../types';
+import CustomTabBar from '../components/navigation/CustomTabBar';
 
 // Host screens
 import HostDashboardScreen from '../screens/host/HostDashboardScreen';
@@ -187,6 +188,7 @@ const HostNavigator: React.FC = () => {
       style={{ flex: 1, backgroundColor: NEUTRAL_COLORS.white }}
     >
       <Tab.Navigator
+        tabBar={(props) => <CustomTabBar {...props} />}
         screenOptions={({ route }) => ({
           headerShown: false,
           tabBarActiveTintColor: theme.colors.primary,
